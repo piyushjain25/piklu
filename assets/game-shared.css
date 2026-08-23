@@ -1,0 +1,10 @@
+/* Shared "back to all games" link used inside each individual game page. */
+.game-back{
+  position:relative; z-index:1; display:inline-flex; align-items:center; gap:6px;
+  font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px;
+  color:var(--ink-soft); text-decoration:none; margin-bottom:14px;
+  padding:4px 2px; border-radius:8px; transition:color .15s ease, transform .1s ease;
+}
+.game-back:hover{ color:var(--grape); }
+.game-back:active{ transform:translateX(-2px); }
+.game-back:focus-visible{ outline:3px solid var(--grape); outline-offset:3px; }
