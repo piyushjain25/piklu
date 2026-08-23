@@ -61,19 +61,50 @@ The card, its link, and the search filter appear automatically.
   Palette: grape `#6C4AB6`, coral `#FF6B7A`, leaf `#2FB37D`, sun `#FFCF43` /
   `#e6a800`, sky `#3FA7E0`, ink `#33236B`; sky→green background with floating clouds.
   Reuse the **owl mascot** SVG with mood states (idle / happy / worried / win / think).
-- **Structure:** home screen with 4 difficulty cards (`EASY`, `MEDIUM`, `HARD`,
-  `EXPERT`, each meaningfully different) → game screen → inline result. Footer has
-  🏠 Home, a New/Skip button, and a hidden Next button.
-- **New games are endless and score-free** (no points/lives). Reward with stars,
-  streaks 🔥, confetti, and sounds instead. (Two of the original games have scoring;
-  leave those as they are unless asked.)
+- **Four difficulty levels** — `EASY`, `MEDIUM`, `HARD`, `EXPERT` — each meaningfully
+  different.
+- **Endless and score-free.** No points, no lives, and **no per-game streak** (a single
+  combined streak across all games will be added at the site level later — do not add a
+  🔥 streak inside a game). Reward with stars, confetti, and sounds.
 - **Feel:** juicy and encouraging — meters, star ratings, confetti canvas, gentle
-  WebAudio beeps. Hints are a subtle text link, never a big button.
+  WebAudio beeps.
 - **Accessibility:** respect `prefers-reduced-motion` (guard all animation/sound),
   support keyboard where sensible, keep good colour contrast, use `aria-pressed` on the
   difficulty cards. Never rely on colour alone to signal correctness (avoid answer
-  "tells").
+  "tells" — e.g. the submit button must look the same whether the current answer is
+  right or wrong).
 - Don't use `localStorage`/`sessionStorage` unless asked; keep state in memory.
+
+## Standard layout & controls (REQUIRED — match `games/pizza-party/index.html`)
+
+`games/pizza-party/index.html` is the reference implementation. Every game must use this
+exact control scheme:
+
+- **Top bar** (a single flex row): **Home** on the left, the owl mascot + a **level
+  chip** in the centre, and **Skip** on the right.
+- **Home, Skip, Next, Reset, Hint are text links, not buttons** — a shared `.tlink`
+  style (emoji + word, no underline, not `.btn`). `Home` returns to this game's own
+  start/level-select screen. `Skip` serves a **fresh puzzle that differs from the current
+  one** (guard the regeneration so tiny pools don't loop). Skip and Next both count as
+  "not solved" (no reward).
+- **Under the game component:** **Reset** and **Hint** sit **next to each other** in one
+  row (both `.tlink`). `Reset` restarts the *current* puzzle (keeps it, wipes the
+  player's work). For pure multiple-choice games with nothing to reset
+  (number-detective, times-table-pop, what-comes-next) omit Reset and show only Hint.
+- **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
+  the **last component at the bottom**, in its own bottom slot.
+- **On a correct answer, replace the primary button *in place* with a `Next ▶` button**
+  in that same bottom slot (Next here is a real `.btn`, not a link), hide Skip, and show
+  the result message just above it — so Next appears exactly where the player's eye/finger
+  already is. `Next` loads a fresh, different puzzle and restores the play state.
+- **No bottom footer** — Home/Skip live in the top bar; Reset/Hint under the game; the
+  primary button (→ Next) at the bottom.
+- **Level chip is a switcher:** tapping it opens a small dropdown built from the game's
+  `LEVELS`, listing all levels with the current one marked. Picking a different level
+  switches difficulty, starts a fresh puzzle at that level **while staying in the game**,
+  and closes the menu. Close the menu on **Escape** or an outside click.
+- **Start screen only:** a subtle **`← All games`** link at the top-left that points to
+  `../` (the games hub). It must appear only on the start screen, never during play.
 
 ## Quality bar (how games are verified)
 
