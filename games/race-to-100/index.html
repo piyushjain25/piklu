@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="../../assets/game-shared.css" />
 <style>
   :root{
     --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
@@ -74,10 +73,25 @@
   .mt{margin-top:22px;}
   .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
 
-  .qtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+  .home-top{display:flex; margin-bottom:4px;}
+  .hub-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:none; opacity:.8;}
+  .hub-link:hover{opacity:1; text-decoration:underline;}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:22px;}
+  .topbar .tb-center{display:flex; align-items:center; gap:8px; min-width:0;}
+  .topbar .tb-right{display:flex; align-items:center; gap:8px;}
   .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape);
     padding:6px 14px; border-radius:999px;}
   .chip.goal{background:var(--leaf);}
+  .goal-row{text-align:center; margin-bottom:14px;}
+
+  /* text-link controls (Home / New race / Next) — look like links, not buttons */
+  .tlink{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--grape); background:none; border:none;
+    cursor:pointer; text-decoration:none; padding:6px 6px; display:inline-flex; align-items:center; gap:5px; opacity:.82;}
+  .tlink:hover{opacity:1;} .tlink.off{opacity:.32; pointer-events:none;}
+  .tlink:focus-visible{outline:3px solid var(--grape); outline-offset:2px; border-radius:10px;}
+  .serve-row{display:flex; justify-content:center; margin-top:6px;}
+  .invisible{visibility:hidden !important;}  /* hidden but keeps its space, so the top bar doesn't reflow */
 
   /* race track */
   .lane{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:12px 14px;}
@@ -139,11 +153,11 @@
   .calcflash.show .bubble{animation:calcpop 2.4s ease forwards;}
   @keyframes calcpop{0%{opacity:0;transform:translateY(4px) scale(.96)}10%{opacity:1;transform:translateY(0) scale(1)}82%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-3px) scale(.98)}}
 
-  .feedback{min-height:26px; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600;
-    font-size:16px; margin:2px 0 0; display:flex; align-items:center; justify-content:center;}
+  .feedback{min-height:22px; text-align:center; font-family:'Nunito',sans-serif; font-weight:700;
+    font-size:14px; margin:14px 0 12px; display:flex; align-items:center; justify-content:center;}
   .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
-
-  .qfooter{display:flex; gap:10px; justify-content:center; align-items:center; margin-top:16px; flex-wrap:wrap;}
+  .result{text-align:center; padding:8px 4px 16px;}
+  .result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px); color:var(--leaf-dark);}
 
   /* transient coaching note, pinned at the bottom of the module */
   .coach{height:36px; display:flex; align-items:center; justify-content:center; margin-top:12px;}
@@ -160,10 +174,10 @@
 <body>
 <div class="app">
   <div class="card">
-    <a href="../" class="game-back">← All games</a>
 
     <!-- HOME -->
     <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
         <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
           <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
@@ -189,11 +203,10 @@
 
     <!-- GAME -->
     <section id="screen-game" class="hide">
-      <div class="qtop">
-        <span class="chip goal" id="goal-chip">🎯 Reach exactly 100</span>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span class="chip" id="moves-chip">Moves: 0</span>
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:44px;height:44px;">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
             <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
             <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
             <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
@@ -202,8 +215,14 @@
             <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
           </svg>
+          <span class="chip" id="moves-chip">Moves: 0</span>
+        </div>
+        <div class="tb-right">
+          <button id="restart-btn" class="tlink">🔄 New race</button>
         </div>
       </div>
+
+      <div class="goal-row"><span class="chip goal" id="goal-chip">🎯 Reach exactly 100</span></div>
 
       <div class="lane">
         <div class="lane-head"><span>🧒 You</span><span class="gap" id="gap">100 to go</span></div>
@@ -218,14 +237,13 @@
       <div class="hint-row"><a id="hint-link" class="hint-link" role="button" tabindex="0">💡 Need a hint?</a></div>
       <div class="calcflash" id="calcflash" aria-live="polite"></div>
       <div class="feedback" id="feedback"></div>
-
-      <div class="qfooter">
-        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
-        <button id="restart-btn" class="btn btn-warn">🔄 New race</button>
-        <button id="next-btn" class="btn btn-primary hide">Play again ▶</button>
-      </div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
 
       <div class="coach" id="coach" aria-live="polite"></div>
+
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Play again ▶</button>
+      </div>
     </section>
   </div>
 </div>
@@ -284,7 +302,9 @@ function startRace(){
   race={ you:0, moves:0, phase:'roll', die:0, winner:false, hintOp:null };
   $("screen-home").classList.add("hide");
   $("screen-game").classList.remove("hide");
+  $("result-view").classList.add("hide");
   $("next-btn").classList.add("hide");
+  $("restart-btn").classList.remove("invisible");
   $("hint-link").classList.remove("off");
   clearFlash(); clearCoach();
   setOwl('idle');
@@ -380,8 +400,11 @@ function playerChoose(op){
 function endRace(){
   race.winner=true; race.phase='done'; race.hintOp=null;
   $("hint-link").classList.add("off");
+  flash('', '');
+  $("result-view").classList.remove("hide");
+  $("rlabel").textContent = `🎉 You reached exactly 100 in ${race.moves} moves!`;
+  $("restart-btn").classList.add("invisible");   // Play again takes its place in the bottom slot; New race keeps its slot so nothing shifts
   $("next-btn").classList.remove("hide"); $("next-btn").focus();
-  flash(`🎉 You reached exactly 100 in ${race.moves} moves!`, 'good');
   setOwl('win'); sound('win'); if(!reduceMotion) miniConfetti();
   render();
 }

@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="../../assets/game-shared.css" />
 <style>
   :root{
     --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
@@ -72,9 +71,35 @@
   .howto b{color:var(--grape);}
   .mt{margin-top:22px;} .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
 
-  .qtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+  .home-top{display:flex; margin-bottom:4px;}
+  .hub-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:none; opacity:.8;}
+  .hub-link:hover{opacity:1; text-decoration:underline;}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+  .topbar .tb-center{display:flex; align-items:center; gap:8px; min-width:0;}
+  .topbar .tb-right{display:flex; align-items:center; gap:8px;}
   .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape); padding:6px 14px; border-radius:999px;}
-  .chip.streak{background:var(--coral);}
+
+  /* text-link controls (Home / Skip / Next / Reset / Hint) — look like links, not buttons */
+  .tlink{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--grape); background:none; border:none;
+    cursor:pointer; text-decoration:none; padding:6px 6px; display:inline-flex; align-items:center; gap:5px; opacity:.82;}
+  .tlink:hover{opacity:1;} .tlink.off{opacity:.32; pointer-events:none;}
+  .tlink:focus-visible{outline:3px solid var(--grape); outline-offset:2px; border-radius:10px;}
+  .actions{display:flex; gap:22px; justify-content:center; align-items:center; margin:12px 0 18px;}
+  .serve-row{display:flex; justify-content:center; margin-top:6px;}
+  .invisible{visibility:hidden !important;}  /* hidden but keeps its space, so the top bar doesn't reflow */
+
+  .level-switch{position:relative; display:inline-block;}
+  .chip.level{cursor:pointer; user-select:none; border:none; display:inline-flex; align-items:center; gap:5px;}
+  .chip.level:hover{filter:brightness(1.07);} .chip.level .caret{font-size:10px; opacity:.85;}
+  .chip.level:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
+  .level-menu{position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:40;
+    background:#fff; border:2px solid var(--key-line); border-radius:14px; box-shadow:var(--shadow); padding:6px; min-width:160px; display:none;}
+  .level-menu.open{display:block;}
+  .level-opt{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--ink); background:none; border:none; cursor:pointer; padding:9px 12px; border-radius:10px; white-space:nowrap;}
+  .level-opt:hover{background:#F4F0FE;} .level-opt[aria-current="true"]{background:#F1EDFA; color:var(--grape);}
+  .level-opt .tick{color:var(--leaf-dark); font-weight:700; opacity:0;} .level-opt[aria-current="true"] .tick{opacity:1;}
 
   .mission{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape-dark); font-size:clamp(15px,3.4vw,18px); margin-bottom:10px;}
 
@@ -133,13 +158,9 @@
   .result .rsub{font-weight:700; color:var(--ink-soft); margin-top:6px; font-size:16px;}
   .result .save{color:var(--leaf-dark); font-weight:800; margin-top:4px;}
 
-  .hint-row{text-align:center; margin-top:12px; min-height:20px;}
-  .hint-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:underline; text-underline-offset:3px; cursor:pointer; opacity:.75;}
-  .hint-link:hover{opacity:1;} .hint-link.off{opacity:.3; pointer-events:none;}
   .item.hintit{outline:3px solid var(--sun-dark); outline-offset:2px; animation:itempop .5s ease infinite;}
-  .feedback{min-height:24px; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; margin:8px 0 0; display:flex; align-items:center; justify-content:center;}
+  .feedback{min-height:22px; text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; margin:14px 0 12px; display:flex; align-items:center; justify-content:center;}
   .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
-  .qfooter{display:flex; gap:10px; justify-content:center; align-items:center; margin-top:14px; flex-wrap:wrap;}
 
   canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
   .hide{display:none !important;}
@@ -149,10 +170,10 @@
 <body>
 <div class="app">
   <div class="card">
-    <a href="../" class="game-back">← All games</a>
 
     <!-- HOME -->
     <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
         <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
           <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
@@ -185,11 +206,10 @@
 
     <!-- GAME -->
     <section id="screen-game" class="hide">
-      <div class="qtop">
-        <span class="chip streak hide" id="streak-chip">🔥 0</span>
-        <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
-          <span class="chip" id="q-level">🌱 Easy</span>
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:44px;height:44px;">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
             <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
             <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
             <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
@@ -198,6 +218,15 @@
             <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
           </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="new-btn" class="tlink">🔄 New shop</button>
         </div>
       </div>
 
@@ -217,8 +246,6 @@
       <div id="shop-view">
         <div class="shelf" id="shelf"></div>
         <div class="basket" id="basket"></div>
-        <div class="hint-row"><a id="hint-link" class="hint-link" role="button" tabindex="0">💡 Need a hint?</a></div>
-        <div class="qfooter"><button id="checkout-btn" class="btn btn-go btn-lg" disabled>🧾 Check out</button></div>
       </div>
 
       <!-- RESULT -->
@@ -232,11 +259,15 @@
       </div>
 
       <div class="feedback" id="feedback"></div>
-
-      <div class="qfooter">
-        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
-        <button id="new-btn" class="btn btn-warn">🔄 New shop</button>
-        <button id="next-btn" class="btn btn-primary hide">Shop again ▶</button>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="reset-btn" class="tlink">↺ Reset</button>
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="checkout-btn" class="btn btn-go btn-lg" disabled>🧾 Check out</button>
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Shop again ▶</button>
       </div>
     </section>
   </div>
@@ -299,35 +330,64 @@ function starsFor(leftover){ if(leftover===0) return {stars:3,label:"🎯 BULLSE
   return {stars:0,label:"Lots left over — spend closer next time!"}; }
 
 /* ===== state ===== */
-let level="EASY", muted=false, shop=null, cart=[], phase='shop', streak=0;
+let level="EASY", muted=false, shop=null, cart=[], phase='shop', prevSig=null;
 
-function setLevel(l){ level=l; document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l)); }
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
 document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
 
-$("start-btn").onclick = ()=>{ streak=0; newShop(true); };
+// level switcher (tap the chip at the top to change difficulty mid-game)
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
+function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newShop(false); }
+$("q-level").onclick=(e)=>{ e.stopPropagation(); toggleLevelMenu(); };
+document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+
+$("start-btn").onclick = ()=>{ newShop(true); };
 $("home-btn").onclick  = goHome;
 $("new-btn").onclick    = ()=>newShop(false);
 $("next-btn").onclick    = ()=>newShop(false);
 $("checkout-btn").onclick= checkout;
+$("reset-btn").onclick   = resetShop;
 $("hint-link").onclick    = giveHint;
-$("hint-link").addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); giveHint(); } });
 
 const spent=()=>cart.reduce((s,i)=>s+i.dprice,0);
 const remaining=()=>shop.budget-spent();
 const savings=()=>cart.reduce((s,i)=>s+(i.discount?(i.price-i.dprice):0),0);
 
+const shopSig = s => s.items.map(it=>it.id+':'+it.dprice).join(',');
 function newShop(fromHome){
-  shop=genShop(level); cart=[]; phase='shop';
+  // fresh shop, different from the one just shown (Skip/Next never repeat the current puzzle)
+  let s; for(let a=0;a<15;a++){ s=genShop(level); if(!prevSig || shopSig(s)!==prevSig) break; }
+  shop=s; prevSig=shopSig(shop);
+  cart=[]; phase='shop';
   if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
-  $("q-level").textContent=LEVELS[level].label;
+  setLevel(level);
   $("mission").textContent=`🎯 Spend as close to ₹${shop.budget} as you can!`;
   $("target").textContent=`₹${shop.budget}`;
-  $("shop-view").classList.remove("hide"); $("result-view").classList.add("hide"); $("next-btn").classList.add("hide"); $("hint-link").classList.remove("off");
-  updateStreakChip();
+  $("shop-view").classList.remove("hide"); $("result-view").classList.add("hide");
+  $("serve-view").classList.remove("hide");
+  $("checkout-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("new-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   setOwl('idle'); flash("Tap things to fill your cart 🛒", '');
   renderShelf(); renderBasket(); renderMeter(false);
 }
-function updateStreakChip(){ const c=$("streak-chip"); if(streak>=1){ c.classList.remove('hide'); c.textContent=`🔥 ${streak} bullseye${streak>1?'s':''}`; } else c.classList.add('hide'); }
+function resetShop(){
+  if(phase!=='shop') return;
+  cart=[]; clearHint();
+  renderShelf(); renderBasket(); renderMeter(false);
+  flash("Cart cleared — tap things to fill it up again 🛒", ''); setOwl('idle');
+}
 
 /* ===== render ===== */
 function renderMeter(pop){
@@ -393,15 +453,15 @@ function checkout(){
   if(cart.length===0) return;
   phase='result'; clearHint();
   const leftover=remaining(); const { stars, label }=starsFor(leftover);
-  if(stars===3) streak++; else streak=0;
-  updateStreakChip();
-  $("shop-view").classList.add("hide"); $("result-view").classList.remove("hide"); $("hint-link").classList.add("off");
+  $("shop-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("serve-view").classList.add("hide"); $("hint-link").classList.add("off");
   $("stars").textContent = "★".repeat(stars)+"☆".repeat(3-stars);
-  $("rlabel").textContent = label + (streak>=2 ? `  🔥 ${streak} in a row!` : "");
+  $("rlabel").textContent = label;
   $("rsub").textContent = `You spent ₹${spent()} of ₹${shop.budget} — ₹${leftover} left.`;
   const sv=savings(); const svEl=$("save");
   if(sv>0){ svEl.classList.remove("hide"); svEl.textContent=`💸 You saved ₹${sv} with deals!`; } else svEl.classList.add("hide");
-  $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  $("new-btn").classList.add("invisible");   // Shop again takes its place in the bottom slot; New shop keeps its slot so nothing shifts
+  $("checkout-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   flash('', '');
   setOwl(stars>=2?'win':'idle');
   if(!reduceMotion){ if(stars===3){ coinRain(); sound('win'); } else if(stars>=1){ miniConfetti(); sound('good'); } else sound('tick'); }
@@ -427,12 +487,14 @@ function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className=
 function goHome(){ stopConfetti(); shop=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
 
 document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide")) return;
   if(e.target && e.target.id==='hint-link') return;
   if(e.key==='Enter'){
-    if(phase==='result' && !$("next-btn").classList.contains('hide')){ e.preventDefault(); newShop(false); }
+    if(phase==='result'){ e.preventDefault(); newShop(false); }
     else if(phase==='shop' && cart.length){ e.preventDefault(); checkout(); }
   }
+  if(e.key.toLowerCase()==='r' && phase==='shop'){ resetShop(); }
   if(e.key.toLowerCase()==='h' && phase==='shop'){ giveHint(); }
 });
 

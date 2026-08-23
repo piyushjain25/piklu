@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="../../assets/game-shared.css" />
 <style>
   :root{
     --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
@@ -102,21 +101,44 @@
   .center{text-align:center;} .mt{margin-top:22px;}
   .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
 
+  .home-top{display:flex; margin-bottom:4px;}
+  .hub-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:none; opacity:.8;}
+  .hub-link:hover{opacity:1; text-decoration:underline;}
+
   /* game top bar */
-  .qtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:22px;}
+  .topbar .tb-center{display:flex; align-items:center; gap:8px; min-width:0;}
+  .topbar .tb-right{display:flex; align-items:center; gap:8px;}
   .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape);
     padding:6px 14px; border-radius:999px;}
-  .chip.score{background:var(--leaf);} .chip.streak{background:var(--sun); color:var(--ink);}
-  .progress{height:10px; background:#EEE8FB; border-radius:999px; overflow:hidden; margin:12px 0 4px;}
-  .progress i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--grape),var(--sky));
-    border-radius:999px; transition:width .3s ease;}
+
+  /* text-link controls (Home / Skip / Next / Reset / Hint) — look like links, not buttons */
+  .tlink{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--grape); background:none; border:none;
+    cursor:pointer; text-decoration:none; padding:6px 6px; display:inline-flex; align-items:center; gap:5px; opacity:.82;}
+  .tlink:hover{opacity:1;} .tlink.off{opacity:.32; pointer-events:none;}
+  .tlink:focus-visible{outline:3px solid var(--grape); outline-offset:2px; border-radius:10px;}
+  .actions{display:flex; gap:22px; justify-content:center; align-items:center; margin:12px 0 18px;}
+  .serve-row{display:flex; justify-content:center; margin-top:6px;}
+  .invisible{visibility:hidden !important;}  /* hidden but keeps its space, so the top bar doesn't reflow */
+
+  .level-switch{position:relative; display:inline-block;}
+  .chip.level{cursor:pointer; user-select:none; border:none; display:inline-flex; align-items:center; gap:5px;}
+  .chip.level:hover{filter:brightness(1.07);} .chip.level .caret{font-size:10px; opacity:.85;}
+  .chip.level:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
+  .level-menu{position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:40;
+    background:#fff; border:2px solid var(--key-line); border-radius:14px; box-shadow:var(--shadow); padding:6px; min-width:160px; display:none;}
+  .level-menu.open{display:block;}
+  .level-opt{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--ink); background:none; border:none; cursor:pointer; padding:9px 12px; border-radius:10px; white-space:nowrap;}
+  .level-opt:hover{background:#F4F0FE;} .level-opt[aria-current="true"]{background:#F1EDFA; color:var(--grape);}
+  .level-opt .tick{color:var(--leaf-dark); font-weight:700; opacity:0;} .level-opt[aria-current="true"] .tick{opacity:1;}
 
   .instruct{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft);
-    font-size:15px; margin:16px 0 2px;}
+    font-size:15px; margin:0 0 14px;}
 
   /* the matchstick board */
   .board-wrap{background:var(--wood-bg); border:3px solid var(--wood-line); border-radius:20px;
-    padding:20px 14px; margin:10px auto 6px; text-align:center;
+    padding:20px 14px; margin:0 auto 18px; text-align:center;
     box-shadow:inset 0 3px 14px rgba(140,100,40,.12);}
   .board{width:100%; height:auto; max-width:560px; touch-action:manipulation; display:block; margin:0 auto;}
   .hit{cursor:pointer;}
@@ -130,13 +152,14 @@
   @keyframes hpulseA{0%,100%{opacity:.5}50%{opacity:1}}
   @keyframes hpulseB{0%,100%{opacity:.3}50%{opacity:.9}}
 
-  .feedback{min-height:28px; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600;
-    font-size:17px; margin:8px 0 2px;}
+  .feedback{min-height:22px; text-align:center; font-family:'Nunito',sans-serif; font-weight:700;
+    font-size:14px; margin:14px 0 12px;}
   .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);}
   .feedback.hint{color:var(--sun-dark);}
+  .result{text-align:center; padding:8px 4px 16px;}
+  .result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px); color:var(--leaf-dark);}
 
   .controls{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;}
-  .qfooter{display:flex; gap:10px; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap;}
 
   /* overlay */
   .overlay{position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px;
@@ -159,10 +182,10 @@
 <body>
 <div class="app">
   <div class="card">
-    <a href="../" class="game-back">← All games</a>
 
     <!-- ===== HOME ===== -->
     <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
         <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
           <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
@@ -195,11 +218,10 @@
 
     <!-- ===== GAME ===== -->
     <section id="screen-game" class="hide">
-      <div class="qtop">
-        <span class="chip" id="q-count">Puzzle 1</span>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span class="chip" id="q-level">🌱 Easy</span>
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:44px;height:44px;">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
             <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
             <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
             <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
@@ -208,6 +230,15 @@
             <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
           </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
         </div>
       </div>
       <div class="instruct" id="instruct">Move ONE stick to make it correct.</div>
@@ -217,16 +248,15 @@
       </div>
 
       <div class="feedback" id="feedback"></div>
-
-      <div class="controls">
-        <button id="reset-btn" class="btn btn-ghost btn-sm">↺ Start over</button>
-        <button id="hint-btn"  class="btn btn-sun btn-sm">💡 Hint</button>
-        <button id="skip-btn"  class="btn btn-warn btn-sm">⏭ Skip</button>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="reset-btn" class="tlink">🔄 Reset</button>
+          <button id="hint-btn" class="tlink">💡 Hint</button>
+        </div>
       </div>
-
-      <div class="qfooter">
-        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
-        <button id="next-btn" class="btn btn-primary" disabled>Next ▶</button>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
       </div>
     </section>
   </div>
@@ -557,7 +587,7 @@ function onBoardClick(e){
       sound('tick');
       render();
     } else if(act==='blocked'){
-      flash("Only one stick can move. Tap ↺ Start over to try another.", 'hint');
+      flash("Only one stick can move. Tap 🔄 Reset to try another.", 'hint');
       setOwl('think');
     }
     return;
@@ -583,18 +613,19 @@ function completeMove(){
   if(!dec.valid){
     flash("Hmm, that doesn't make a real number. Try a different spot!", 'bad');
   } else {
-    flash("Not right yet — pick the stick up again, or tap ↺ Start over.", 'bad');
+    flash("Not right yet — pick the stick up again, or tap 🔄 Reset.", 'bad');
   }
   setOwl('worried'); sound('bad');
 }
 
 function onSolved(dec){
   solvedFlag=true;
-  flash("Correct! " + dec.display + "  " + praise(), 'good');
+  flash('', '');
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("rlabel").textContent = "🎉 Correct! " + dec.display + "  " + praise();
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
+  $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setOwl('win'); sound('win');
-  updateChips();
-  $("reset-btn").disabled=true; $("hint-btn").disabled=true; $("skip-btn").disabled=true;
-  $("next-btn").disabled=false; $("next-btn").focus();
   if(!reduceMotion) miniConfetti();
   render();
 }
@@ -608,51 +639,61 @@ function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className=
 /* ============================================================
    SESSION
    ============================================================ */
-let level="EASY", game=null, muted=false;
+let level="EASY", game=null, muted=false, prevSig=null;
 const LEVEL_LABEL = { EASY:"🌱 Easy", MEDIUM:"⭐ Medium", HARD:"🔥 Hard", EXPERT:"🏆 Expert" };
 
-function setLevel(l){ level=l; document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l)); }
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVEL_LABEL[l];
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
 document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+// level switcher (tap the chip at the top to change difficulty mid-game)
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVEL_LABEL).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
+function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(); }
+$("q-level").onclick=(e)=>{ e.stopPropagation(); toggleLevelMenu(); };
+document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
 
 $("start-btn").onclick = startSession;
 $("home-btn").onclick  = goHome;
-$("next-btn").onclick   = nextPuzzle;
+$("next-btn").onclick   = newPuzzle;
 $("reset-btn").onclick  = ()=>{ if(solvedFlag) return; filled=new Set(game.start); held=null; moved=null; hintMove=null;
   flash("Board reset. Move one stick to fix it.", ''); setOwl('idle'); render(); };
-$("skip-btn").onclick   = ()=>{ if(solvedFlag) return; nextPuzzle(); };
+$("skip-btn").onclick   = ()=>{ if(solvedFlag) return; newPuzzle(); };
 $("hint-btn").onclick   = giveHint;
 $("board").addEventListener('click', onBoardClick);
 
 function startSession(){
-  game = { i:0, usedHint:false, start:null };
-  $("q-level").textContent = LEVEL_LABEL[level] || "";
+  game = { usedHint:false, start:null };
+  setLevel(level);
   $("screen-home").classList.add("hide");
   $("screen-game").classList.remove("hide");
   setOwl('idle');
   newPuzzle();
 }
 
+const puzzleSig = start => Array.from(start).sort().join(',');
 function newPuzzle(){
   solvedFlag=false; held=null; moved=null; hintMove=null; game.usedHint=false;
-  const r = generatePuzzle(level);
+  // fresh puzzle, different from the one just shown (Skip/Next never repeat the current puzzle)
+  let r; for(let a=0;a<15;a++){ r=generatePuzzle(level); if(!prevSig || puzzleSig(r.start)!==prevSig) break; }
   game.start = new Set(r.start);
-  $("reset-btn").disabled=false; $("hint-btn").disabled=false; $("skip-btn").disabled=false;
-  $("next-btn").disabled=true;
-  $("next-btn").textContent = "Next ▶";
-  updateChips();
+  prevSig = puzzleSig(game.start);
+  $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
+  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible");
   flash("This sum is wrong. Move ONE stick to fix it!", '');
   $("instruct").textContent = "Tap a stick, then tap a glowing spot.";
   setOwl('idle');
   render();
-}
-
-function updateChips(){
-  $("q-count").textContent = `Puzzle ${game.i+1}`;
-}
-
-function nextPuzzle(){
-  game.i++;
-  newPuzzle();
 }
 
 function giveHint(){
@@ -675,11 +716,12 @@ function goHome(){
   setOwl('idle');
 }
 
-// keyboard: R reset, H hint, Enter/Space -> next (when solved)
+// keyboard: R reset, H hint, Enter/Space -> next (when solved), Escape closes the level menu
 document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide")) return;
   if(!game) return;
-  if((e.key==="Enter"||e.key===" ") && solvedFlag && !$("next-btn").disabled){ e.preventDefault(); nextPuzzle(); }
+  if((e.key==="Enter"||e.key===" ") && solvedFlag){ e.preventDefault(); newPuzzle(); }
   else if(e.key.toLowerCase()==="r" && !solvedFlag){ $("reset-btn").click(); }
   else if(e.key.toLowerCase()==="h" && !solvedFlag){ $("hint-btn").click(); }
 });
