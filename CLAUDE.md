@@ -97,6 +97,9 @@ exact control scheme:
   in that same bottom slot (Next here is a real `.btn`, not a link), hide Skip, and show
   the result message just above it — so Next appears exactly where the player's eye/finger
   already is. `Next` loads a fresh, different puzzle and restores the play state.
+- **Nothing in the top bar may shift when the puzzle completes.** Hide Skip on a win with
+  `visibility:hidden` (an `.invisible` helper that keeps its box), never `display:none`,
+  so the owl mascot and level chip don't re-center.
 - **No bottom footer** — Home/Skip live in the top bar; Reset/Hint under the game; the
   primary button (→ Next) at the bottom.
 - **Level chip is a switcher:** tapping it opens a small dropdown built from the game's
