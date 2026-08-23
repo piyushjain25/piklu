@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Race to 100</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
+    --ink:#33236B; --ink-soft:#6a5aa0;
+    --grape:#6C4AB6; --grape-dark:#553a95;
+    --sun:#FFCF43; --sun-dark:#e6a800;
+    --coral:#FF6B7A; --coral-dark:#e24a5c;
+    --leaf:#2FB37D; --leaf-dark:#218a60;
+    --sky:#3FA7E0; --sky-dark:#2b86ba;
+    --card:#FFFFFF; --key-line:#E4DCF5;
+    --paper:#FBF3E4; --paper-line:#EAD9BC;
+    --shadow:0 18px 40px rgba(72,45,130,.18);
+    --radius:26px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif; color:var(--ink); min-height:100vh;
+    background:linear-gradient(180deg,var(--sky-top) 0%,#C6ECEC 45%,var(--sky-bot) 100%);
+    background-attachment:fixed;
+    display:flex; align-items:flex-start; justify-content:center; padding:22px 14px 60px;
+  }
+  body::before,body::after{
+    content:""; position:fixed; z-index:0; border-radius:50%;
+    background:rgba(255,255,255,.55); filter:blur(1px);
+    box-shadow:60px 10px 0 -6px rgba(255,255,255,.55), 120px 4px 0 -10px rgba(255,255,255,.5);
+  }
+  body::before{width:90px;height:34px;top:8%;left:6%;}
+  body::after{width:70px;height:26px;top:16%;right:10%;}
+
+  .app{position:relative; z-index:1; width:100%; max-width:640px;}
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px;}
+
+  .brand{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:4px;}
+  .title{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(27px,5.3vw,42px);
+    line-height:1; margin:0; text-align:center;}
+  .title .c1{color:var(--grape);} .title .c2{color:var(--coral);}
+  .title .c3{color:var(--leaf);} .title .c4{color:var(--sun-dark);}
+  .subtitle{text-align:center; color:var(--ink-soft); font-weight:700; margin:2px 0 18px; font-size:15px;}
+
+  .owl{width:60px; height:60px; flex:0 0 auto;}
+  .owl .pupil{transition:transform .2s ease;}
+  .owl .brow{transition:transform .2s ease; transform-origin:center;}
+  .owl.think .pupil{transform:translateY(2px);}
+  .owl.worried .brow-l{transform:rotate(14deg) translateY(-1px);}
+  .owl.worried .brow-r{transform:rotate(-14deg) translateY(-1px);}
+  .owl.happy .beak,.owl.win .beak{transform:translateY(1px) scale(1.05);}
+
+  .btn{font-family:'Fredoka',sans-serif; font-weight:600; font-size:17px; border:none; cursor:pointer;
+    color:#fff; border-radius:16px; padding:13px 22px; position:relative;
+    transition:transform .06s ease, filter .15s ease; box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;}
+  .btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);}
+  .btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
+  .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
+  .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);}
+  .btn-ghost{background:#F1EDFA; color:var(--grape); --btn-shadow:#d9d0ef;}
+  .btn:disabled{filter:grayscale(.4) opacity(.5); cursor:not-allowed;}
+  .btn-lg{font-size:20px; padding:16px 34px;}
+
+  .howto{background:#F4F0FE; border-radius:16px; padding:14px 16px; margin-top:18px; font-weight:700;
+    color:var(--ink-soft); font-size:14px; line-height:1.5;}
+  .howto b{color:var(--grape);}
+  .mt{margin-top:22px;}
+  .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+
+  .qtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+  .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape);
+    padding:6px 14px; border-radius:999px;}
+  .chip.goal{background:var(--leaf);}
+
+  /* race track */
+  .lane{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:12px 14px;}
+  .lane-head{display:flex; justify-content:space-between; align-items:baseline; font-family:'Fredoka',sans-serif;
+    font-weight:600; font-size:15px; color:var(--grape-dark); margin-bottom:8px;}
+  .lane-head .gap{font-size:16px; color:var(--grape);}
+  .lane-head .gap.over{color:var(--coral-dark);}
+  .track{position:relative; height:36px; background:#fff; border-radius:999px; border:2px solid var(--paper-line);}
+  .track .grid{position:absolute; top:0; bottom:0; width:2px; background:#efe3c9;}
+  .track .flag{position:absolute; right:6px; top:50%; transform:translateY(-50%); font-size:18px;}
+  .token{position:absolute; top:50%; transform:translate(-50%,-50%); min-width:36px; height:32px; padding:0 8px;
+    border-radius:999px; display:flex; align-items:center; justify-content:center; background:var(--grape);
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px; color:#fff; transition:left .45s cubic-bezier(.5,1.4,.5,1);
+    box-shadow:0 3px 8px rgba(0,0,0,.18); white-space:nowrap;}
+  .token.over{background:var(--coral); outline:3px solid #fff; box-shadow:0 0 0 3px var(--coral),0 3px 8px rgba(0,0,0,.2);}
+
+  /* dice + actions */
+  .actionbar{display:flex; gap:16px; align-items:center; justify-content:center; flex-wrap:wrap; margin:16px 0 0; min-height:92px;}
+  .die{width:70px; height:70px; border-radius:16px; background:#fff; border:3px solid var(--key-line);
+    box-shadow:0 5px 0 #e7dff7, inset 0 2px 4px rgba(0,0,0,.05); display:grid; grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(3,1fr); padding:11px; gap:2px; flex:0 0 auto;}
+  .die.rolling{animation:diroll .5s linear;}
+  @keyframes diroll{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.08)}100%{transform:rotate(360deg) scale(1)}}
+  .pip{display:flex;} .pip::after{content:""; width:12px; height:12px; border-radius:50%; background:var(--grape); margin:auto; visibility:hidden;}
+  .pip.on::after{visibility:visible;}
+  .die-roll{width:70px; height:70px; border-radius:16px; flex:0 0 auto; cursor:pointer; border:none;
+    background:var(--sun); color:var(--ink); box-shadow:0 5px 0 var(--sun-dark);
+    font-family:'Fredoka',sans-serif; font-weight:600; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    transition:transform .06s ease;}
+  .die-roll .em{font-size:26px; line-height:1;} .die-roll .tx{font-size:14px;}
+  .die-roll:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .die-roll:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .ops{display:flex; gap:9px; flex-wrap:wrap; justify-content:center;}
+  .op{font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; border:none; cursor:pointer; color:#fff;
+    border-radius:14px; padding:14px 16px; box-shadow:0 5px 0 var(--sh); transition:transform .06s ease, filter .12s;
+    min-width:66px; display:flex; align-items:center; justify-content:center;}
+  .op:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sh);}
+  .op:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .op.add{background:var(--leaf); --sh:var(--leaf-dark);}
+  .op.sub{background:var(--sky); --sh:var(--sky-dark);}
+  .op.mul{background:var(--grape); --sh:var(--grape-dark);}
+  .op.div{background:#EE8A3B; --sh:#c96f27;}
+  .op.hintop{outline:3px solid var(--sun-dark); outline-offset:3px; animation:hp 1s ease-in-out infinite;}
+  @keyframes hp{0%,100%{box-shadow:0 5px 0 var(--sh),0 0 0 0 rgba(230,168,0,.5)}50%{box-shadow:0 5px 0 var(--sh),0 0 0 7px rgba(230,168,0,0)}}
+
+  /* subtle hint link */
+  .hint-row{text-align:center; margin-top:12px; min-height:20px;}
+  .hint-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape);
+    text-decoration:underline; text-underline-offset:3px; cursor:pointer; opacity:.75;}
+  .hint-link:hover{opacity:1;}
+  .hint-link:focus-visible{outline:2px solid var(--grape); outline-offset:2px;}
+  .hint-link.off{opacity:.3; pointer-events:none;}
+
+  /* calculation reveal — fixed height so nothing shifts */
+  .calcflash{height:52px; display:flex; align-items:center; justify-content:center; margin:6px 0 0;}
+  .calcflash .bubble{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px);
+    color:var(--ink); background:#FFF6DC; border:3px solid var(--sun); border-radius:14px; padding:6px 16px;
+    opacity:0; transform:translateY(4px) scale(.96);}
+  .calcflash.show .bubble{animation:calcpop 2.4s ease forwards;}
+  @keyframes calcpop{0%{opacity:0;transform:translateY(4px) scale(.96)}10%{opacity:1;transform:translateY(0) scale(1)}82%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-3px) scale(.98)}}
+
+  .feedback{min-height:26px; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:16px; margin:2px 0 0; display:flex; align-items:center; justify-content:center;}
+  .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
+
+  .qfooter{display:flex; gap:10px; justify-content:center; align-items:center; margin-top:16px; flex-wrap:wrap;}
+
+  /* transient coaching note, pinned at the bottom of the module */
+  .coach{height:36px; display:flex; align-items:center; justify-content:center; margin-top:12px;}
+  .coach .cbubble{font-family:'Fredoka',sans-serif; font-weight:700; font-size:15px; color:var(--sun-dark);
+    background:#FFF6DC; border:2px solid var(--sun); border-radius:12px; padding:5px 14px; opacity:0;}
+  .coach.show .cbubble{animation:coachpop 2.4s ease forwards;}
+  @keyframes coachpop{0%{opacity:0}10%{opacity:1}82%{opacity:1}100%{opacity:0}}
+
+  canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
+  .hide{display:none !important;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+
+    <!-- HOME -->
+    <section id="screen-home">
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🎲 Roll, then choose + − × or ÷ to land on exactly 100.</p>
+
+      <div class="howto">
+        🏁 <b>How to play:</b> You start at 0. Each turn, tap the die to roll, then choose to <b>add</b>, <b>subtract</b>,
+        <b>multiply</b>, or <b>divide</b> by it — you work out the answer in your head! (Divide rounds down.) Land on <b>exactly 100</b> to win.
+        Multiply to leap ahead, then add or subtract to land just right. Went over? Subtract or divide back down.
+      </div>
+
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start Racing ▶</button></div>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="hide">
+      <div class="qtop">
+        <span class="chip goal" id="goal-chip">🎯 Reach exactly 100</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="chip" id="moves-chip">Moves: 0</span>
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:44px;height:44px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-head"><span>🧒 You</span><span class="gap" id="gap">100 to go</span></div>
+        <div class="track">
+          <div class="grid" style="left:25%"></div><div class="grid" style="left:50%"></div><div class="grid" style="left:75%"></div>
+          <div class="flag">🏁</div>
+          <div class="token" id="token" style="left:0%">0</div>
+        </div>
+      </div>
+
+      <div class="actionbar" id="actionbar"></div>
+      <div class="hint-row"><a id="hint-link" class="hint-link" role="button" tabindex="0">💡 Need a hint?</a></div>
+      <div class="calcflash" id="calcflash" aria-live="polite"></div>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="qfooter">
+        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
+        <button id="restart-btn" class="btn btn-warn">🔄 New race</button>
+        <button id="next-btn" class="btn btn-primary hide">Play again ▶</button>
+      </div>
+
+      <div class="coach" id="coach" aria-live="polite"></div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+"use strict";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random()*n);
+const rollDie = () => 1 + rnd(6);
+
+/* ===== operations — all four are always available =====
+   add: c+d   sub: c-d   mul: c*d   div: floor(c/d)  (rounds down)
+   Nothing is ever disabled: "no-increment" moves (x1, ÷1) and even
+   subtracting below 0 are allowed; the coaching line nudges better play. */
+const OPS=['add','sub','mul','div'];
+const OP_SYM={add:'+',sub:'−',mul:'×',div:'÷'};
+function opResult(c,op,d){ return op==='add'?c+d : op==='sub'?c-d : op==='mul'?c*d : Math.floor(c/d); }
+
+/* ===== expected-turns table (for hint + coaching), bounded to [0,TAB] ===== */
+const TAB=200;
+function resultsForE(v,d){ const r=[]; for(const op of OPS){ const x=opResult(v,op,d);
+  if(Number.isInteger(x) && x>=0 && x<=TAB) r.push(x); } return r; }
+function buildE(){
+  const E=new Array(TAB+1).fill(0);
+  for(let v=0;v<=TAB;v++) E[v]= v===100?0:120;
+  for(let it=0; it<3000; it++){ let md=0;
+    for(let v=0; v<=TAB; v++){ if(v===100) continue; let acc=0;
+      for(let d=1; d<=6; d++){ let b=Infinity; for(const x of resultsForE(v,d)) if(E[x]<b) b=E[x]; if(b===Infinity) b=120; acc+=b; }
+      const nv=1+acc/6; md=Math.max(md,Math.abs(nv-E[v])); E[v]=nv; }
+    if(md<1e-10) break;
+  }
+  return E;
+}
+const E=buildE();
+const Elook = v => (v>=0 && v<=TAB) ? E[v] : 1e6;
+function bestMove(c,d){
+  let best=null,bE=Infinity,bRes=Infinity;
+  for(const op of OPS){ const res=opResult(c,op,d), e=Elook(res);
+    if(e<bE-1e-9 || (Math.abs(e-bE)<=1e-9 && res<=100 && bRes>100)){ best=op; bE=e; bRes=res; } }
+  return { op:best, result:bRes, E:bE };
+}
+
+/* ===== state (solo) ===== */
+let muted=false, race=null;
+
+$("start-btn").onclick   = startRace;
+$("restart-btn").onclick = startRace;
+$("next-btn").onclick     = startRace;
+$("home-btn").onclick     = goHome;
+$("hint-link").onclick     = giveHint;
+$("hint-link").addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); giveHint(); } });
+
+function startRace(){
+  race={ you:0, moves:0, phase:'roll', die:0, winner:false, hintOp:null };
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  $("next-btn").classList.add("hide");
+  $("hint-link").classList.remove("off");
+  clearFlash(); clearCoach();
+  setOwl('idle');
+  flash("Tap the die to roll, then choose how to use it.", '');
+  render();
+}
+
+/* ===== render ===== */
+function pct(v){ return Math.max(0, Math.min(100, v)); }
+function gapText(v){ if(v===100) return "at 100! 🎉"; const g=100-v; return g>0 ? `${g} to go` : `${-g} over`; }
+function dieHTML(v){
+  const P={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  const on=new Set(v?P[v]:[]); let cells='';
+  for(let i=0;i<9;i++) cells+=`<span class="pip ${on.has(i)?'on':''}"></span>`;
+  return `<div class="die" id="die">${cells}</div>`;
+}
+function render(){
+  const over=race.you>100 || race.you<0;
+  const tok=$("token"); tok.textContent=race.you; tok.style.left=pct(race.you)+'%'; tok.className='token'+(over?' over':'');
+  const gap=$("gap"); gap.textContent=gapText(race.you); gap.className='gap'+(over?' over':'');
+  $("moves-chip").textContent=`Moves: ${race.moves}`;
+
+  const bar=$("actionbar");
+  if(race.winner){ bar.innerHTML=dieHTML(race.die); return; }
+  if(race.phase==='roll'){
+    bar.innerHTML=`<button id="roll-btn" class="die-roll"><span class="em">🎲</span><span class="tx">Roll</span></button>`;
+    $("roll-btn").onclick=playerRoll;
+  } else if(race.phase==='choose'){
+    const opsHTML = OPS.map(op=>{
+      const cls=op+(race.hintOp===op?' hintop':'');
+      return `<button class="op ${cls}" data-op="${op}">${OP_SYM[op]}${race.die}</button>`;
+    }).join('');
+    bar.innerHTML=dieHTML(race.die)+`<div class="ops">${opsHTML}</div>`;
+    bar.querySelectorAll('.op').forEach(b=> b.onclick=()=>playerChoose(b.dataset.op));
+  } else { // rolling
+    bar.innerHTML=dieHTML(race.die);
+  }
+}
+
+/* ===== flow ===== */
+function animateDie(value, cb){
+  race.die=value;
+  if(reduceMotion){ render(); cb&&cb(); return; }
+  render();
+  const die=$("die"); if(die) die.classList.add('rolling');
+  setTimeout(()=>{ cb&&cb(); }, 260);
+}
+function playerRoll(){
+  if(race.winner || race.phase!=='roll') return;
+  sound('tick'); race.phase='rolling';
+  animateDie(rollDie(), ()=>{ race.phase='choose'; render(); });
+}
+
+let flashTimer=null, coachTimer=null;
+function calcFlash(c,op,d,result){
+  const el=$("calcflash");
+  el.innerHTML=`<span class="bubble">${c} ${OP_SYM[op]} ${d} = ${result}</span>`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(flashTimer); flashTimer=setTimeout(()=>{ el.classList.remove('show'); el.innerHTML=''; }, 2400);
+}
+function clearFlash(){ const el=$("calcflash"); clearTimeout(flashTimer); el.classList.remove('show'); el.innerHTML=''; }
+function showCoach(msg){
+  const el=$("coach");
+  el.innerHTML=`<span class="cbubble">${msg}</span>`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(coachTimer); coachTimer=setTimeout(()=>{ el.classList.remove('show'); el.innerHTML=''; }, 2400);
+}
+function clearCoach(){ const el=$("coach"); clearTimeout(coachTimer); el.classList.remove('show'); el.innerHTML=''; }
+
+function playerChoose(op){
+  if(race.winner || race.phase!=='choose') return;
+  const c=race.you, result=opResult(c, op, race.die);
+  const bm=bestMove(c, race.die);
+  const noChange=(result===c);
+  const regret=Elook(result)-bm.E;
+  const better=(bm.op && opResult(c,bm.op,race.die)!==result && (noChange || regret>0.75)) ? bm.op : null;
+
+  race.you=result; race.moves++; race.hintOp=null; sound('tick');
+  calcFlash(c, op, race.die, result);                          // equation flashes near the dice
+  if(better) showCoach(`${OP_SYM[better]}${race.die} would have been better!`);  // note at the bottom, fades with it
+  else clearCoach();
+
+  if(race.you===100) return endRace();
+
+  race.phase='roll';
+  let msg, kind;
+  if(race.you>100){ msg="Over 100 — subtract or divide back down."; kind='bad'; setOwl('worried'); }
+  else if(race.you<0){ msg="Below 0 — add to climb back up."; kind='bad'; setOwl('worried'); }
+  else { msg="Tap the die to roll again."; kind=''; setOwl(better?'think':'idle'); }
+  flash(msg, kind); render();
+}
+
+function endRace(){
+  race.winner=true; race.phase='done'; race.hintOp=null;
+  $("hint-link").classList.add("off");
+  $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  flash(`🎉 You reached exactly 100 in ${race.moves} moves!`, 'good');
+  setOwl('win'); sound('win'); if(!reduceMotion) miniConfetti();
+  render();
+}
+
+function giveHint(){
+  if(!race || race.winner) return;
+  if(race.phase!=='choose'){ flash("Tap the die to roll first, then I'll suggest a move.", 'hint'); return; }
+  const bm=bestMove(race.you, race.die);
+  race.hintOp=bm.op;
+  let msg;
+  if(bm.result===100) msg=`This move lands you on exactly 100 — go for it!`;
+  else if(bm.op==='mul') msg=`Multiplying leaps you closest to 100 — try it.`;
+  else if(bm.op==='div') msg=`Dividing shrinks you back toward 100.`;
+  else if(bm.op==='sub') msg=`Subtracting brings you closer to 100.`;
+  else msg=`Adding gets you closest to 100.`;
+  flash(`💡 ${msg} (you work out the number!)`, 'hint'); setOwl('think'); render();
+}
+
+function praise(){ const p=["Nice!","Great move!","Smart!","Good one!"]; return p[rnd(p.length)]; }
+function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
+
+function goHome(){
+  stopConfetti(); race=null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl('idle');
+}
+
+// keyboard: Space/Enter roll or play-again; 1-4 pick op; H hint
+document.addEventListener("keydown", e=>{
+  if($("screen-game").classList.contains("hide") || !race) return;
+  if(e.target && e.target.id==='hint-link') return;   // handled by its own listener
+  if((e.key==="Enter"||e.key===" ")){
+    if(race.winner && !$("next-btn").classList.contains("hide")){ e.preventDefault(); startRace(); return; }
+    if(!race.winner && race.phase==='roll'){ e.preventDefault(); playerRoll(); return; }
+  }
+  if(e.key.toLowerCase()==="h" && !race.winner){ giveHint(); return; }
+  if(!race.winner && race.phase==='choose'){
+    const n=parseInt(e.key,10);
+    if(n>=1 && n<=4){ const b=$("actionbar").querySelectorAll('.op')[n-1]; if(b) b.click(); }
+  }
+});
+
+/* ===== owl mascot / sound / confetti / title (shared) ===== */
+function setOwl(mood){ [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return;
+  o.classList.remove("happy","worried","win","think"); if(mood!=="idle") o.classList.add(mood); }); }
+let audioCtx=null;
+function beep(freq,dur,type="sine",when=0,gain=0.15){ if(muted) return;
+  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur);
+  }catch(e){} }
+function sound(kind){
+  if(kind==="tick") beep(520,.05,"square",0,.06);
+  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10));
+}
+let confettiRAF=null;
+function miniConfetti(){
+  const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A","#DB9A44"];
+  const parts=Array.from({length:70},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*6,
+    c:colors[Math.floor(Math.random()*colors.length)],vy:-4+Math.random()*2,vx:-5+Math.random()*10,rot:0,vr:.2}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<70) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
+}
+function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF);
+  const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
+
+(function(){
+  const word="Race to 100"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
+  for(const ch of word){
+    if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
+    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
+    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.06).toFixed(2)}s infinite`;
+    el.appendChild(s);
+  }
+  if(!reduceMotion){ const st=document.createElement("style");
+    st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
+    document.head.appendChild(st); }
+})();
+</script>
+</body>
+</html>

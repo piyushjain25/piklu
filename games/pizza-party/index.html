@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pizza Party</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{ --sky-top:#A8E0FF; --sky-bot:#D9F6E4; --ink:#33236B; --ink-soft:#6a5aa0;
+    --grape:#6C4AB6; --grape-dark:#553a95; --sun:#FFCF43; --sun-dark:#e6a800; --coral:#FF6B7A; --coral-dark:#e24a5c;
+    --leaf:#2FB37D; --leaf-dark:#218a60; --sky:#3FA7E0; --sky-dark:#2b86ba; --card:#FFFFFF; --key-line:#E4DCF5;
+    --paper:#FBF3E4; --paper-line:#EAD9BC; --shadow:0 18px 40px rgba(72,45,130,.18); --radius:26px; }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{font-family:'Nunito',system-ui,sans-serif; color:var(--ink); min-height:100vh;
+    background:linear-gradient(180deg,var(--sky-top) 0%,#C6ECEC 45%,var(--sky-bot) 100%); background-attachment:fixed;
+    display:flex; align-items:flex-start; justify-content:center; padding:22px 14px 60px;}
+  body::before,body::after{content:""; position:fixed; z-index:0; border-radius:50%; background:rgba(255,255,255,.55); filter:blur(1px);
+    box-shadow:60px 10px 0 -6px rgba(255,255,255,.55), 120px 4px 0 -10px rgba(255,255,255,.5);}
+  body::before{width:90px;height:34px;top:8%;left:6%;} body::after{width:70px;height:26px;top:16%;right:10%;}
+  .app{position:relative; z-index:1; width:100%; max-width:600px;}
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px;}
+  .brand{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:4px;}
+  .title{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px,5.2vw,40px); line-height:1; margin:0; text-align:center;}
+  .title .c1{color:var(--grape);} .title .c2{color:var(--coral);} .title .c3{color:var(--leaf);} .title .c4{color:var(--sun-dark);}
+  .subtitle{text-align:center; color:var(--ink-soft); font-weight:700; margin:2px 0 18px; font-size:15px;}
+  .owl{width:60px; height:60px; flex:0 0 auto;} .owl .pupil{transition:transform .2s ease;}
+  .owl.think .pupil{transform:translateY(2px);} .owl.worried .brow-l{transform:rotate(14deg) translateY(-1px);} .owl.worried .brow-r{transform:rotate(-14deg) translateY(-1px);} .owl.win .beak{transform:translateY(1px) scale(1.05);}
+  .btn{font-family:'Fredoka',sans-serif; font-weight:600; font-size:17px; border:none; cursor:pointer; color:#fff; border-radius:16px;
+    padding:13px 22px; transition:transform .06s ease, filter .15s ease; box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;}
+  .btn:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);} .btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);} .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
+  .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);} .btn-ghost{background:#F1EDFA; color:var(--grape); --btn-shadow:#d9d0ef;}
+  .btn:disabled{filter:grayscale(.4) opacity(.5); cursor:not-allowed;} .btn-lg{font-size:20px; padding:16px 34px;}
+  .btn.ready{background:var(--sun); color:var(--ink); --btn-shadow:var(--sun-dark); animation:rp .8s ease-in-out infinite;}
+  @keyframes rp{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+  .block-label{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape); font-size:15px; text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px;}
+  .diff-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;} @media(min-width:560px){.diff-grid{grid-template-columns:repeat(4,1fr);}}
+  .diff{border:3px solid #EEE8FB; background:#fff; border-radius:18px; cursor:pointer; padding:14px 10px; text-align:center; transition:all .15s ease;}
+  .diff:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .diff .d-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px;} .diff .d-range{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-top:3px;}
+  .diff[aria-pressed="true"]{border-color:var(--dc,var(--grape)); background:var(--dbg,#F4F0FE); transform:translateY(-2px); box-shadow:var(--shadow);}
+  .diff.easy{--dc:var(--leaf); --dbg:#E8F8F0;} .diff.medium{--dc:var(--sky); --dbg:#E6F4FC;} .diff.hard{--dc:var(--sun-dark); --dbg:#FFF6DC;} .diff.expert{--dc:var(--coral); --dbg:#FFEAED;}
+  .howto{background:#F4F0FE; border-radius:16px; padding:14px 16px; margin-top:18px; font-weight:700; color:var(--ink-soft); font-size:14px; line-height:1.5;} .howto b{color:var(--grape);}
+  .mt{margin-top:22px;} .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+  .qtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+  .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape); padding:6px 14px; border-radius:999px;}
+  .chip.streak{background:var(--coral);}
+
+  .order{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:12px 16px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:12px;}
+  .order .lbl{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:16px;}
+  .frac{display:inline-flex; flex-direction:column; align-items:center; font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape-dark); line-height:1;}
+  .frac .n{font-size:clamp(24px,7vw,34px); padding:0 8px 2px;} .frac .bar{width:100%; height:3px; background:var(--grape-dark); border-radius:2px;} .frac .d{font-size:clamp(24px,7vw,34px); padding:2px 8px 0;}
+
+  .pizza-wrap{display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:6px;}
+  svg.pizza{width:min(300px,74vw); height:min(300px,74vw); touch-action:manipulation;}
+  .slice{stroke:#fff; stroke-width:2.5; cursor:pointer; fill:#FBE39F; transition:fill .12s;}
+  .slice:hover{fill:#F7D877;} .slice.sel{fill:#EC9A34;}
+  .pepp{fill:#C0392B; pointer-events:none;} .pepp2{fill:#7a2018; pointer-events:none;}
+  .picked{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape); font-size:16px;}
+  .picked.match{color:var(--leaf-dark);}
+  .slicecount{font-weight:700; color:var(--ink-soft); font-size:13px;}
+
+  .result{text-align:center; padding:4px;}
+  .result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px); color:var(--leaf-dark);}
+  .hint-row{text-align:center; margin-top:8px; min-height:20px;}
+  .hint-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:underline; text-underline-offset:3px; cursor:pointer; opacity:.75;}
+  .hint-link:hover{opacity:1;} .hint-link.off{opacity:.3; pointer-events:none;}
+  .feedback{min-height:24px; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; margin:8px 0 0; display:flex; align-items:center; justify-content:center;}
+  .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
+  .controls{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px;}
+  .qfooter{display:flex; gap:10px; justify-content:center; align-items:center; margin-top:14px; flex-wrap:wrap;}
+  canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
+  .hide{display:none !important;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🍕 Read the order and serve the right fraction of pizza!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">halves & quarters</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">thirds to eighths</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">simple equivalent</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">tricky equivalent</div></button>
+      </div>
+      <div class="howto">
+        🧀 <b>How to play:</b> An order comes in for a fraction of pizza. Tap slices to add topping until you've picked exactly that fraction,
+        then hit <b>Serve</b>! On harder levels the pizza is cut into more slices, so you'll find the <b>equivalent</b> amount (½ of 8 slices = 4!).
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="qtop">
+        <span class="chip streak hide" id="streak-chip">🔥 0</span>
+        <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
+          <span class="chip" id="q-level">🌱 Easy</span>
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:44px;height:44px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="order" id="order">
+        <span class="lbl">🧾 Order:</span>
+        <span class="frac"><span class="n" id="o-num">3</span><span class="bar"></span><span class="d" id="o-den">4</span></span>
+        <span class="lbl">of a pizza</span>
+      </div>
+
+      <div class="pizza-wrap">
+        <svg class="pizza" id="pizza" viewBox="0 0 200 200" aria-label="pizza"></svg>
+        <div class="slicecount" id="slicecount"></div>
+        <div class="picked" id="picked">You've picked 0 slices</div>
+      </div>
+
+      <div id="serve-view">
+        <div class="controls">
+          <button id="clear-btn" class="btn btn-warn">🗑 Clear</button>
+          <button id="serve-btn" class="btn btn-go" disabled>🍽 Serve</button>
+        </div>
+        <div class="hint-row"><a id="hint-link" class="hint-link" role="button" tabindex="0">💡 Need a hint?</a></div>
+      </div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="qfooter">
+        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
+        <button id="new-btn" class="btn btn-warn">🔄 New order</button>
+        <button id="next-btn" class="btn btn-primary hide">Next order ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+"use strict";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random()*n);
+const gcd = (a,b)=> b?gcd(b,a%b):a;
+function reducedNumerators(q){ const out=[]; for(let p=1;p<q;p++) if(gcd(p,q)===1) out.push(p); return out; }
+
+/* ===== engine (verified offline) ===== */
+const LEVELS={
+  EASY:  { dens:[2,4],     equiv:false, maxSlices:4,  label:"🌱 Easy" },
+  MEDIUM:{ dens:[3,4,6,8], equiv:false, maxSlices:8,  label:"⭐ Medium" },
+  HARD:  { dens:[2,3,4],   equiv:true,  maxSlices:8,  label:"🔥 Hard" },
+  EXPERT:{ dens:[3,4,5,6], equiv:true,  maxSlices:12, label:"🏆 Expert" },
+};
+function genOrder(level){ const cfg=LEVELS[level];
+  for(let a=0;a<200;a++){ const q=cfg.dens[rnd(cfg.dens.length)]; const nums=reducedNumerators(q); const p=nums[rnd(nums.length)];
+    let m=1; if(cfg.equiv){ const mMax=Math.floor(cfg.maxSlices/q); if(mMax<2) continue; m=2+rnd(mMax-1); }
+    const slices=m*q, target=p*m; if(slices>cfg.maxSlices) continue; if(!(target>=1 && target<slices)) continue;
+    return { level, num:p, den:q, slices, target, m }; }
+  return null;
+}
+
+/* ===== state ===== */
+let level="EASY", muted=false, O=null, selected=new Set(), phase='serve', streak=0;
+function setLevel(l){ level=l; document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l)); }
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+$("start-btn").onclick=()=>{ streak=0; newOrder(true); }; $("home-btn").onclick=goHome;
+$("new-btn").onclick=()=>{ streak=0; updateStreak(); newOrder(false); }; $("next-btn").onclick=()=>newOrder(false);
+$("clear-btn").onclick=()=>{ if(phase!=='serve') return; selected.clear(); renderPizza(); update(); };
+$("serve-btn").onclick=serve;
+$("hint-link").onclick=giveHint; $("hint-link").addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); giveHint(); } });
+
+function newOrder(fromHome){
+  O=genOrder(level); selected=new Set(); phase='serve';
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  $("q-level").textContent=LEVELS[level].label;
+  $("o-num").textContent=O.num; $("o-den").textContent=O.den;
+  const od=$("order"); od.dataset.num=O.num; od.dataset.den=O.den; od.dataset.slices=O.slices; od.dataset.target=O.target;
+  $("slicecount").textContent=`Pizza cut into ${O.slices} slices`;
+  $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide"); $("next-btn").classList.add("hide"); $("hint-link").classList.remove("off");
+  updateStreak(); renderPizza(); update(); setOwl('idle'); flash("Tap slices to add topping, then Serve!", '');
+}
+function updateStreak(){ const c=$("streak-chip"); if(streak>=1){ c.classList.remove('hide'); c.textContent=`🔥 ${streak}`; } else c.classList.add('hide'); }
+
+function slicePath(i,S){ const cx=100,cy=100,r=90;
+  const a0=(i/S)*2*Math.PI - Math.PI/2, a1=((i+1)/S)*2*Math.PI - Math.PI/2;
+  const x0=cx+r*Math.cos(a0), y0=cy+r*Math.sin(a0), x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1);
+  if(S===1) return `M ${cx-r} ${cy} A ${r} ${r} 0 1 1 ${cx+r} ${cy} A ${r} ${r} 0 1 1 ${cx-r} ${cy} Z`;
+  return `M ${cx} ${cy} L ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`;
+}
+function renderPizza(){
+  const svg=$("pizza"); const S=O.slices; let html=`<circle cx="100" cy="100" r="96" fill="#C77E3B"/>`;
+  for(let i=0;i<S;i++){ html+=`<path class="slice${selected.has(i)?' sel':''}" data-i="${i}" d="${slicePath(i,S)}"/>`; }
+  // pepperoni on selected slices
+  for(let i=0;i<S;i++){ if(!selected.has(i)) continue; const am=((i+0.5)/S)*2*Math.PI - Math.PI/2;
+    const dx=100+90*0.58*Math.cos(am), dy=100+90*0.58*Math.sin(am);
+    html+=`<circle class="pepp" cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="6"/>`;
+    const dx2=100+90*0.34*Math.cos(am), dy2=100+90*0.34*Math.sin(am);
+    html+=`<circle class="pepp2" cx="${dx2.toFixed(1)}" cy="${dy2.toFixed(1)}" r="4"/>`; }
+  svg.innerHTML=html;
+  svg.querySelectorAll('.slice').forEach(p=> p.onclick=()=>toggle(+p.dataset.i));
+}
+function toggle(i){ if(phase!=='serve') return; if(selected.has(i)) selected.delete(i); else selected.add(i); renderPizza(); update(); }
+function update(){
+  const n=selected.size;
+  const pk=$("picked"); pk.textContent=`You've picked ${n}/${O.slices}`; pk.className='picked';
+  const sv=$("serve-btn"); sv.disabled = n===0; sv.className='btn btn-go';   // no colour tell — Serve looks the same whether right or wrong
+}
+function serve(){
+  if(phase!=='serve' || selected.size===0) return;
+  if(selected.size===O.target){
+    phase='done';
+    if(streak>=0) { streak++; updateStreak(); }
+    $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide"); $("hint-link").classList.add("off");
+    const eq = (O.slices!==O.den) ? `${O.target}/${O.slices} = ${O.num}/${O.den}` : `${O.num}/${O.den}`;
+    $("rlabel").textContent=`🎉 Perfect — that's ${eq}!${streak>=2?`  🔥 ${streak} in a row!`:''}`;
+    $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
+    if(!reduceMotion){ miniConfetti(); } sound('win');
+  } else {
+    streak=0; updateStreak();
+    flash(`That's ${selected.size}/${O.slices}. The order is ${O.num}/${O.den} — try again!`, 'bad'); setOwl('worried'); sound('bad');
+  }
+}
+function giveHint(){
+  if(phase!=='serve') return;
+  const msg = O.slices!==O.den
+    ? `💡 ${O.num}/${O.den} of ${O.slices} slices is ${O.target}. Pick ${O.target} slices!`
+    : `💡 ${O.num}/${O.den} means ${O.num} out of ${O.den} slices. Pick ${O.target}!`;
+  flash(msg, 'hint'); setOwl('think');
+}
+function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
+function goHome(){ stopConfetti(); O=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+
+document.addEventListener("keydown", e=>{
+  if($("screen-game").classList.contains("hide") || !O) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if(e.key==='Enter'){ if(phase==='done'){ e.preventDefault(); newOrder(false); } else if(selected.size===O.target){ e.preventDefault(); serve(); } return; }
+  if(e.key.toLowerCase()==='h' && phase==='serve') giveHint();
+});
+
+/* ===== owl / sound / confetti / title (shared) ===== */
+function setOwl(mood){ [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return; o.classList.remove("worried","win","think"); if(mood!=="idle") o.classList.add(mood); }); }
+let audioCtx=null;
+function beep(freq,dur,type="sine",when=0,gain=0.12){ if(muted) return;
+  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur); }catch(e){} }
+function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+let confettiRAF=null;
+function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A","#EC9A34"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
+function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF); const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
+
+(function(){ const word="Pizza Party"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
+  for(const ch of word){ if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
+    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
+    if(!reduceMotion) s.style.animation=`bobp 2.4s ease-in-out ${(ci*0.05).toFixed(2)}s infinite`; el.appendChild(s); }
+  if(!reduceMotion){ const st=document.createElement("style"); st.textContent="@keyframes bobp{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"; document.head.appendChild(st); }
+})();
+setLevel("EASY");
+</script>
+</body>
+</html>

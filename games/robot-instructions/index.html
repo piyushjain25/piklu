@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Robot Instructions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
+    --ink:#33236B; --ink-soft:#6a5aa0;
+    --grape:#6C4AB6; --grape-dark:#553a95;
+    --sun:#FFCF43; --sun-dark:#e6a800;
+    --coral:#FF6B7A; --coral-dark:#e24a5c;
+    --leaf:#2FB37D; --leaf-dark:#218a60;
+    --sky:#3FA7E0; --sky-dark:#2b86ba;
+    --card:#FFFFFF; --key-line:#E4DCF5;
+    --paper:#FBF3E4; --paper-line:#EAD9BC;
+    --shadow:0 18px 40px rgba(72,45,130,.18);
+    --radius:26px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif; color:var(--ink); min-height:100vh;
+    background:linear-gradient(180deg,var(--sky-top) 0%,#C6ECEC 45%,var(--sky-bot) 100%);
+    background-attachment:fixed;
+    display:flex; align-items:flex-start; justify-content:center; padding:22px 14px 60px;
+  }
+  body::before,body::after{
+    content:""; position:fixed; z-index:0; border-radius:50%;
+    background:rgba(255,255,255,.55); filter:blur(1px);
+    box-shadow:60px 10px 0 -6px rgba(255,255,255,.55), 120px 4px 0 -10px rgba(255,255,255,.5);
+  }
+  body::before{width:90px;height:34px;top:8%;left:6%;}
+  body::after{width:70px;height:26px;top:16%;right:10%;}
+
+  .app{position:relative; z-index:1; width:100%; max-width:640px;}
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px;}
+
+  .brand{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:4px;}
+  .title{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(24px,4.9vw,38px); line-height:1; margin:0; text-align:center;}
+  .title .c1{color:var(--grape);} .title .c2{color:var(--coral);} .title .c3{color:var(--leaf);} .title .c4{color:var(--sun-dark);}
+  .subtitle{text-align:center; color:var(--ink-soft); font-weight:700; margin:2px 0 18px; font-size:15px;}
+
+  .owl{width:60px; height:60px; flex:0 0 auto;}
+  .owl .pupil{transition:transform .2s ease;}
+  .owl.think .pupil{transform:translateY(2px);}
+  .owl.worried .brow-l{transform:rotate(14deg) translateY(-1px);}
+  .owl.worried .brow-r{transform:rotate(-14deg) translateY(-1px);}
+  .owl.win .beak{transform:translateY(1px) scale(1.05);}
+
+  .btn{font-family:'Fredoka',sans-serif; font-weight:600; font-size:17px; border:none; cursor:pointer; color:#fff;
+    border-radius:16px; padding:13px 22px; position:relative; transition:transform .06s ease, filter .15s ease;
+    box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;}
+  .btn:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);}
+  .btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
+  .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
+  .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);}
+  .btn-ghost{background:#F1EDFA; color:var(--grape); --btn-shadow:#d9d0ef;}
+  .btn:disabled{filter:grayscale(.4) opacity(.5); cursor:not-allowed;}
+  .btn-lg{font-size:20px; padding:16px 34px;}
+  .btn-sm{font-size:15px; padding:10px 15px; border-radius:13px;}
+
+  .block-label{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape); font-size:15px; text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px;}
+  .diff-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+  @media(min-width:560px){.diff-grid{grid-template-columns:repeat(4,1fr);}}
+  .diff{border:3px solid #EEE8FB; background:#fff; border-radius:18px; cursor:pointer; padding:14px 10px; text-align:center; transition:all .15s ease;}
+  .diff:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .diff .d-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px;}
+  .diff .d-range{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-top:3px;}
+  .diff[aria-pressed="true"]{border-color:var(--dc,var(--grape)); background:var(--dbg,#F4F0FE); transform:translateY(-2px); box-shadow:var(--shadow);}
+  .diff.easy{--dc:var(--leaf); --dbg:#E8F8F0;} .diff.medium{--dc:var(--sky); --dbg:#E6F4FC;}
+  .diff.hard{--dc:var(--sun-dark); --dbg:#FFF6DC;} .diff.expert{--dc:var(--coral); --dbg:#FFEAED;}
+
+  .howto{background:#F4F0FE; border-radius:16px; padding:14px 16px; margin-top:18px; font-weight:700; color:var(--ink-soft); font-size:14px; line-height:1.5;}
+  .howto b{color:var(--grape);}
+  .mt{margin-top:22px;}
+  .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+
+  .qtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape); padding:6px 14px; border-radius:999px;}
+  .chip.par{background:var(--sun); color:var(--ink);}
+
+  /* grid */
+  .gridwrap{--wrapw:min(360px,84vw); position:relative; width:var(--wrapw); aspect-ratio:1; margin:0 auto;}
+  .grid{position:absolute; inset:0; z-index:1; display:grid; gap:5px;}
+  .cell{background:#EEF6FF; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    font-size:clamp(16px, calc(var(--wrapw)/var(--C) * 0.58), 32px); border:2px solid #DCE9F6;}
+  .cell.wall{background:#9A835F; border-color:#7d6a4c; background-image:linear-gradient(135deg,rgba(255,255,255,.12) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.12) 75%,transparent 75%); background-size:12px 12px;}
+  .cell.startcell{outline:3px dashed #cdbff0; outline-offset:-4px;}
+  .cell.bread{background:#FFF3C9; border-color:var(--sun);}
+  /* path trace overlay */
+  .trail{position:absolute; inset:0; z-index:2; pointer-events:none;}
+  .trail #trailline{fill:none; stroke:var(--grape); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; opacity:.55;}
+  .trail circle{fill:var(--grape); opacity:.5;}
+  .robot{position:absolute; width:calc(100%/var(--C)); height:calc(100%/var(--R)); display:flex; align-items:center; justify-content:center;
+    font-size:clamp(16px, calc(var(--wrapw)/var(--C) * 0.64), 34px); transform:translate(-50%,-50%); transition:left .26s ease, top .26s ease; z-index:3; pointer-events:none;}
+  .robot.bonk{animation:bonk .3s ease;}
+  @keyframes bonk{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(-64%,-50%) rotate(-8deg)}75%{transform:translate(-36%,-50%) rotate(8deg)}}
+
+  /* program strip */
+  .prog{background:var(--paper); border:3px solid var(--paper-line); border-radius:16px; padding:10px 12px; margin:16px 0 0; min-height:56px;
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .prog .ph{color:var(--ink-soft); font-weight:700; font-size:14px;}
+  .step{width:34px; height:34px; border-radius:10px; background:#fff; border:2px solid var(--paper-line);
+    display:flex; align-items:center; justify-content:center; font-size:18px;}
+  .step.active{border-color:var(--grape); background:#F1EAFE; transform:scale(1.12);}
+
+  .padrow{display:flex; gap:18px; align-items:center; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+  .dpad{display:grid; grid-template-columns:repeat(3,52px); grid-template-rows:repeat(3,52px); gap:6px;}
+  .dpad .dbtn{border:none; cursor:pointer; border-radius:13px; background:var(--grape); color:#fff; font-size:24px;
+    box-shadow:0 4px 0 var(--grape-dark); transition:transform .06s ease;}
+  .dpad .dbtn:active:not(:disabled){transform:translateY(3px); box-shadow:0 1px 0 var(--grape-dark);}
+  .dpad .dbtn:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
+  .dpad .dbtn:disabled{filter:grayscale(.4) opacity(.45); cursor:not-allowed;}
+  .dpad .up{grid-area:1/2;} .dpad .left{grid-area:2/1;} .dpad .mid{grid-area:2/2; display:flex; align-items:center; justify-content:center; font-size:24px;}
+  .dpad .right{grid-area:2/3;} .dpad .down{grid-area:3/2;}
+  .actions{display:flex; flex-direction:column; gap:8px;}
+
+  .hint-row{text-align:center; margin-top:12px; min-height:20px;}
+  .hint-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:underline; text-underline-offset:3px; cursor:pointer; opacity:.75;}
+  .hint-link:hover{opacity:1;} .hint-link:focus-visible{outline:2px solid var(--grape); outline-offset:2px;} .hint-link.off{opacity:.3; pointer-events:none;}
+
+  .feedback{min-height:26px; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; margin:8px 0 0;
+    display:flex; align-items:center; justify-content:center;}
+  .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
+
+  .qfooter{display:flex; gap:10px; justify-content:center; align-items:center; margin-top:16px; flex-wrap:wrap;}
+
+  canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
+  .hide{display:none !important;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+
+    <!-- HOME -->
+    <section id="screen-home">
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🤖 Guide the robot to the treasure 💎</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">4×4 · live</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">5×5 · program</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">7×7 maze</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">8×8 maze</div></button>
+      </div>
+
+      <div class="howto">
+        🧭 <b>How to play:</b> In <b>Easy</b>, press the arrow keys or buttons and the robot moves right away. In the other levels,
+        build a list of moves first, then press <b>Run</b> to watch it go. Land on the treasure to win — and the robot leaves a trail
+        so you can see where it's been. On harder levels, try the <b>fewest moves</b>!
+      </div>
+
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="hide">
+      <div class="qtop">
+        <span class="chip" id="moves-chip">Moves: 0</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="chip par hide" id="par-chip">🎯 Best: 0</span>
+          <span class="chip" id="q-level">🌱 Easy</span>
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:44px;height:44px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="gridwrap" id="gridwrap">
+        <div class="grid" id="grid"></div>
+        <svg class="trail" id="trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polyline id="trailline" points=""/><g id="traildots"></g>
+        </svg>
+        <div class="robot" id="robot">🤖</div>
+      </div>
+
+      <div class="prog" id="prog"></div>
+
+      <div class="padrow">
+        <div class="dpad">
+          <button class="dbtn up"    data-dir="up"    aria-label="up">⬆️</button>
+          <button class="dbtn left"  data-dir="left"  aria-label="left">⬅️</button>
+          <div class="mid">🤖</div>
+          <button class="dbtn right" data-dir="right" aria-label="right">➡️</button>
+          <button class="dbtn down"  data-dir="down"  aria-label="down">⬇️</button>
+        </div>
+        <div class="actions">
+          <button id="run-btn"   class="btn btn-go">▶ Run</button>
+          <button id="undo-btn"  class="btn btn-ghost btn-sm">⌫ Undo</button>
+          <button id="clear-btn" class="btn btn-warn btn-sm">🗑 Clear</button>
+        </div>
+      </div>
+
+      <div class="hint-row"><a id="hint-link" class="hint-link" role="button" tabindex="0">💡 Need a hint?</a></div>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="qfooter">
+        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
+        <button id="reset-btn" class="btn btn-ghost">↺ Reset</button>
+        <button id="new-btn" class="btn btn-warn">🔄 New puzzle</button>
+        <button id="next-btn" class="btn btn-primary hide">Next puzzle ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+"use strict";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random()*n);
+if(typeof window.STEP_DELAY==="undefined") window.STEP_DELAY = 340;
+
+/* ===== engine (verified offline) ===== */
+const DIRS={ up:[-1,0], down:[1,0], left:[0,-1], right:[0,1] };
+const ARROW={ up:'⬆️', down:'⬇️', left:'⬅️', right:'➡️' };
+const inB=(P,r,c)=> r>=0&&r<P.R&&c>=0&&c<P.C;
+const isWall=(P,r,c)=> P.wallSet.has(r*P.C+c);
+function bfs(P){ const {R,C,start}=P; const dist=new Array(R*C).fill(-1), parent=new Array(R*C).fill(-1);
+  const s=start[0]*C+start[1]; dist[s]=0; const q=[s];
+  for(let h=0;h<q.length;h++){ const cur=q[h], r=Math.floor(cur/C), c=cur%C;
+    for(const k in DIRS){ const [dr,dc]=DIRS[k]; const nr=r+dr,nc=c+dc;
+      if(!inB(P,nr,nc)||isWall(P,nr,nc)) continue; const ni=nr*C+nc; if(dist[ni]!==-1) continue;
+      dist[ni]=dist[cur]+1; parent[ni]=cur; q.push(ni); } }
+  return {dist,parent}; }
+function reconstruct(P,parent,goal){ const C=P.C; const cells=[]; let cur=goal[0]*C+goal[1];
+  while(cur!==-1){ cells.push(cur); cur=parent[cur]; } cells.reverse();
+  const moves=[]; for(let i=1;i<cells.length;i++){ const pr=Math.floor(cells[i-1]/C),pc=cells[i-1]%C,r=Math.floor(cells[i]/C),c=cells[i]%C;
+    const dr=r-pr,dc=c-pc; moves.push(dr===-1?'up':dr===1?'down':dc===-1?'left':'right'); } return {moves,cells}; }
+function simulateTrace(P,program){ let r=P.start[0],c=P.start[1]; const trace=[];
+  for(const mv of program){ const [dr,dc]=DIRS[mv]; const nr=r+dr,nc=c+dc; let bonk=false;
+    if(!inB(P,nr,nc)||isWall(P,nr,nc)) bonk=true; else { r=nr; c=nc; } trace.push({r,c,bonk}); } return trace; }
+const manhattan=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
+const LEVELS={
+  EASY:  { R:4,C:4, walls:0,  minLen:2,  maxLen:5,  detourMin:0, par:false, direct:true,  label:"🌱 Easy" },
+  MEDIUM:{ R:5,C:5, walls:3,  minLen:4,  maxLen:8,  detourMin:0, par:false, direct:false, label:"⭐ Medium" },
+  HARD:  { R:7,C:7, walls:13, minLen:8,  maxLen:18, detourMin:2, par:true,  direct:false, label:"🔥 Hard" },
+  EXPERT:{ R:8,C:8, walls:20, minLen:12, maxLen:26, detourMin:4, par:true,  direct:false, label:"🏆 Expert" },
+};
+function genPuzzle(levelKey){
+  const cfg=LEVELS[levelKey], R=cfg.R, C=cfg.C, N=R*C;
+  for(let a=0;a<3000;a++){
+    const wallSet=new Set(); while(wallSet.size<cfg.walls) wallSet.add(rnd(N));
+    const free=[]; for(let i=0;i<N;i++) if(!wallSet.has(i)) free.push(i);
+    if(free.length<2) continue;
+    const s=free[rnd(free.length)]; let t=free[rnd(free.length)]; if(t===s) continue;
+    const start=[Math.floor(s/C),s%C], treasure=[Math.floor(t/C),t%C];
+    const P={R,C,wallSet,start,treasure}; const {dist,parent}=bfs(P); const d=dist[t];
+    if(d<0||d<cfg.minLen||d>cfg.maxLen) continue;
+    if(d - manhattan(start,treasure) < cfg.detourMin) continue;
+    const rec=reconstruct(P,parent,treasure);
+    return { R,C, wallSet, start, treasure, optimal:d, optimalMoves:rec.moves, optimalCells:rec.cells, par:cfg.par, direct:cfg.direct, label:cfg.label };
+  }
+  return null;
+}
+
+/* ===== state ===== */
+let level="EASY", muted=false, P=null, program=[], robotPos=[0,0], running=false, solved=false, hintStep=0, trail=[];
+
+function setLevel(l){ level=l; document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l)); }
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+$("start-btn").onclick = ()=>{ newPuzzle(true); };
+$("home-btn").onclick  = goHome;
+$("new-btn").onclick    = ()=>newPuzzle(false);
+$("next-btn").onclick    = ()=>newPuzzle(false);
+$("reset-btn").onclick   = resetPuzzle;
+$("run-btn").onclick     = runProgram;
+$("undo-btn").onclick    = ()=>{ if(running||solved||P.direct) return; program.pop(); afterEdit(); };
+$("clear-btn").onclick   = ()=>{ if(running||solved||P.direct) return; program=[]; afterEdit(); };
+$("hint-link").onclick    = giveHint;
+$("hint-link").addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); giveHint(); } });
+document.querySelectorAll('.dbtn').forEach(b=> b.onclick=()=>onArrow(b.dataset.dir));
+
+function newPuzzle(fromHome){
+  P=genPuzzle(level); program=[]; robotPos=[P.start[0],P.start[1]]; running=false; solved=false; hintStep=0;
+  trail=[[P.start[0],P.start[1]]];
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  $("q-level").textContent=P.label;
+  const parChip=$("par-chip");
+  if(P.par){ parChip.classList.remove("hide"); parChip.textContent=`🎯 Best: ${P.optimal}`; } else parChip.classList.add("hide");
+  applyModeUI();
+  $("next-btn").classList.add("hide"); $("hint-link").classList.remove("off");
+  setPadDisabled(false); $("run-btn").disabled=true; $("undo-btn").disabled=true; $("clear-btn").disabled=true;
+  $("moves-chip").textContent="Moves: 0";
+  setOwl('idle'); flash(promptText(), '');
+  renderGrid(); renderRobot(); renderTrail(); renderProg();
+}
+function applyModeUI(){
+  const d=P.direct;
+  $("prog").classList.toggle('hide', d);
+  $("run-btn").classList.toggle('hide', d);
+  $("undo-btn").classList.toggle('hide', d);
+  $("clear-btn").classList.toggle('hide', d);
+}
+function promptText(){
+  if(P.direct) return "Press the arrow keys or buttons — the robot moves right away!";
+  return P.par ? "Build a program — try the fewest moves!" : "Tap the arrows to build a program, then Run.";
+}
+
+/* reset the CURRENT puzzle back to the start (Escape / Reset button) */
+function resetPuzzle(){
+  if(!P) return;
+  program=[]; robotPos=[P.start[0],P.start[1]]; running=false; solved=false; hintStep=0;
+  delete document.body.dataset.running;
+  trail=[[P.start[0],P.start[1]]];
+  $("next-btn").classList.add("hide"); $("hint-link").classList.remove("off");
+  setPadDisabled(false); $("run-btn").disabled=true; $("undo-btn").disabled=true; $("clear-btn").disabled=true;
+  $("moves-chip").textContent="Moves: 0";
+  setOwl('idle'); flash(promptText(), '');
+  renderGrid(); renderRobot(); renderTrail(); renderProg();
+}
+
+/* ===== input dispatch ===== */
+function onArrow(dir){ if(!P || solved || running) return; if(P.direct) liveMove(dir); else addMove(dir); }
+
+function liveMove(dir){
+  const [dr,dc]=DIRS[dir]; const nr=robotPos[0]+dr, nc=robotPos[1]+dc;
+  if(!inB(P,nr,nc) || isWall(P,nr,nc)){ bonk(); flash("Bump! 🤖 can't go there — try another way.", 'bad'); setOwl('worried'); return; }
+  robotPos=[nr,nc]; program.push(dir); pushTrail(robotPos);
+  renderRobot(); renderTrail(); sound('tick');
+  $("moves-chip").textContent=`Moves: ${program.length}`;
+  if(robotPos[0]===P.treasure[0] && robotPos[1]===P.treasure[1]) winGame(program.length);
+  else { setOwl('idle'); if($("feedback").classList.contains('bad')) flash(promptText(),''); }
+}
+function addMove(dir){ program.push(dir); afterEdit(); }
+function afterEdit(){
+  robotPos=[P.start[0],P.start[1]]; trail=[[P.start[0],P.start[1]]];
+  $("run-btn").disabled = program.length===0; $("undo-btn").disabled = program.length===0; $("clear-btn").disabled = program.length===0;
+  $("moves-chip").textContent=`Moves: ${program.length}`;
+  renderRobot(); renderTrail(); renderProg();
+}
+
+/* ===== render ===== */
+function renderGrid(){
+  const wrap=$("gridwrap"); wrap.style.setProperty('--R',P.R); wrap.style.setProperty('--C',P.C);
+  const g=$("grid"); g.style.gridTemplateColumns=`repeat(${P.C},1fr)`; g.style.gridTemplateRows=`repeat(${P.R},1fr)`; g.innerHTML='';
+  for(let r=0;r<P.R;r++) for(let c=0;c<P.C;c++){
+    const cell=document.createElement('div'); cell.className='cell'; cell.dataset.k=r*P.C+c;
+    if(P.wallSet.has(r*P.C+c)) cell.classList.add('wall');
+    if(r===P.start[0]&&c===P.start[1]) cell.classList.add('startcell');
+    if(r===P.treasure[0]&&c===P.treasure[1]) cell.textContent='💎';
+    g.appendChild(cell);
+  }
+  applyBread();
+}
+function renderRobot(){ const tok=$("robot");
+  tok.style.left=((robotPos[1]+0.5)/P.C*100)+'%'; tok.style.top=((robotPos[0]+0.5)/P.R*100)+'%'; }
+function pushTrail(pos){ const last=trail[trail.length-1]; if(!last||last[0]!==pos[0]||last[1]!==pos[1]) trail.push([pos[0],pos[1]]); }
+function renderTrail(){
+  const line=$("trailline"), dots=$("traildots");
+  if(!P || trail.length===0){ line.setAttribute('points',''); dots.innerHTML=''; return; }
+  const pts=trail.map(([r,c])=>[(c+0.5)/P.C*100,(r+0.5)/P.R*100]);
+  line.setAttribute('points', pts.map(p=>p[0].toFixed(2)+','+p[1].toFixed(2)).join(' '));
+  dots.innerHTML = pts.map(p=>`<circle cx="${p[0].toFixed(2)}" cy="${p[1].toFixed(2)}" r="1.7"/>`).join('');
+}
+function renderProg(){
+  const el=$("prog"); if(P.direct){ return; }
+  if(program.length===0){ el.innerHTML=`<span class="ph">Your program is empty — tap arrows below ⬇️</span>`; return; }
+  el.innerHTML=program.map((m,i)=>`<div class="step" data-i="${i}">${ARROW[m]}</div>`).join('');
+}
+function applyBread(){
+  document.querySelectorAll('.cell.bread').forEach(c=>c.classList.remove('bread'));
+  if(hintStep<=0) return;
+  for(let i=1;i<=hintStep && i<P.optimalCells.length;i++){
+    const k=P.optimalCells[i]; const cell=$("grid").querySelector(`.cell[data-k="${k}"]`);
+    if(cell && !cell.classList.contains('wall')) cell.classList.add('bread');
+  }
+}
+
+/* ===== run (program mode) ===== */
+function setPadDisabled(v){ document.querySelectorAll('.dbtn').forEach(b=>b.disabled=v); }
+function runProgram(){
+  if(running || solved || P.direct || program.length===0) return;
+  running=true; document.body.dataset.running='1';
+  setPadDisabled(true); $("run-btn").disabled=true; $("undo-btn").disabled=true; $("clear-btn").disabled=true;
+  robotPos=[P.start[0],P.start[1]]; trail=[[P.start[0],P.start[1]]]; renderRobot(); renderTrail();
+  const trace=simulateTrace(P,program); let i=0; const stepDelay=window.STEP_DELAY;
+  (function step(){
+    document.querySelectorAll('.step.active').forEach(s=>s.classList.remove('active'));
+    if(i>=trace.length){ finishRun(); return; }
+    const chip=$("prog").querySelector(`.step[data-i="${i}"]`); if(chip) chip.classList.add('active');
+    const s=trace[i]; robotPos=[s.r,s.c]; renderRobot();
+    if(s.bonk){ const tok=$("robot"); tok.classList.remove('bonk'); void tok.offsetWidth; tok.classList.add('bonk'); sound('bad'); }
+    else { pushTrail(robotPos); renderTrail(); sound('tick'); }
+    i++; setTimeout(step, stepDelay);
+  })();
+}
+function finishRun(){
+  running=false; delete document.body.dataset.running;
+  document.querySelectorAll('.step.active').forEach(s=>s.classList.remove('active'));
+  const win = robotPos[0]===P.treasure[0] && robotPos[1]===P.treasure[1];
+  if(win){ winGame(program.length); }
+  else {
+    setPadDisabled(false); $("run-btn").disabled=false; $("undo-btn").disabled=false; $("clear-btn").disabled=false;
+    flash("The robot didn't reach 💎 — tweak your moves and run again!", 'bad'); setOwl('worried');
+  }
+}
+
+function winGame(moveCount){
+  solved=true; setPadDisabled(true); $("run-btn").disabled=true; $("undo-btn").disabled=true; $("clear-btn").disabled=true;
+  $("hint-link").classList.add("off"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  const perfect = moveCount===P.optimal;
+  if(perfect) flash(`⭐ Perfect! You reached 💎 in the fewest moves (${P.optimal})!`, 'good');
+  else if(P.par) flash(`🎉 Reached 💎 in ${moveCount} moves. Fewest is ${P.optimal} — try again for a ⭐!`, 'good');
+  else flash(`🎉 You reached the treasure in ${moveCount} moves!`, 'good');
+  setOwl('win'); sound('win'); if(!reduceMotion) miniConfetti();
+}
+
+function giveHint(){
+  if(!P || solved || running) return;
+  if(hintStep < P.optimal){ hintStep++; applyBread(); }
+  const dir = P.optimalMoves[hintStep-1] || P.optimalMoves[0];
+  const word = hintStep<=1 ? `Start by going ${ARROW[dir]}` : `…then ${ARROW[dir]}`;
+  flash(`💡 ${word}  (the glowing path is one best route)`, 'hint'); setOwl('think');
+}
+
+function bonk(){ const tok=$("robot"); tok.classList.remove('bonk'); void tok.offsetWidth; tok.classList.add('bonk'); sound('bad'); }
+function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
+function goHome(){ stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+
+// keyboard: arrows move/add, Backspace undo (program), Enter run/next, Escape reset, H hint
+document.addEventListener("keydown", e=>{
+  if($("screen-game").classList.contains("hide") || !P) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if(e.key==='Escape'){ e.preventDefault(); resetPuzzle(); return; }
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+  if(map[e.key]){ e.preventDefault(); onArrow(map[e.key]); return; }
+  if(e.key==='Backspace' && !P.direct && !running && !solved){ e.preventDefault(); program.pop(); afterEdit(); return; }
+  if(e.key==='Enter'){
+    if(solved && !$("next-btn").classList.contains('hide')){ e.preventDefault(); newPuzzle(false); return; }
+    if(!P.direct && !running && program.length){ e.preventDefault(); runProgram(); return; }
+  }
+  if(e.key.toLowerCase()==='h' && !solved){ giveHint(); }
+});
+
+/* ===== owl / sound / confetti / title (shared) ===== */
+function setOwl(mood){ [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return;
+  o.classList.remove("worried","win","think"); if(mood!=="idle") o.classList.add(mood); }); }
+let audioCtx=null;
+function beep(freq,dur,type="sine",when=0,gain=0.12){ if(muted) return;
+  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur);
+  }catch(e){} }
+function sound(kind){ if(kind==="tick") beep(560,.05,"square",0,.05);
+  else if(kind==="bad") beep(180,.16,"sawtooth",0,.10);
+  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
+let confettiRAF=null;
+function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:70},()=>({x:cv.width/2,y:cv.height*0.4,r:5+Math.random()*6,c:colors[Math.floor(Math.random()*colors.length)],vy:-4+Math.random()*2,vx:-5+Math.random()*10,rot:0,vr:.2}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<70) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
+function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF); const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
+
+(function(){ const word="Robot Instructions"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
+  for(const ch of word){ if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
+    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
+    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.05).toFixed(2)}s infinite`; el.appendChild(s); }
+  if(!reduceMotion){ const st=document.createElement("style"); st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"; document.head.appendChild(st); }
+})();
+
+setLevel("EASY");
+</script>
+</body>
+</html>

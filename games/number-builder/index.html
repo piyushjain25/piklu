@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Number Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
+    --ink:#33236B; --ink-soft:#6a5aa0;
+    --grape:#6C4AB6; --grape-dark:#553a95;
+    --sun:#FFCF43; --sun-dark:#e6a800;
+    --coral:#FF6B7A; --coral-dark:#e24a5c;
+    --leaf:#2FB37D; --leaf-dark:#218a60;
+    --sky:#3FA7E0; --sky-dark:#2b86ba;
+    --card:#FFFFFF; --key-line:#E4DCF5;
+    --paper:#FBF3E4; --paper-line:#EAD9BC;
+    --shadow:0 18px 40px rgba(72,45,130,.18);
+    --radius:26px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif; color:var(--ink); min-height:100vh;
+    background:linear-gradient(180deg,var(--sky-top) 0%,#C6ECEC 45%,var(--sky-bot) 100%);
+    background-attachment:fixed;
+    display:flex; align-items:flex-start; justify-content:center; padding:22px 14px 60px;
+  }
+  body::before,body::after{
+    content:""; position:fixed; z-index:0; border-radius:50%;
+    background:rgba(255,255,255,.55); filter:blur(1px);
+    box-shadow:60px 10px 0 -6px rgba(255,255,255,.55), 120px 4px 0 -10px rgba(255,255,255,.5);
+  }
+  body::before{width:90px;height:34px;top:8%;left:6%;}
+  body::after{width:70px;height:26px;top:16%;right:10%;}
+
+  .app{position:relative; z-index:1; width:100%; max-width:720px;}
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px;}
+
+  .brand{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:4px;}
+  .title{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(27px,5.3vw,42px);
+    line-height:1; margin:0; text-align:center;}
+  .title .c1{color:var(--grape);} .title .c2{color:var(--coral);}
+  .title .c3{color:var(--leaf);} .title .c4{color:var(--sun-dark);}
+  .subtitle{text-align:center; color:var(--ink-soft); font-weight:700; margin:2px 0 18px; font-size:15px;}
+
+  /* owl (shared with sibling games) */
+  .owl{width:60px; height:60px; flex:0 0 auto;}
+  .owl .pupil{transition:transform .2s ease;}
+  .owl .brow{transition:transform .2s ease; transform-origin:center;}
+  .owl.think .pupil{transform:translateY(2px);}
+  .owl.worried .brow-l{transform:rotate(14deg) translateY(-1px);}
+  .owl.worried .brow-r{transform:rotate(-14deg) translateY(-1px);}
+  .owl.happy .beak,.owl.win .beak{transform:translateY(1px) scale(1.05);}
+
+  /* buttons */
+  .btn{font-family:'Fredoka',sans-serif; font-weight:600; font-size:17px; border:none; cursor:pointer;
+    color:#fff; border-radius:16px; padding:13px 22px; position:relative;
+    transition:transform .06s ease, filter .15s ease; box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;}
+  .btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);}
+  .btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
+  .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
+  .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);}
+  .btn-sun{background:var(--sun); color:var(--ink); --btn-shadow:var(--sun-dark);}
+  .btn-ghost{background:#F1EDFA; color:var(--grape); --btn-shadow:#d9d0ef;}
+  .btn:disabled{filter:grayscale(.4) opacity(.5); cursor:not-allowed;}
+  .btn-lg{font-size:20px; padding:16px 34px;}
+  .btn-sm{font-size:15px; padding:10px 15px; border-radius:13px;}
+
+  .block-label{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape); font-size:15px;
+    text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px;}
+
+  /* level grid (shared look with sibling games) */
+  .diff-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+  @media(min-width:560px){.diff-grid{grid-template-columns:repeat(4,1fr);}}
+  .diff{border:3px solid #EEE8FB; background:#fff; border-radius:18px; cursor:pointer; padding:14px 10px;
+    text-align:center; transition:all .15s ease;}
+  .diff:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .diff .d-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px;}
+  .diff .d-range{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-top:3px;}
+  .diff[aria-pressed="true"]{border-color:var(--dc,var(--grape)); background:var(--dbg,#F4F0FE);
+    transform:translateY(-2px); box-shadow:var(--shadow);}
+  .diff.easy{--dc:var(--leaf); --dbg:#E8F8F0;}
+  .diff.medium{--dc:var(--sky); --dbg:#E6F4FC;}
+  .diff.hard{--dc:var(--sun-dark); --dbg:#FFF6DC;}
+  .diff.expert{--dc:var(--coral); --dbg:#FFEAED;}
+
+  .howto{background:#F4F0FE; border-radius:16px; padding:14px 16px; margin-top:18px; font-weight:700;
+    color:var(--ink-soft); font-size:14px; line-height:1.5;}
+  .howto b{color:var(--grape);}
+  .mt{margin-top:22px;}
+  .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+
+  /* game top bar */
+  .qtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
+  .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape);
+    padding:6px 14px; border-radius:999px;}
+  .chip.round{background:var(--sky);}
+
+  /* goal banner */
+  .goalbar{background:var(--grape); color:#fff; border-radius:16px; padding:13px 18px; text-align:center;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(16px,3.4vw,20px); line-height:1.25;
+    box-shadow:0 6px 0 var(--grape-dark); display:flex; align-items:center; justify-content:center; gap:9px;}
+  .goalbar .bull{font-size:22px;}
+
+  /* place-value slots */
+  .build{background:var(--paper); border:3px solid var(--paper-line); border-radius:20px;
+    padding:18px 14px 14px; margin:16px auto 6px; box-shadow:inset 0 3px 14px rgba(140,100,40,.10);}
+  .slots{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+  .slot-col{display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .place-lbl{font-family:'Fredoka',sans-serif; font-weight:600; font-size:12.5px; color:var(--grape-dark); text-transform:uppercase; letter-spacing:.5px;}
+  .place-mult{font-size:11px; font-weight:800; color:var(--ink-soft);}
+  .slot{width:clamp(58px,17vw,74px); height:clamp(72px,21vw,92px); border-radius:16px; background:#fff;
+    border:3px dashed var(--paper-line); display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(34px,9vw,44px); color:var(--grape);
+    cursor:pointer; transition:all .15s ease;}
+  .slot.lead{border-color:var(--grape);}
+  .slot.filled{border-style:solid; border-color:var(--grape); background:#fff;}
+  .slot.hintslot{border-color:var(--sun-dark); background:#FFF6DC; animation:hpulse 1s ease-in-out infinite;}
+  @keyframes hpulse{0%,100%{box-shadow:0 0 0 0 rgba(230,168,0,.5)}50%{box-shadow:0 0 0 7px rgba(230,168,0,0)}}
+
+  /* live readout */
+  .readout{text-align:center; margin-top:14px;}
+  .readout .big{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); color:var(--ink);}
+  .readout .expand{font-weight:800; color:var(--ink-soft); font-size:15px; margin-top:2px; min-height:20px;}
+
+  /* digit tile tray */
+  .tray-lbl{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:13px;
+    text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
+  .tray{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; min-height:74px;}
+  .tile{width:clamp(56px,16vw,70px); height:clamp(64px,18vw,78px); border-radius:16px; cursor:pointer;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(30px,8vw,40px); color:#5a3a12;
+    display:flex; align-items:center; justify-content:center; user-select:none;
+    background:linear-gradient(180deg,#F0C07E 0%,#E0A64E 55%,#C7852B 100%);
+    border:none; box-shadow:0 5px 0 #a86f1e, inset 0 2px 3px rgba(255,255,255,.45);
+    transition:transform .08s ease, filter .15s ease;}
+  .tile:hover:not(.used){transform:translateY(-2px);}
+  .tile:active:not(.used){transform:translateY(3px); box-shadow:0 2px 0 #a86f1e, inset 0 2px 3px rgba(255,255,255,.45);}
+  .tile:focus-visible{outline:3px solid var(--grape); outline-offset:3px;}
+  .tile.held{filter:brightness(1.08); transform:translateY(-4px); box-shadow:0 9px 0 #a86f1e, 0 0 0 4px var(--sun);}
+  .tile.hinttile{box-shadow:0 5px 0 #a86f1e, 0 0 0 4px var(--sun-dark); animation:hpulse 1s ease-in-out infinite;}
+  .tile.used{visibility:hidden;}
+  .tile.slotted{box-shadow:0 4px 0 #a86f1e, inset 0 2px 3px rgba(255,255,255,.45);}
+
+  .feedback{min-height:26px; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:17px; margin:12px 0 2px;}
+  .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);}
+  .feedback.hint{color:var(--sun-dark);}
+
+  .controls{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;}
+  .qfooter{display:flex; gap:10px; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap;}
+
+  canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
+  .hide{display:none !important;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+
+    <!-- ===== HOME ===== -->
+    <section id="screen-home">
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🔢 Slide the number tiles into place to hit the goal!</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">2-digit</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">3-digit</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">tricky goals</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">4-digit</div></button>
+      </div>
+
+      <div class="howto">
+        🏗️ <b>How to play:</b> Tap a number tile — or just type the number on your keyboard — and it drops into the next box, left to right.
+        Tap a placed tile to pull it out, or use <b>Undo</b> (or Backspace). Arrange the tiles to match the goal — the biggest place is worth the most!
+      </div>
+
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start Building ▶</button></div>
+    </section>
+
+    <!-- ===== GAME ===== -->
+    <section id="screen-game" class="hide">
+      <div class="qtop">
+        <span class="chip round" id="q-round">Build #1</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="chip" id="q-level">🌱 Easy</span>
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:44px;height:44px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="goalbar" id="goalbar"><span class="bull">🎯</span><span id="goal-text">Goal</span></div>
+
+      <div class="build">
+        <div class="slots" id="slots"></div>
+        <div class="readout">
+          <div class="big" id="readout-big">— —</div>
+          <div class="expand" id="readout-expand"></div>
+        </div>
+      </div>
+
+      <div class="tray-lbl">Your tiles</div>
+      <div class="tray" id="tray"></div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="controls">
+        <button id="undo-btn"  class="btn btn-ghost btn-sm" disabled>↩ Undo</button>
+        <button id="reset-btn" class="btn btn-ghost btn-sm">↺ Reset</button>
+        <button id="hint-btn"  class="btn btn-sun btn-sm">💡 Hint</button>
+        <button id="skip-btn"  class="btn btn-warn btn-sm">🔄 New tiles</button>
+      </div>
+
+      <div class="qfooter">
+        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
+        <button id="next-btn" class="btn btn-primary" disabled>Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+"use strict";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+/* ============================================================
+   GOAL ENGINE  (verified offline: the optimal answer is always
+   valid, uses the given digits, and the judge accepts only
+   optimal arrangements)
+   ============================================================ */
+function permutations(arr){
+  if(arr.length<=1) return [arr.slice()];
+  const out=[];
+  for(let i=0;i<arr.length;i++){
+    const rest=arr.slice(0,i).concat(arr.slice(i+1));
+    for(const p of permutations(rest)) out.push([arr[i],...p]);
+  }
+  return out;
+}
+const valueOf = a => parseInt(a.join(''),10);
+const isValidNum = a => a.length===1 || a[0]!=='0';
+
+function validArrangements(digits){
+  const seen=new Set(), out=[];
+  for(const p of permutations(digits)){
+    if(!isValidNum(p)) continue;
+    const key=p.join(''); if(seen.has(key)) continue; seen.add(key);
+    out.push({ arr:p, val:valueOf(p) });
+  }
+  return out;
+}
+function pickThreshold(values, side){
+  const lo=Math.min(...values), hi=Math.max(...values);
+  if(lo===hi) return null;
+  const steps=[100,50,25,10,5]; const nice=[];
+  for(const s of steps){
+    for(let x=Math.ceil((lo+1)/s)*s; x<hi; x+=s){
+      if(x<=lo||x>=hi) continue;
+      const above=values.filter(v=>v>x).length, below=values.filter(v=>v<x).length;
+      if(side==='gt' && above>=1 && below>=1) nice.push(x);
+      if(side==='lt' && below>=1 && above>=1) nice.push(x);
+    }
+    if(nice.length) break;
+  }
+  if(nice.length) return nice[rnd(nice.length)];
+  const uniq=[...new Set(values)].sort((a,b)=>a-b);
+  const i=1+rnd(uniq.length-1);
+  return Math.floor((uniq[i-1]+uniq[i])/2);
+}
+function pickTarget(values){
+  const lo=Math.min(...values), hi=Math.max(...values);
+  for(const s of [100,50,25,10]){
+    const cands=[]; for(let x=Math.ceil(lo/s)*s; x<=hi; x+=s) cands.push(x);
+    if(cands.length>=2) return cands[rnd(cands.length)];
+  }
+  return Math.round((lo+hi)/2);
+}
+const GOAL = {
+  LARGEST:  { text:d=>`Make the largest ${d}-digit number.`, best:A=>Math.max(...A.map(a=>a.val)) },
+  SMALLEST: { text:d=>`Make the smallest ${d}-digit number.`, best:A=>Math.min(...A.map(a=>a.val)) },
+  LARGEST_EVEN: { text:d=>`Make the largest even number.`, filter:a=>a.val%2===0, best:A=>Math.max(...A.map(a=>a.val)) },
+  SMALLEST_ODD: { text:d=>`Make the smallest odd number.`, filter:a=>a.val%2===1, best:A=>Math.min(...A.map(a=>a.val)) },
+};
+function pack(type,text,best,A,extra){
+  const correct=new Set(A.filter(a=>a.val===best).map(a=>a.val));
+  const arr=A.find(a=>a.val===best).arr;
+  return { type, text, correct, arrangement:arr, ...extra };
+}
+function buildGoal(type, A, D, extra){
+  if(type==='GREATER'){ const X=extra.X; const pool=A.filter(a=>a.val>X); const best=Math.min(...pool.map(a=>a.val));
+    return pack(type, `Make the smallest number greater than ${X}.`, best, A, {X}); }
+  if(type==='LESS'){ const X=extra.X; const pool=A.filter(a=>a.val<X); const best=Math.max(...pool.map(a=>a.val));
+    return pack(type, `Make the largest number less than ${X}.`, best, A, {X}); }
+  if(type==='CLOSEST'){ const T=extra.T; const md=Math.min(...A.map(a=>Math.abs(a.val-T)));
+    const correct=new Set(A.filter(a=>Math.abs(a.val-T)===md).map(a=>a.val));
+    const arr=A.find(a=>Math.abs(a.val-T)===md).arr;
+    return { type, text:`Make the number closest to ${T}.`, T, correct, arrangement:arr }; }
+  const g=GOAL[type]; const pool=g.filter?A.filter(g.filter):A; const best=g.best(pool);
+  const correct=new Set(pool.filter(a=>a.val===best).map(a=>a.val));
+  const arr=pool.find(a=>a.val===best).arr;
+  return { type, text:g.text(D), correct, arrangement:arr };
+}
+const LEVELS = {
+  EASY:   { D:2, allowZero:false, goals:['LARGEST','SMALLEST'], label:"🌱 Easy" },
+  MEDIUM: { D:3, allowZero:false, goals:['LARGEST','SMALLEST','CLOSEST'], label:"⭐ Medium" },
+  HARD:   { D:3, allowZero:true,  goals:['LARGEST','SMALLEST','CLOSEST','GREATER','LESS'], label:"🔥 Hard" },
+  EXPERT: { D:4, allowZero:true,  goals:['GREATER','LESS','CLOSEST','LARGEST_EVEN','SMALLEST_ODD'], label:"🏆 Expert" },
+};
+function randomDigits(D, allowZero){
+  const lo=allowZero?0:1;
+  for(let t=0;t<100;t++){
+    const set=[];
+    while(set.length<D){ const d=lo+rnd(10-lo); if(!set.includes(d)) set.push(d); }
+    if(new Set(set).size>1) return set.map(String);
+  }
+  return ['1','2','3','4'].slice(0,D);
+}
+function buildChallenge(levelKey){
+  const cfg=LEVELS[levelKey];
+  for(let attempt=0; attempt<300; attempt++){
+    const digits=randomDigits(cfg.D, cfg.allowZero);
+    const A=validArrangements(digits);
+    if(A.length<2) continue;
+    const values=A.map(a=>a.val);
+    const type=cfg.goals[rnd(cfg.goals.length)];
+    let extra={};
+    if(type==='GREATER'){ const X=pickThreshold(values,'gt'); if(X==null) continue; extra={X}; if(!values.some(v=>v>X)) continue; }
+    if(type==='LESS'){ const X=pickThreshold(values,'lt'); if(X==null) continue; extra={X}; if(!values.some(v=>v<X)) continue; }
+    if(type==='CLOSEST'){ extra={T:pickTarget(values)}; }
+    if(type==='LARGEST_EVEN' && !A.some(a=>a.val%2===0)) continue;
+    if(type==='SMALLEST_ODD'  && !A.some(a=>a.val%2===1)) continue;
+    const goal=buildGoal(type, A, cfg.D, extra);
+    if(!goal.correct || goal.correct.size===0) continue;
+    if(goal.correct.size >= A.length) continue;   // must be non-trivial
+    return { level:levelKey, D:cfg.D, digits, goal };
+  }
+  return null;
+}
+
+/* ============================================================
+   PLACE-VALUE HELPERS
+   ============================================================ */
+const PLACE_NAMES = { 1:['ones'], 2:['tens','ones'], 3:['hundreds','tens','ones'], 4:['thousands','hundreds','tens','ones'] };
+const placeName = (D,i) => PLACE_NAMES[D][i];
+const placeMult = (D,i) => Math.pow(10, D-1-i);
+const fmtMult = m => m===1?'×1':(m>=1000?'×1000':(m>=100?'×100':'×10'));
+
+/* ============================================================
+   GAME STATE (endless play, no scoring)
+   Tiles: [{id, digit, loc}] where loc='tray' or slot index 0..D-1
+   ============================================================ */
+let level="EASY", game=null, muted=false;
+let tiles=[], moves=[], solved=false;
+
+function setLevel(l){ level=l; document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l)); }
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+$("start-btn").onclick = startGame;
+$("home-btn").onclick  = goHome;
+$("next-btn").onclick   = ()=>{ game.i++; newBuild(); };
+$("skip-btn").onclick   = ()=>{ if(solved) return; game.i++; newBuild(); };
+$("reset-btn").onclick  = resetBuild;
+$("undo-btn").onclick   = undoMove;
+$("hint-btn").onclick   = giveHint;
+
+function startGame(){
+  game = { i:0, ch:null };
+  $("q-level").textContent = LEVELS[level].label;
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  setOwl('idle');
+  newBuild();
+}
+
+function newBuild(){
+  game.ch = buildChallenge(level);
+  solved=false; moves=[];
+  const D=game.ch.D;
+  tiles = shuffle(game.ch.digits.slice()).map((d,i)=>({ id:i, digit:d, loc:'tray' }));
+  $("q-round").textContent = `Build #${game.i+1}`;
+  $("goal-text").textContent = game.ch.goal.text;
+  $("next-btn").disabled=true; $("hint-btn").disabled=false; $("skip-btn").disabled=false; $("reset-btn").disabled=false;
+  updateUndoBtn();
+  flash("Tap a number tile to drop it into the next box.", '');
+  setOwl('idle');
+  render();
+}
+
+function updateUndoBtn(){ $("undo-btn").disabled = solved || moves.length===0; }
+
+// Reset the current build to empty tiles (works during play and after a solve).
+function resetBuild(){
+  moves=[]; tiles.forEach(t=>t.loc='tray'); solved=false;
+  $("next-btn").disabled=true; $("hint-btn").disabled=false; $("skip-btn").disabled=false;
+  clearHints(); updateUndoBtn();
+  document.querySelectorAll('.slot').forEach(el=>el.style.borderColor='');
+  render();
+  flash("Board reset — tap a tile to place it.", ''); setOwl('idle');
+}
+
+function slotsArray(){
+  const D=game.ch.D, s=new Array(D).fill(null);
+  for(const t of tiles) if(t.loc!=='tray') s[t.loc]=t.digit;
+  return s;
+}
+
+function render(){
+  const D=game.ch.D;
+  // slots
+  const slotWrap=$("slots"); slotWrap.innerHTML="";
+  for(let i=0;i<D;i++){
+    const col=document.createElement("div"); col.className="slot-col";
+    const occupant = tiles.find(t=>t.loc===i);
+    const mult=placeMult(D,i);
+    col.innerHTML =
+      `<div class="place-lbl">${placeName(D,i)}</div>`+
+      `<div class="slot ${occupant?'filled':''} ${i===0?'lead':''}" data-slot="${i}">${occupant?occupant.digit:''}</div>`+
+      `<div class="place-mult">${fmtMult(mult)}</div>`;
+    slotWrap.appendChild(col);
+  }
+  // tray
+  const tray=$("tray"); tray.innerHTML="";
+  for(const t of tiles){
+    const b=document.createElement("button");
+    b.className="tile"+(t.loc!=='tray'?' used':'')+(t._hint?' hinttile':'');
+    b.textContent=t.digit; b.dataset.tile=t.id;
+    tray.appendChild(b);
+  }
+  updateReadout();
+}
+
+function updateReadout(){
+  const D=game.ch.D, s=slotsArray();
+  const big = s.map(d=>d==null?'–':d).join(' ');
+  $("readout-big").textContent = big;
+  // place-value expansion for filled slots
+  const parts=[];
+  for(let i=0;i<D;i++){ if(s[i]!=null){ const v=(+s[i])*placeMult(D,i); if(+s[i]!==0) parts.push(v); } }
+  $("readout-expand").textContent = parts.length? parts.join(' + ') + (s.every(x=>x!=null) ? ' = ' + valueOf(s) : '') : '';
+}
+
+/* ---- interaction: one-tap place (fills next open box, left to right) ---- */
+function firstEmptySlot(){
+  const D=game.ch.D, s=slotsArray();
+  for(let i=0;i<D;i++){ if(s[i]==null) return i; }
+  return -1;
+}
+function placeNext(tile){
+  const slot=firstEmptySlot();
+  if(slot<0) return;
+  moves.push({ tileId:tile.id, from:tile.loc, to:slot });
+  tile.loc=slot; sound('tick'); clearHints(); render(); updateUndoBtn(); evaluate();
+}
+function returnTile(tile){
+  moves.push({ tileId:tile.id, from:tile.loc, to:'tray' });
+  tile.loc='tray'; sound('tick'); clearHints(); render(); updateUndoBtn();
+  flash("Pulled it out — tap a tile to place it again.", '');
+}
+function undoMove(){
+  if(solved || moves.length===0) return;
+  const m=moves.pop(); const t=tiles.find(x=>x.id===m.tileId);
+  t.loc=m.from; clearHints(); render(); updateUndoBtn();
+  flash("Undid your last move.", ''); setOwl('idle');
+}
+
+// tap a tray tile -> drop into next open box
+$("tray").addEventListener('click', e=>{
+  const b=e.target.closest('.tile'); if(!b || solved) return;
+  const t=tiles.find(x=>x.id===+b.dataset.tile);
+  if(t.loc!=='tray') return;              // placed tiles are hidden here; remove via their box
+  placeNext(t);
+});
+
+// type a digit on the keyboard -> place that tile into the next open box
+function typeDigit(d){
+  if(solved) return;
+  const free=tiles.find(t=>t.loc==='tray' && t.digit===d);
+  if(free){ placeNext(free); return; }
+  if(tiles.some(t=>t.digit===d)) flash(`You've already placed the ${d}.`, '');
+  else flash(`There's no ${d} tile in this build.`, '');
+}
+// tap a filled box -> pull that tile back to the tray
+$("slots").addEventListener('click', e=>{
+  const box=e.target.closest('.slot'); if(!box || solved) return;
+  const occupant=tiles.find(t=>t.loc===+box.dataset.slot);
+  if(occupant) returnTile(occupant);
+  else flash("Tap a number tile below to fill this box.", '');
+});
+
+function evaluate(){
+  const s=slotsArray();
+  if(s.some(x=>x==null)) return;             // not full yet
+  const st = judge(s);
+  if(st==='correct') return onSolved(s);
+  if(st==='leadingzero'){
+    flash(`A number can't start with 0 — that's really just ${valueOf(s)}! Move a bigger digit to the front.`, 'bad');
+    setOwl('worried'); sound('bad'); return;
+  }
+  // suboptimal but valid
+  const g=game.ch.goal, val=valueOf(s);
+  let nudge="Not quite — keep rearranging!";
+  if(g.type==='LARGEST') nudge = `${val} works, but can you make it bigger?`;
+  else if(g.type==='SMALLEST') nudge = `${val} works, but can you make it smaller?`;
+  else if(g.type==='CLOSEST') nudge = `${val} is close to ${g.T} — can you get closer?`;
+  else if(g.type==='GREATER') nudge = (val<=g.X) ? `${val} isn't above ${g.X} yet.` : `${val} is above ${g.X}, but find the smallest one!`;
+  else if(g.type==='LESS') nudge = (val>=g.X) ? `${val} isn't below ${g.X} yet.` : `${val} is below ${g.X}, but find the largest one!`;
+  else if(g.type==='LARGEST_EVEN') nudge = (val%2? `${val} is odd — it needs to be even.` : `${val} is even, but can you make it bigger?`);
+  else if(g.type==='SMALLEST_ODD') nudge = (val%2===0? `${val} is even — it needs to be odd.` : `${val} is odd, but can you make it smaller?`);
+  flash(nudge, 'bad'); setOwl('worried'); sound('bad');
+}
+
+function judge(s){
+  if(s.some(x=>x==null)) return 'incomplete';
+  const a=[...s].sort().join(''), b=[...game.ch.digits].sort().join('');
+  if(a!==b) return 'invalid';
+  if(!isValidNum(s)) return 'leadingzero';
+  return game.ch.goal.correct.has(valueOf(s)) ? 'correct' : 'suboptimal';
+}
+
+function onSolved(s){
+  solved=true;
+  flash(`${valueOf(s)} — that's it! ${praise()}`, 'good');
+  setOwl('win'); sound('win');
+  $("hint-btn").disabled=true; $("skip-btn").disabled=true;
+  updateUndoBtn();                       // disables undo while solved; Reset stays available
+  $("next-btn").disabled=false; $("next-btn").focus();
+  document.querySelectorAll('.slot').forEach(el=>el.style.borderColor='var(--leaf)');
+  if(!reduceMotion) miniConfetti();
+}
+
+function praise(){
+  const p=["🎉","🌟","Great place-value thinking! 🧠","Brilliant! 👏","You built it! 🏗️","Number master! 🙌"];
+  return p[rnd(p.length)];
+}
+function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
+
+function clearHints(){ tiles.forEach(t=>t._hint=false); document.querySelectorAll('.slot').forEach(el=>el.classList.remove('hintslot')); }
+
+function giveHint(){
+  if(solved) return;
+  const D=game.ch.D, s=slotsArray(), opt=game.ch.goal.arrangement, g=game.ch.goal;
+  let target=-1;
+  for(let i=0;i<D;i++){ if(s[i]!==opt[i]){ target=i; break; } }
+  if(target===-1){ flash("You're already on the right track — fill the rest!", 'hint'); return; }
+  const wantDigit=opt[target];
+  clearHints();
+
+  if(s[target]!=null){
+    // wrong digit is sitting in this place — tell them to pull it out
+    flash(`💡 The ${placeName(D,target)} box should be ${wantDigit}, not ${s[target]} — tap that box to pull it out.`, 'hint');
+  } else {
+    // this is the next box to fill — point at the tile to tap
+    const trayTile = tiles.find(t=>t.loc==='tray' && t.digit===wantDigit);
+    if(trayTile) trayTile._hint=true;
+    let tip;
+    if(g.type==='LARGEST') tip=`Put the biggest digit in the highest place — tap ${wantDigit} for the ${placeName(D,target)}.`;
+    else if(g.type==='SMALLEST') tip=`Put the smallest digit (not 0) in the highest place — tap ${wantDigit} for the ${placeName(D,target)}.`;
+    else tip=`Tap ${wantDigit} next — it goes in the ${placeName(D,target)} box.`;
+    flash(`💡 ${tip}`, 'hint');
+  }
+  setOwl('think'); sound('tick'); render();
+  const box=[...document.querySelectorAll('.slot')].find(el=>+el.dataset.slot===target);
+  if(box) box.classList.add('hintslot');
+}
+
+function goHome(){
+  stopConfetti();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl('idle');
+}
+
+// keyboard: type digits to place, Backspace to undo, Esc/R reset, U undo, H hint, Enter next when solved
+document.addEventListener("keydown", e=>{
+  if($("screen-game").classList.contains("hide") || !game) return;
+  if((e.key==="Enter"||e.key===" ") && solved && !$("next-btn").disabled){ e.preventDefault(); $("next-btn").click(); return; }
+  if(e.key==="Escape"){ e.preventDefault(); resetBuild(); return; }
+  if(/^[0-9]$/.test(e.key)){ typeDigit(e.key); return; }
+  if(e.key==="Backspace"){ e.preventDefault(); undoMove(); return; }
+  if(e.key.toLowerCase()==="r"){ resetBuild(); }
+  else if(e.key.toLowerCase()==="u" && !solved){ undoMove(); }
+  else if(e.key.toLowerCase()==="h" && !solved){ giveHint(); }
+});
+
+/* ============================================================
+   OWL / SOUND / CONFETTI / TITLE  (shared with sibling games)
+   ============================================================ */
+function setOwl(mood){
+  [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return;
+    o.classList.remove("happy","worried","win","think"); if(mood!=="idle") o.classList.add(mood); });
+}
+let audioCtx=null;
+function beep(freq,dur,type="sine",when=0,gain=0.15){
+  if(muted) return;
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+function sound(kind){
+  if(kind==="tick"){ beep(520,.05,"square",0,.06); }
+  else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
+  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
+}
+let confettiRAF=null;
+function miniConfetti(){
+  const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A","#DB9A44"];
+  const parts=Array.from({length:60},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*6,
+    c:colors[Math.floor(Math.random()*colors.length)],vy:-4+Math.random()*2,vx:-4.5+Math.random()*9,rot:0,vr:.2}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<64) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
+}
+function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF);
+  const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
+
+(function(){
+  const word="Number Builder"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
+  for(const ch of word){
+    if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
+    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
+    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.06).toFixed(2)}s infinite`;
+    el.appendChild(s);
+  }
+  if(!reduceMotion){ const st=document.createElement("style");
+    st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
+    document.head.appendChild(st); }
+})();
+
+setLevel("EASY");
+</script>
+</body>
+</html>

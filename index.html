@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Playful Minds</title>
+<!--
+  This root page currently just forwards to the games hub at /games/.
+  WHEN YOU ADD THE STORE LATER: replace the contents of THIS file with your
+  store home page. Do NOT move /games/ or /games/<slug>/ — those game URLs
+  stay exactly the same, so any links or bookmarks keep working.
+-->
+<meta http-equiv="refresh" content="0; url=games/" />
+<link rel="canonical" href="games/" />
+<style>
+  html,body{height:100%;margin:0;font-family:system-ui,sans-serif;background:#D9F6E4;color:#33236B;}
+  .box{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;}
+  a{color:#6C4AB6;font-weight:700;}
+</style>
+</head>
+<body>
+  <div class="box">
+    <p>Taking you to the games… if nothing happens, <a href="games/">tap here to play ▶</a></p>
+  </div>
+  <script>location.replace("games/");</script>
+</body>
+</html>
