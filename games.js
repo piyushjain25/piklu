@@ -23,6 +23,9 @@ window.GAMES = [
   { slug: "matchstick-math",    title: "Matchstick Math",     emoji: "🔥", accent: "coral",
     tagline: "Move one matchstick to make the sum true.",     skills: ["Arithmetic", "Logic"] },
 
+  { slug: "guess-capital",   title: "Guess the Capital",      emoji: "📌", accent: "sun",
+    tagline: "Pick the right capital city.",                  skills: ["Memory"],                       badge:"New"},
+
   { slug: "number-detective",   title: "Number Detective",    emoji: "🕵️", accent: "grape",
     tagline: "Crack the secret number from the clues.",       skills: ["Number sense", "Logic"] },
 

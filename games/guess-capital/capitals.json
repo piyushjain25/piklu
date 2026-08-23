@@ -1,0 +1,542 @@
+{
+ "india": [
+  {
+   "name": "Andhra Pradesh",
+   "capital": "Amaravati",
+   "fact": "Amaravati became the official capital in 2026."
+  },
+  {
+   "name": "Arunachal Pradesh",
+   "capital": "Itanagar",
+   "fact": ""
+  },
+  {
+   "name": "Assam",
+   "capital": "Dispur",
+   "fact": "Dispur is a part of the city of Guwahati."
+  },
+  {
+   "name": "Bihar",
+   "capital": "Patna",
+   "fact": ""
+  },
+  {
+   "name": "Chhattisgarh",
+   "capital": "Raipur",
+   "fact": ""
+  },
+  {
+   "name": "Goa",
+   "capital": "Panaji",
+   "fact": "Goa is India's smallest state."
+  },
+  {
+   "name": "Gujarat",
+   "capital": "Gandhinagar",
+   "fact": "It is named after Mahatma Gandhi."
+  },
+  {
+   "name": "Haryana",
+   "capital": "Chandigarh",
+   "fact": "Chandigarh is the capital of BOTH Haryana and Punjab!"
+  },
+  {
+   "name": "Himachal Pradesh",
+   "capital": "Shimla",
+   "fact": "Shimla is the summer capital; Dharamshala is the winter one."
+  },
+  {
+   "name": "Jharkhand",
+   "capital": "Ranchi",
+   "fact": ""
+  },
+  {
+   "name": "Karnataka",
+   "capital": "Bengaluru",
+   "fact": "Bengaluru was once called Bangalore."
+  },
+  {
+   "name": "Kerala",
+   "capital": "Thiruvananthapuram",
+   "fact": ""
+  },
+  {
+   "name": "Madhya Pradesh",
+   "capital": "Bhopal",
+   "fact": "Bhopal is called the City of Lakes."
+  },
+  {
+   "name": "Maharashtra",
+   "capital": "Mumbai",
+   "fact": "Mumbai is the capital; Nagpur is the winter capital."
+  },
+  {
+   "name": "Manipur",
+   "capital": "Imphal",
+   "fact": ""
+  },
+  {
+   "name": "Meghalaya",
+   "capital": "Shillong",
+   "fact": ""
+  },
+  {
+   "name": "Mizoram",
+   "capital": "Aizawl",
+   "fact": ""
+  },
+  {
+   "name": "Nagaland",
+   "capital": "Kohima",
+   "fact": ""
+  },
+  {
+   "name": "Odisha",
+   "capital": "Bhubaneswar",
+   "fact": "Bhubaneswar is known as the Temple City."
+  },
+  {
+   "name": "Punjab",
+   "capital": "Chandigarh",
+   "fact": "Chandigarh is the capital of BOTH Punjab and Haryana!"
+  },
+  {
+   "name": "Rajasthan",
+   "capital": "Jaipur",
+   "fact": "Jaipur is called the Pink City."
+  },
+  {
+   "name": "Sikkim",
+   "capital": "Gangtok",
+   "fact": ""
+  },
+  {
+   "name": "Tamil Nadu",
+   "capital": "Chennai",
+   "fact": "Chennai was once called Madras."
+  },
+  {
+   "name": "Telangana",
+   "capital": "Hyderabad",
+   "fact": "Hyderabad is famous for biryani and the Charminar."
+  },
+  {
+   "name": "Tripura",
+   "capital": "Agartala",
+   "fact": ""
+  },
+  {
+   "name": "Uttar Pradesh",
+   "capital": "Lucknow",
+   "fact": "Lucknow is known as the City of Nawabs."
+  },
+  {
+   "name": "Uttarakhand",
+   "capital": "Dehradun",
+   "fact": "Dehradun is the capital; Gairsain is the summer capital."
+  },
+  {
+   "name": "West Bengal",
+   "capital": "Kolkata",
+   "fact": "Kolkata was once called Calcutta."
+  }
+ ],
+ "world": [
+  {
+   "name": "India",
+   "capital": "New Delhi",
+   "iso2": "in",
+   "fact": ""
+  },
+  {
+   "name": "Pakistan",
+   "capital": "Islamabad",
+   "iso2": "pk",
+   "fact": ""
+  },
+  {
+   "name": "Bangladesh",
+   "capital": "Dhaka",
+   "iso2": "bd",
+   "fact": ""
+  },
+  {
+   "name": "Nepal",
+   "capital": "Kathmandu",
+   "iso2": "np",
+   "fact": "Kathmandu sits near the Himalaya mountains."
+  },
+  {
+   "name": "Bhutan",
+   "capital": "Thimphu",
+   "iso2": "bt",
+   "fact": "Thimphu has almost no traffic lights!"
+  },
+  {
+   "name": "Sri Lanka",
+   "capital": "Sri Jayawardenepura Kotte",
+   "iso2": "lk",
+   "fact": "This is the official capital; Colombo is the biggest city."
+  },
+  {
+   "name": "Maldives",
+   "capital": "Malé",
+   "iso2": "mv",
+   "fact": ""
+  },
+  {
+   "name": "China",
+   "capital": "Beijing",
+   "iso2": "cn",
+   "fact": "Beijing means 'Northern Capital'."
+  },
+  {
+   "name": "Japan",
+   "capital": "Tokyo",
+   "iso2": "jp",
+   "fact": "Tokyo is one of the biggest cities on Earth."
+  },
+  {
+   "name": "South Korea",
+   "capital": "Seoul",
+   "iso2": "kr",
+   "fact": ""
+  },
+  {
+   "name": "Indonesia",
+   "capital": "Jakarta",
+   "iso2": "id",
+   "fact": "Indonesia is building a new capital called Nusantara, but Jakarta is still the capital."
+  },
+  {
+   "name": "Thailand",
+   "capital": "Bangkok",
+   "iso2": "th",
+   "fact": ""
+  },
+  {
+   "name": "Vietnam",
+   "capital": "Hanoi",
+   "iso2": "vn",
+   "fact": "Hanoi is the capital, not Ho Chi Minh City."
+  },
+  {
+   "name": "Malaysia",
+   "capital": "Kuala Lumpur",
+   "iso2": "my",
+   "fact": "Kuala Lumpur is the capital; Putrajaya is the government city."
+  },
+  {
+   "name": "Philippines",
+   "capital": "Manila",
+   "iso2": "ph",
+   "fact": ""
+  },
+  {
+   "name": "Singapore",
+   "capital": "Singapore",
+   "iso2": "sg",
+   "fact": "Singapore is a city and a country at the same time!"
+  },
+  {
+   "name": "Myanmar",
+   "capital": "Naypyidaw",
+   "iso2": "mm",
+   "fact": "Naypyidaw became the capital in 2005."
+  },
+  {
+   "name": "Afghanistan",
+   "capital": "Kabul",
+   "iso2": "af",
+   "fact": ""
+  },
+  {
+   "name": "Iran",
+   "capital": "Tehran",
+   "iso2": "ir",
+   "fact": ""
+  },
+  {
+   "name": "Iraq",
+   "capital": "Baghdad",
+   "iso2": "iq",
+   "fact": ""
+  },
+  {
+   "name": "Saudi Arabia",
+   "capital": "Riyadh",
+   "iso2": "sa",
+   "fact": ""
+  },
+  {
+   "name": "United Arab Emirates",
+   "capital": "Abu Dhabi",
+   "iso2": "ae",
+   "fact": "Abu Dhabi is the capital, not Dubai!"
+  },
+  {
+   "name": "Turkey",
+   "capital": "Ankara",
+   "iso2": "tr",
+   "fact": "Ankara is the capital, even though Istanbul is bigger."
+  },
+  {
+   "name": "Kazakhstan",
+   "capital": "Astana",
+   "iso2": "kz",
+   "fact": "Astana was once called Nur-Sultan."
+  },
+  {
+   "name": "Russia",
+   "capital": "Moscow",
+   "iso2": "ru",
+   "fact": "Moscow has the famous Red Square."
+  },
+  {
+   "name": "United Kingdom",
+   "capital": "London",
+   "iso2": "gb",
+   "fact": ""
+  },
+  {
+   "name": "Ireland",
+   "capital": "Dublin",
+   "iso2": "ie",
+   "fact": ""
+  },
+  {
+   "name": "France",
+   "capital": "Paris",
+   "iso2": "fr",
+   "fact": "Paris is home to the Eiffel Tower."
+  },
+  {
+   "name": "Germany",
+   "capital": "Berlin",
+   "iso2": "de",
+   "fact": ""
+  },
+  {
+   "name": "Spain",
+   "capital": "Madrid",
+   "iso2": "es",
+   "fact": ""
+  },
+  {
+   "name": "Portugal",
+   "capital": "Lisbon",
+   "iso2": "pt",
+   "fact": ""
+  },
+  {
+   "name": "Italy",
+   "capital": "Rome",
+   "iso2": "it",
+   "fact": "Rome has the ancient Colosseum."
+  },
+  {
+   "name": "Netherlands",
+   "capital": "Amsterdam",
+   "iso2": "nl",
+   "fact": "Amsterdam is the capital, but the government sits in The Hague."
+  },
+  {
+   "name": "Belgium",
+   "capital": "Brussels",
+   "iso2": "be",
+   "fact": ""
+  },
+  {
+   "name": "Switzerland",
+   "capital": "Bern",
+   "iso2": "ch",
+   "fact": "Bern is the capital, not Zurich or Geneva."
+  },
+  {
+   "name": "Austria",
+   "capital": "Vienna",
+   "iso2": "at",
+   "fact": ""
+  },
+  {
+   "name": "Greece",
+   "capital": "Athens",
+   "iso2": "gr",
+   "fact": "Athens is one of the world's oldest cities."
+  },
+  {
+   "name": "Norway",
+   "capital": "Oslo",
+   "iso2": "no",
+   "fact": ""
+  },
+  {
+   "name": "Sweden",
+   "capital": "Stockholm",
+   "iso2": "se",
+   "fact": ""
+  },
+  {
+   "name": "Denmark",
+   "capital": "Copenhagen",
+   "iso2": "dk",
+   "fact": ""
+  },
+  {
+   "name": "Finland",
+   "capital": "Helsinki",
+   "iso2": "fi",
+   "fact": ""
+  },
+  {
+   "name": "Iceland",
+   "capital": "Reykjavik",
+   "iso2": "is",
+   "fact": "Reykjavik is the world's most northern capital."
+  },
+  {
+   "name": "Poland",
+   "capital": "Warsaw",
+   "iso2": "pl",
+   "fact": ""
+  },
+  {
+   "name": "Ukraine",
+   "capital": "Kyiv",
+   "iso2": "ua",
+   "fact": ""
+  },
+  {
+   "name": "Hungary",
+   "capital": "Budapest",
+   "iso2": "hu",
+   "fact": ""
+  },
+  {
+   "name": "Czech Republic",
+   "capital": "Prague",
+   "iso2": "cz",
+   "fact": ""
+  },
+  {
+   "name": "Egypt",
+   "capital": "Cairo",
+   "iso2": "eg",
+   "fact": "Cairo is close to the famous Pyramids."
+  },
+  {
+   "name": "Morocco",
+   "capital": "Rabat",
+   "iso2": "ma",
+   "fact": "Rabat is the capital, not Casablanca."
+  },
+  {
+   "name": "Nigeria",
+   "capital": "Abuja",
+   "iso2": "ng",
+   "fact": "Abuja became the capital in 1991, replacing Lagos."
+  },
+  {
+   "name": "Kenya",
+   "capital": "Nairobi",
+   "iso2": "ke",
+   "fact": ""
+  },
+  {
+   "name": "Ethiopia",
+   "capital": "Addis Ababa",
+   "iso2": "et",
+   "fact": ""
+  },
+  {
+   "name": "Ghana",
+   "capital": "Accra",
+   "iso2": "gh",
+   "fact": ""
+  },
+  {
+   "name": "Tanzania",
+   "capital": "Dodoma",
+   "iso2": "tz",
+   "fact": "Dodoma is the capital, not Dar es Salaam."
+  },
+  {
+   "name": "South Africa",
+   "capital": "Pretoria",
+   "iso2": "za",
+   "fact": "South Africa has three capital cities! Pretoria is the main one."
+  },
+  {
+   "name": "United States",
+   "capital": "Washington, D.C.",
+   "iso2": "us",
+   "fact": "The capital is Washington, D.C., not New York City."
+  },
+  {
+   "name": "Canada",
+   "capital": "Ottawa",
+   "iso2": "ca",
+   "fact": "Ottawa is the capital, not Toronto."
+  },
+  {
+   "name": "Mexico",
+   "capital": "Mexico City",
+   "iso2": "mx",
+   "fact": ""
+  },
+  {
+   "name": "Cuba",
+   "capital": "Havana",
+   "iso2": "cu",
+   "fact": ""
+  },
+  {
+   "name": "Jamaica",
+   "capital": "Kingston",
+   "iso2": "jm",
+   "fact": ""
+  },
+  {
+   "name": "Brazil",
+   "capital": "Brasília",
+   "iso2": "br",
+   "fact": "Brasília was specially built to be the capital in 1960."
+  },
+  {
+   "name": "Argentina",
+   "capital": "Buenos Aires",
+   "iso2": "ar",
+   "fact": ""
+  },
+  {
+   "name": "Chile",
+   "capital": "Santiago",
+   "iso2": "cl",
+   "fact": ""
+  },
+  {
+   "name": "Peru",
+   "capital": "Lima",
+   "iso2": "pe",
+   "fact": ""
+  },
+  {
+   "name": "Colombia",
+   "capital": "Bogotá",
+   "iso2": "co",
+   "fact": ""
+  },
+  {
+   "name": "Australia",
+   "capital": "Canberra",
+   "iso2": "au",
+   "fact": "The capital is Canberra, not Sydney!"
+  },
+  {
+   "name": "New Zealand",
+   "capital": "Wellington",
+   "iso2": "nz",
+   "fact": "Wellington is the capital, not Auckland."
+  }
+ ]
+}
