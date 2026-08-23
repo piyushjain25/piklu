@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Word Guess Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
+    --ink:#33236B; --ink-soft:#6a5aa0;
+    --grape:#6C4AB6; --grape-dark:#553a95;
+    --sun:#FFCF43; --sun-dark:#e6a800;
+    --coral:#FF6B7A; --coral-dark:#e24a5c;
+    --leaf:#2FB37D; --leaf-dark:#218a60;
+    --card:#FFFFFF; --tile:#FFF6DC; --tile-line:#E8C976;
+    --key:#FFFFFF; --key-line:#E4DCF5;
+    --shadow:0 18px 40px rgba(72,45,130,.18);
+    --radius:26px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    background:linear-gradient(180deg,var(--sky-top) 0%,#C6ECEC 45%,var(--sky-bot) 100%);
+    background-attachment:fixed;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:22px 14px 60px;
+  }
+  /* floating clouds decoration */
+  body::before,body::after{
+    content:""; position:fixed; z-index:0; border-radius:50%;
+    background:rgba(255,255,255,.55); filter:blur(1px);
+    box-shadow:60px 10px 0 -6px rgba(255,255,255,.55), 120px 4px 0 -10px rgba(255,255,255,.5);
+  }
+  body::before{width:90px;height:34px;top:8%;left:6%;}
+  body::after{width:70px;height:26px;top:16%;right:10%;}
+
+  .app{position:relative; z-index:1; width:100%; max-width:800px;}
+  .card{
+    background:var(--card); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:26px 26px 30px;
+  }
+
+  /* ---------- header / title ---------- */
+  .brand{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:6px;}
+  .title{
+    font-family:'Fredoka',sans-serif; font-weight:700;
+    font-size:clamp(28px,5.5vw,44px); line-height:1;
+    letter-spacing:.5px; margin:0; text-align:center;
+  }
+  .title span{display:inline-block;}
+  .title .c1{color:var(--grape);} .title .c2{color:var(--coral);}
+  .title .c3{color:var(--leaf);} .title .c4{color:var(--sun-dark);}
+  .subtitle{
+    text-align:center; color:var(--ink-soft); font-weight:700;
+    margin:2px 0 18px; font-size:15px;
+  }
+
+  /* ---------- owl mascot ---------- */
+  .owl{width:64px; height:64px; flex:0 0 auto;}
+  .owl .pupil{transition:transform .2s ease;}
+  .owl.think .pupil{transform:translateY(2px);}
+  .owl .brow{transition:transform .2s ease; transform-origin:center;}
+  .owl.worried .brow-l{transform:rotate(14deg) translateY(-1px);}
+  .owl.worried .brow-r{transform:rotate(-14deg) translateY(-1px);}
+  .owl.happy .beak, .owl.win .beak{transform:translateY(1px) scale(1.05);}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:17px;
+    border:none; cursor:pointer; color:#fff; border-radius:16px;
+    padding:13px 22px; position:relative; transition:transform .06s ease, filter .15s ease;
+    box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;
+  }
+  .btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);}
+  .btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
+  .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
+  .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);}
+  .btn-sun{background:var(--sun); color:var(--ink); --btn-shadow:var(--sun-dark);}
+  .btn-ghost{background:#F1EDFA; color:var(--grape); --btn-shadow:#d9d0ef;}
+  .btn:disabled{filter:grayscale(.4) opacity(.55); cursor:not-allowed;}
+  .btn-lg{font-size:20px; padding:16px 34px;}
+
+  /* ---------- setup blocks ---------- */
+  .block-label{
+    font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape);
+    font-size:15px; text-transform:uppercase; letter-spacing:1px;
+    margin:22px 0 10px;
+  }
+  .segment{display:flex; gap:10px; background:#F1EDFA; padding:6px; border-radius:18px;}
+  .segment button{
+    flex:1; border:none; background:transparent; cursor:pointer;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:var(--ink-soft);
+    padding:12px 8px; border-radius:13px; transition:all .15s ease;
+  }
+  .segment button[aria-pressed="true"]{background:#fff; color:var(--grape); box-shadow:0 3px 10px rgba(108,74,182,.2);}
+  .segment button:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+
+  .diff-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+  @media(min-width:620px){.diff-grid{grid-template-columns:repeat(4,1fr);}}
+  .diff{
+    border:3px solid #EEE8FB; background:#fff; border-radius:18px; cursor:pointer;
+    padding:14px 10px; text-align:center; transition:all .15s ease;
+  }
+  .diff:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .diff .d-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px;}
+  .diff .d-range{font-size:13px; font-weight:700; color:var(--ink-soft); margin-top:3px;}
+  .diff[aria-pressed="true"]{border-color:var(--dc,var(--grape)); background:var(--dbg,#F4F0FE); transform:translateY(-2px); box-shadow:var(--shadow);}
+  .diff.easy{--dc:var(--leaf); --dbg:#E8F8F0;}
+  .diff.medium{--dc:#3FA7E0; --dbg:#E6F4FC;}
+  .diff.hard{--dc:var(--sun-dark); --dbg:#FFF6DC;}
+  .diff.expert{--dc:var(--coral); --dbg:#FFEAED;}
+
+  .custom-row{display:flex; gap:10px; align-items:stretch; flex-wrap:wrap;}
+  .txt{
+    flex:1; min-width:180px; font-family:'Fredoka',sans-serif; font-size:20px; letter-spacing:2px;
+    border:3px solid var(--key-line); border-radius:16px; padding:13px 16px; color:var(--ink);
+    text-transform:uppercase; background:#FBFAFF;
+  }
+  .txt:focus{outline:none; border-color:var(--grape);}
+  .hint{font-size:14px; color:var(--ink-soft); font-weight:700; margin-top:8px;}
+  .hint.err{color:var(--coral-dark);}
+  .center{text-align:center;} .mt{margin-top:22px;} .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+
+  /* ---------- game: lives ---------- */
+  .topbar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between; margin-bottom:6px;}
+  .lives{display:flex; flex-direction:column; gap:6px;}
+  .lives-row{display:flex; align-items:center; gap:8px;}
+  .lives-row .lbl{font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px; color:var(--ink-soft); width:66px;}
+  .pips{display:flex; gap:3px; flex-wrap:wrap;}
+  .pip{font-size:20px; line-height:1; transition:transform .25s ease, filter .25s ease, opacity .25s ease;}
+  .pip.gone{filter:grayscale(1); opacity:.28; transform:scale(.8);}
+  .badge{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape); padding:5px 12px; border-radius:999px;}
+
+  /* ---------- game: word tiles ---------- */
+  .word{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:24px 0 8px; perspective:600px;}
+  .tile{
+    width:clamp(34px,8vw,52px); height:clamp(44px,10vw,64px);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(22px,5.5vw,34px);
+    background:var(--tile); border:3px dashed var(--tile-line); color:var(--ink);
+    transition:transform .4s ease, background .2s ease, border-color .2s ease;
+    transform-style:preserve-3d;
+  }
+  .tile.filled{background:var(--leaf); border:3px solid var(--leaf-dark); color:#fff; border-style:solid;}
+  .tile.reveal{background:#FFE1E6; border:3px solid var(--coral); color:var(--coral-dark); border-style:solid;}
+  .tile.flip{animation:flip .5s ease;}
+  @keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(90deg)}55%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+
+  .message{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:18px; min-height:26px; color:var(--grape); margin:4px 0 12px;}
+  .message.good{color:var(--leaf-dark);} .message.bad{color:var(--coral-dark);}
+
+  /* ---------- keyboard ---------- */
+  .keyboard{display:flex; flex-direction:column; gap:7px; align-items:center; margin:14px 0;}
+  .krow{display:flex; gap:6px; justify-content:center; flex-wrap:wrap;}
+  .key{
+    width:clamp(30px,7.5vw,42px); height:clamp(38px,9vw,48px);
+    border:none; border-radius:11px; background:var(--key); color:var(--ink);
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(16px,3.6vw,20px);
+    cursor:pointer; box-shadow:0 4px 0 var(--key-line); transition:transform .05s ease;
+  }
+  .key:active{transform:translateY(3px); box-shadow:0 1px 0 var(--key-line);}
+  .key:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .key.correct{background:var(--leaf); color:#fff; box-shadow:0 4px 0 var(--leaf-dark);}
+  .key.wrong{background:var(--coral); color:#fff; box-shadow:0 4px 0 var(--coral-dark); opacity:.6;}
+  .key:disabled{cursor:not-allowed;}
+
+  /* ---------- word guess ---------- */
+  .guess-wrap{background:#F7F4FE; border-radius:18px; padding:16px; margin-top:8px;}
+  .guess-wrap .gl{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape); font-size:15px; margin-bottom:10px; text-align:center;}
+  .guess-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  .guess-input{
+    font-family:'Fredoka',sans-serif; font-size:22px; letter-spacing:6px; text-align:center;
+    text-transform:uppercase; border:3px solid var(--key-line); border-radius:14px;
+    padding:11px 14px; width:min(320px,70vw); color:var(--ink); background:#fff;
+  }
+  .guess-input:focus{outline:none; border-color:var(--grape);}
+
+  .footer{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:22px;}
+
+  /* ---------- overlay ---------- */
+  .overlay{position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px;
+    background:rgba(51,35,107,.45); backdrop-filter:blur(3px);}
+  .overlay.show{display:flex;}
+  .modal{background:#fff; border-radius:26px; box-shadow:var(--shadow); padding:30px 28px; max-width:440px; width:100%; text-align:center; animation:pop .35s ease;}
+  @keyframes pop{0%{transform:scale(.8); opacity:0}100%{transform:scale(1); opacity:1}}
+  .modal h2{font-family:'Fredoka',sans-serif; font-size:30px; margin:12px 0 4px;}
+  .modal .reveal-word{font-family:'Fredoka',sans-serif; font-weight:700; font-size:26px; letter-spacing:3px; color:var(--grape); margin:10px 0 4px; word-break:break-word;}
+  .modal p{color:var(--ink-soft); font-weight:700; margin:6px 0 20px;}
+  .modal .big-face{font-size:56px; line-height:1;}
+
+  canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
+
+  .hide{display:none !important;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+
+    <!-- ===================== HOME ===================== -->
+    <section id="screen-home">
+      <div class="brand">
+        <!-- owl mascot -->
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <ellipse cx="32" cy="58" rx="16" ry="3" fill="#00000012"/>
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
+          <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
+          <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g class="eye-l"><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g class="eye-r"><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">Guess the hidden word, one letter at a time!</p>
+
+      <div class="block-label">Pick a game</div>
+      <div class="segment" role="group" aria-label="Game mode">
+        <button id="mode-random" aria-pressed="true">🎲 Random Word</button>
+        <button id="mode-custom" aria-pressed="false">✏️ Custom Word</button>
+      </div>
+
+      <!-- Random: difficulty -->
+      <div id="random-setup">
+        <div class="block-label">Choose a level</div>
+        <div class="diff-grid" role="group" aria-label="Difficulty">
+          <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">3–5 letters</div></button>
+          <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">6–10 letters</div></button>
+          <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">11–15 letters</div></button>
+          <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">16–20 letters</div></button>
+        </div>
+      </div>
+
+      <!-- Custom: secret word entry -->
+      <div id="custom-setup" class="hide">
+        <div class="block-label">Grown-up: type a secret word</div>
+        <div class="custom-row">
+          <input id="custom-word" class="txt" type="password" autocomplete="off" spellcheck="false"
+                 placeholder="Secret word" maxlength="20" aria-label="Secret word" />
+          <button id="toggle-see" class="btn btn-ghost" type="button" aria-label="Show or hide word">👁 Show</button>
+        </div>
+        <div class="hint" id="custom-hint">3 to 20 letters. Letters only. Your child won't see it.</div>
+      </div>
+
+      <div class="row-btns mt">
+        <button id="start-btn" class="btn btn-go btn-lg">Start Game ▶</button>
+      </div>
+    </section>
+
+    <!-- ===================== GAME ===================== -->
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <div class="lives">
+          <div class="lives-row"><span class="lbl">Letters</span><div class="pips" id="letter-pips"></div></div>
+          <div class="lives-row"><span class="lbl">Words</span><div class="pips" id="word-pips"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="badge" id="level-badge">Easy</span>
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
+            <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
+            <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g class="eye-l"><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g class="eye-r"><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="word" id="word-display" aria-label="The word so far"></div>
+      <div class="message" id="message">Pick a letter to begin!</div>
+
+      <div class="keyboard" id="keyboard" aria-label="Letter keyboard"></div>
+
+      <div class="guess-wrap">
+        <div class="gl" id="guess-label">Think you know it? Guess the whole word</div>
+        <div class="guess-row">
+          <input id="word-guess" class="guess-input" type="text" autocomplete="off" spellcheck="false"
+                 inputmode="latin" aria-label="Guess the whole word" />
+          <button id="word-guess-btn" class="btn btn-sun">Guess Word</button>
+        </div>
+      </div>
+
+      <div class="footer">
+        <button id="new-word-btn" class="btn btn-primary">🔄 New Word</button>
+        <button id="end-game-btn" class="btn btn-warn">🏁 End Game</button>
+        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
+        <button id="mute-btn" class="btn btn-ghost" aria-pressed="false">🔊 Sound</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ===================== RESULT OVERLAY ===================== -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="big-face" id="modal-face">🎉</div>
+    <h2 id="modal-title">You did it!</h2>
+    <div class="reveal-word" id="modal-word"></div>
+    <p id="modal-sub"></p>
+    <div class="row-btns">
+      <button id="modal-again" class="btn btn-go">Play Again ▶</button>
+      <button id="modal-home" class="btn btn-ghost">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+const EMBEDDED_WORDS=["ACTION", "ACTOR", "ADVENTURE", "ADVENTURES", "ADVENTUROUS", "AFTERNOON", "AIR", "AIRPLANE", "AIRPORT", "ALLIGATOR", "ALLOSAURUS", "ALPHABET", "AMBULANCE", "ANGRY", "ANKLE", "ANKYLOSAURUS", "ANSWER", "ANT", "APE", "APPLE", "ARM", "ARTIST", "ASTEROID", "ASTRONAUT", "ATTENTION", "AUNT", "AVOCADO", "BABY", "BACK", "BACKPACK", "BACON", "BAD", "BADGER", "BAKE", "BAKER", "BAKERY", "BALL", "BALLOON", "BAMBOO", "BANANA", "BARBER", "BASEBALL", "BASKETBALL", "BAT", "BATH", "BATHTUB", "BATTING", "BEACH", "BEAD", "BEAN", "BEANS", "BEAR", "BEAT", "BEAUTIFUL", "BEAUTIFULLY", "BEAVER", "BED", "BEDROOM", "BEE", "BEG", "BEGINNING", "BELL", "BELT", "BERRY", "BICYCLE", "BIG", "BIKE", "BIRD", "BIRTHDAY", "BISCUIT", "BLACK", "BLANKET", "BLIZZARD", "BLOCKS", "BLOSSOM", "BLUE", "BLUEBERRIES", "BLUEBERRY", "BOAT", "BOOK", "BOOT", "BOUNCE", "BOW", "BOWL", "BOWLING", "BOX", "BRACHIOSAURUS", "BRAIN", "BRANCH", "BRAVE", "BREAD", "BREAKFAST", "BREEZE", "BRIDGE", "BROCCOLI", "BRONTOSAURUS", "BROOM", "BROTHER", "BROWN", "BROWNIE", "BRUSH", "BUFFALO", "BUG", "BUILD", "BUILDER", "BUN", "BUNNY", "BUS", "BUSH", "BUSY", "BUTTER", "BUTTERFLIES", "BUTTERFLY", "BUY", "CAB", "CABBAGE", "CABINET", "CACTUS", "CAKE", "CALF", "CALM", "CAMEL", "CAMP", "CANDY", "CANOE", "CANYON", "CAP", "CAPTAIN", "CAR", "CARD", "CARING", "CARPENTER", "CARROT", "CASH", "CASTLE", "CAT", "CATCH", "CATCHING", "CATERPILLAR", "CATERPILLARS", "CAVE", "CELEBRATE", "CELEBRATION", "CELEBRATIONS", "CELERY", "CHAIR", "CHALK", "CHARACTER", "CHARACTERISTICS", "CHARACTERIZATION", "CHEEK", "CHEERFUL", "CHEERFULLY", "CHEESE", "CHEETAH", "CHEF", "CHERRY", "CHEST", "CHICK", "CHILLY", "CHIMPANZEE", "CHIN", "CHIPMUNK", "CHIPS", "CHOCOLATE", "CHURCH", "CITY", "CLAM", "CLAP", "CLASS", "CLASSIFICATION", "CLASSIFICATIONS", "CLASSROOM", "CLEAN", "CLIMB", "CLOCK", "CLOUD", "CLOWN", "COAT", "COIN", "COLD", "COLLECTION", "COLT", "COMB", "COMET", "COMFORTABLE", "COMMUNITIES", "COMMUNITY", "CONGRATULATIONS", "CONNECTION", "CONVERSATION", "CONVERSATIONS", "COOK", "COOKIE", "COOL", "COP", "CORN", "COSTUME", "COUCH", "COUNTERCLOCKWISE", "COURAGE", "COUSIN", "COW", "CRAB", "CRAYON", "CREAM", "CREATION", "CRICKET", "CRIMSON", "CROCODILE", "CROW", "CROWN", "CRY", "CUB", "CUCUMBER", "CUP", "CUPCAKE", "CURTAIN", "CUSHION", "CUT", "CYAN", "DAD", "DAISY", "DANCE", "DANCER", "DANDELION", "DANGEROUS", "DARK", "DAUGHTER", "DAWN", "DAY", "DECORATION", "DECORATIONS", "DEEP", "DEER", "DELICIOUS", "DENTIST", "DESCRIPTION", "DESERT", "DESK", "DEW", "DICTIONARIES", "DICTIONARY", "DIFFERENCE", "DIFFERENT", "DIG", "DINOSAUR", "DIP", "DIPLODOCUS", "DIRECTION", "DIRTY", "DISAPPOINTMENT", "DISAPPOINTMENTS", "DISCOVER", "DISH", "DOCTOR", "DOG", "DOLL", "DOLPHIN", "DONKEY", "DONUT", "DOOR", "DOORBELL", "DOT", "DOVE", "DRAGON", "DRAW", "DREAM", "DRESS", "DRESSER", "DRIZZLE", "DRUM", "DRY", "DUCK", "DUSK", "EAGLE", "EAR", "EARLY", "EAT", "EDUCATION", "EGG", "EIGHT", "EIGHTEEN", "EIGHTY", "ELBOW", "ELECTRICITY", "ELEPHANT", "ELEVEN", "ELK", "ELM", "EMOTION", "EMU", "ENVIRONMENTALIST", "ENVIRONMENTALLY", "ERASER", "EVENING", "EVERYBODY", "EVERYTHING", "EXCELLENT", "EXPLORATION", "EXPLORE", "EXTRAORDINARY", "EYE", "EYEBROW", "EYELASH", "FACE", "FAIR", "FAIRY", "FAN", "FARM", "FARMER", "FAST", "FAT", "FATHER", "FAVORITE", "FAVOURITE", "FAWN", "FERN", "FERRY", "FIELD", "FIFTEEN", "FIFTY", "FIG", "FIND", "FINGER", "FIREFIGHTER", "FIREFIGHTERS", "FIREMAN", "FIREWORKS", "FISH", "FIVE", "FIX", "FLAG", "FLAMINGO", "FLOWER", "FLUTE", "FLY", "FOAL", "FOG", "FOGGY", "FOOT", "FOOTBALL", "FOREHEAD", "FOREST", "FORK", "FORTY", "FOUR", "FOURTEEN", "FOX", "FREEZING", "FRIEND", "FRIENDLY", "FRIENDSHIP", "FRIENDSHIPS", "FROG", "FROSTY", "FUN", "FUNNY", "FURNITURE", "FUZZY", "GALAXY", "GAME", "GARAGE", "GARDEN", "GENTLE", "GIANT", "GIFT", "GIGANTIC", "GIGGLE", "GIRAFFE", "GIVE", "GLAD", "GLOVE", "GLUE", "GOAL", "GOAT", "GOLD", "GOLF", "GOOD", "GOOSE", "GORILLA", "GRANDCHILDREN", "GRANDDAUGHTER", "GRANDDAUGHTERS", "GRANDFATHER", "GRANDFATHERS", "GRANDMA", "GRANDMOTHER", "GRANDMOTHERS", "GRANDPA", "GRANDPARENTS", "GRAPE", "GRASS", "GRASSHOPPER", "GRATEFUL", "GRAY", "GREEN", "GUITAR", "GUM", "GYM", "GYMNASIUM", "GYMNASTICS", "HAIL", "HAIR", "HAM", "HAMSTER", "HAND", "HANDSOME", "HANDWRITING", "HAPPINESS", "HAPPY", "HARBOUR", "HARE", "HAT", "HAWK", "HEAD", "HEART", "HEDGEHOG", "HELICOPTER", "HELICOPTERS", "HELP", "HELPFUL", "HEN", "HIGH", "HILL", "HIP", "HIPPOPOTAMUS", "HISTORY", "HOCKEY", "HOLIDAY", "HOME", "HOMEWORK", "HONESTY", "HONEY", "HOP", "HOPE", "HORN", "HORSE", "HOSPITAL", "HOT", "HOUR", "HOUSE", "HUG", "HUGE", "HUM", "HUMMINGBIRD", "HUNDRED", "HUSBAND", "ICE", "ICY", "IDENTIFICATION", "IGUANODON", "IMAGINATION", "IMAGINE", "IMPORTANT", "INCREDIBLE", "INDIGO", "INFORMATION", "INK", "INVESTIGATIONS", "INVISIBLE", "INVITATION", "INVITATIONS", "ISLAND", "JACKET", "JAM", "JAR", "JAW", "JEANS", "JELLY", "JELLYFISH", "JET", "JIGSAW", "JOEY", "JOG", "JOY", "JUDGE", "JUICE", "JUMP", "JUNGLE", "JUPITER", "KANGAROO", "KARATE", "KEY", "KICK", "KID", "KIDS", "KIND", "KINDERGARTEN", "KINDERGARTENER", "KINDNESS", "KING", "KITCHEN", "KITE", "KITTEN", "KNEE", "KNIFE", "KNUCKLE", "KOALA", "LAKE", "LAMB", "LAMP", "LATE", "LAUGH", "LAVENDER", "LAWYER", "LAZY", "LEAF", "LEG", "LEMON", "LEOPARD", "LESSON", "LETTER", "LETTUCE", "LIBRARIAN", "LIBRARY", "LIGHTNING", "LIME", "LION", "LIP", "LISTEN", "LIZARD", "LLAMA", "LOCK", "LOG", "LONG", "LOOK", "LOUD", "LOVE", "LOW", "MAD", "MAGIC", "MAKE", "MALL", "MAMA", "MANGO", "MAP", "MAPLE", "MARBLE", "MARKET", "MAROON", "MARS", "MARSHMALLOW", "MARVELOUS", "MAT", "MATH", "MEADOW", "MEAN", "MEAT", "MELODY", "MELON", "MERCURY", "METEOR", "MICRORAPTOR", "MIDNIGHT", "MILK", "MILLION", "MINUTE", "MIRROR", "MIST", "MISUNDERSTANDING", "MISUNDERSTANDINGS", "MITTEN", "MIX", "MOLE", "MOM", "MONKEY", "MONTH", "MOON", "MOOSE", "MORNING", "MOSS", "MOTHER", "MOTION", "MOTORCYCLE", "MOUNTAIN", "MOUSE", "MOUTH", "MUD", "MUFFIN", "MULE", "MULTIPLICATION", "MULTIPLICATIONS", "MUSCLE", "MUSEUM", "MUSIC", "MUSICIAN", "NAIL", "NANA", "NAP", "NATION", "NATURE", "NAVY", "NEAT", "NECK", "NEIGHBORHOOD", "NEPHEW", "NEPTUNE", "NEW", "NEWSPAPER", "NICE", "NIECE", "NIGHT", "NINE", "NINETEEN", "NINETY", "NOD", "NOODLE", "NOON", "NOSE", "NOTE", "NOTEBOOK", "NUMBER", "NURSE", "NUT", "OAK", "OATMEAL", "OCTOPUS", "ODD", "OLD", "OLIVE", "ONE", "ONION", "OPEN", "ORANGE", "ORBIT", "ORCHESTRA", "OSTRICH", "OTTER", "OWL", "PACHYCEPHALOSAURUS", "PAGE", "PAINT", "PAINTER", "PAJAMAS", "PALACE", "PALE", "PALM", "PAN", "PANCAKE", "PANDA", "PANTS", "PAPA", "PAPER", "PARASAUROLOPHUS", "PARENT", "PARK", "PARROT", "PARTY", "PASTA", "PATH", "PATIENT", "PAY", "PEA", "PEACE", "PEACH", "PEACOCK", "PEN", "PENCIL", "PENGUIN", "PEPPER", "PERSONALITY", "PETAL", "PHOTOGRAPH", "PHOTOGRAPHS", "PIANO", "PIE", "PIG", "PILLOW", "PILOT", "PINE", "PINEAPPLE", "PINK", "PIRATE", "PIZZA", "PLANE", "PLANET", "PLANT", "PLATE", "PLAY", "PLAYGROUND", "PLAYGROUNDS", "PLUMBER", "POLICEMAN", "POLITE", "POND", "PONY", "POOR", "POPCORN", "POPSICLE", "PORCUPINE", "POSITION", "POSTMAN", "POT", "POTATO", "PRESENT", "PRETTY", "PRETZEL", "PRINCIPAL", "PTERODACTYL", "PULL", "PUMPKIN", "PUPPET", "PUPPY", "PURPLE", "PUSH", "PUZZLE", "QUEEN", "QUESTION", "RABBIT", "RACCOON", "RACE", "RADIO", "RAIN", "RAINBOW", "RAINCOAT", "RAINY", "RAPTOR", "RASPBERRY", "RAT", "REACH", "READ", "RECOMMENDATION", "RECTANGLE", "RECTANGULAR", "RED", "REFLECTION", "REFLECTIONS", "REFRIGERATOR", "REINDEER", "REMEMBER", "REPRESENTATIVES", "RESPECT", "RESPONSIBILITIES", "RESPONSIBILITY", "RESTAURANT", "RHINOCEROS", "RHYTHM", "RIB", "RICE", "RICH", "RING", "RIVER", "ROAD", "ROBIN", "ROBOT", "ROCK", "ROCKET", "ROLL", "ROOF", "ROOT", "ROPE", "ROSE", "ROUGH", "ROW", "RUB", "RUG", "RULE", "RULER", "RUN", "RUNNING", "SAD", "SAFE", "SAILBOAT", "SAILOR", "SALMON", "SALT", "SAND", "SANDAL", "SANDWICH", "SATURN", "SAUSAGE", "SAY", "SCARECROW", "SCARF", "SCARLET", "SCARY", "SCHOOL", "SCIENCE", "SCIENTIST", "SCOOTER", "SEA", "SEAHORSE", "SEAL", "SEASON", "SECOND", "SEE", "SEED", "SEESAW", "SEPTEMBER", "SEVEN", "SEVENTEEN", "SHARE", "SHARK", "SHEEP", "SHELF", "SHINY", "SHIP", "SHIRT", "SHOE", "SHOP", "SHOULDER", "SHOUT", "SHREW", "SHY", "SILLY", "SILVER", "SING", "SINGER", "SINK", "SIP", "SIS", "SISTER", "SIT", "SIX", "SIXTEEN", "SIXTY", "SKATEBOARD", "SKATING", "SKIP", "SKIRT", "SKUNK", "SKY", "SLED", "SLEEP", "SLEIGH", "SLIDE", "SLIPPER", "SLOW", "SMILE", "SMOOTH", "SNAIL", "SNAKE", "SNEAKER", "SNOW", "SOAP", "SOCCER", "SOCK", "SOFA", "SOFT", "SOLDIER", "SOMERSAULT", "SON", "SONG", "SOON", "SOUP", "SOUR", "SPACE", "SPACESHIP", "SPARROW", "SPELLING", "SPIDER", "SPINACH", "SPINNER", "SPINOSAURUS", "SPLASH", "SPOON", "SQUIRREL", "STADIUM", "STAIRCASE", "STAR", "STARFISH", "STATION", "STEGOSAURUS", "STOMACH", "STONE", "STOOL", "STORE", "STORM", "STORY", "STRAWBERRIES", "STRAWBERRY", "STREAM", "STUDENT", "STUMP", "SUBJECT", "SUBMARINE", "SUBTRACTION", "SUBWAY", "SUGAR", "SUN", "SUNFLOWER", "SUNGLASSES", "SUNNY", "SUPERMARKET", "SURPRISE", "SWAN", "SWEATER", "SWEET", "SWIM", "SWIMMING", "SWING", "SYRUP", "TABLE", "TACO", "TADPOLE", "TAKE", "TALK", "TALL", "TAN", "TAP", "TAPE", "TAXI", "TEA", "TEACHER", "TEAL", "TEAM", "TEDDY", "TELEPHONE", "TELESCOPE", "TELEVISION", "TEMPERATURE", "TEN", "TENNIS", "TEST", "THANKFUL", "THIRTEEN", "THIRTY", "THOUSAND", "THREE", "THROAT", "THROW", "THUMB", "THUNDER", "THUNDERSTORM", "TIE", "TIGER", "TIME", "TINY", "TOAD", "TOAST", "TODAY", "TOE", "TOMATO", "TOMORROW", "TONGUE", "TONIGHT", "TOOTH", "TOP", "TOWEL", "TOWN", "TOY", "TRACTOR", "TRAIN", "TRAM", "TRAMPOLINE", "TRANSFORMATIONS", "TRANSPORTATION", "TRAY", "TREASURE", "TRIANGLE", "TRICERATOPS", "TRICYCLE", "TROLLEY", "TRUCK", "TRUMPET", "TULIP", "TUMMY", "TUNE", "TURKEY", "TURNIP", "TURQUOISE", "TURTLE", "TWELVE", "TWENTY", "TWIG", "TWIN", "TWINKLING", "TWO", "TYRANNOSAURUS", "UGLY", "UNBELIEVABLE", "UNCLE", "UNCOMFORTABLE", "UNCONTROLLABLE", "UNDERGROUND", "UNDERSTAND", "UNDERSTANDABLE", "UNDERSTANDING", "UNIVERSE", "URANUS", "VACATION", "VALENTINE", "VALLEY", "VAN", "VEGETABLE", "VEGETABLES", "VELOCIRAPTOR", "VEST", "VET", "VILLAGE", "VINE", "VIOLET", "VIOLIN", "VOLCANO", "VOLLEYBALL", "WAFFLE", "WAGON", "WAITER", "WALK", "WALL", "WALRUS", "WAND", "WANDER", "WARM", "WASH", "WATCH", "WATERFALL", "WATERFALLS", "WATERMELON", "WATERMELONS", "WEAK", "WEATHER", "WEB", "WEE", "WEED", "WEEK", "WEEKEND", "WET", "WHALE", "WHISPER", "WHISTLE", "WHITE", "WIDE", "WIFE", "WIGGLE", "WIN", "WIND", "WINDOW", "WINDY", "WIZARD", "WOLF", "WONDERFUL", "WONDERFULLY", "WOODPECKER", "WORD", "WREN", "WRIST", "WRITE", "XYLOPHONE", "YACHT", "YAK", "YEAR", "YELLOW", "YESTERDAY", "ZEBRA", "ZERO", "ZIP", "ZOO"];
+
+const BANDS = {
+  EASY:   {min:3,  max:5,  label:"Easy"},
+  MEDIUM: {min:6,  max:10, label:"Medium"},
+  HARD:   {min:11, max:15, label:"Hard"},
+  EXPERT: {min:16, max:20, label:"Expert"},
+};
+const MAX_LETTER_WRONG = 10;
+const MAX_WORD_WRONG = 3;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let WORDS = (typeof EMBEDDED_WORDS !== "undefined") ? EMBEDDED_WORDS.slice() : [];
+
+// Try to load the external words.json (when served); fall back to embedded list.
+(async function loadWords(){
+  try{
+    const res = await fetch("words.json", {cache:"no-store"});
+    if(res.ok){
+      const data = await res.json();
+      if(Array.isArray(data) && data.length){
+        WORDS = data.filter(w => /^[A-Za-z]+$/.test(w)).map(w => w.toUpperCase());
+      }
+    }
+  }catch(e){ /* file:// or offline — embedded list is used */ }
+})();
+
+// ---------- state ----------
+let state = null;
+let muted = false;
+let lastWord = "";
+
+const $ = id => document.getElementById(id);
+
+// ---------- setup screen ----------
+let mode = "random";
+let difficulty = "EASY";
+
+function setMode(m){
+  mode = m;
+  $("mode-random").setAttribute("aria-pressed", m==="random");
+  $("mode-custom").setAttribute("aria-pressed", m==="custom");
+  $("random-setup").classList.toggle("hide", m!=="random");
+  $("custom-setup").classList.toggle("hide", m!=="custom");
+}
+$("mode-random").onclick = ()=>setMode("random");
+$("mode-custom").onclick = ()=>setMode("custom");
+
+document.querySelectorAll(".diff").forEach(btn=>{
+  btn.onclick = ()=>{
+    difficulty = btn.dataset.diff;
+    document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b===btn));
+  };
+});
+
+// show/hide custom word
+$("toggle-see").onclick = ()=>{
+  const inp = $("custom-word");
+  const showing = inp.type === "text";
+  inp.type = showing ? "password" : "text";
+  $("toggle-see").textContent = showing ? "👁 Show" : "🙈 Hide";
+};
+$("custom-word").addEventListener("input", e=>{
+  e.target.value = e.target.value.replace(/[^a-zA-Z]/g,"").toUpperCase();
+});
+
+function bandForLength(n){
+  for(const k in BANDS){ if(n>=BANDS[k].min && n<=BANDS[k].max) return k; }
+  return null;
+}
+
+// ---------- start / pick word ----------
+function pickRandomWord(diff){
+  const {min,max} = BANDS[diff];
+  const pool = WORDS.filter(w => w.length>=min && w.length<=max);
+  if(!pool.length) return null;
+  let w = pool[Math.floor(Math.random()*pool.length)];
+  if(pool.length>1){ let guard=0; while(w===lastWord && guard++<8){ w = pool[Math.floor(Math.random()*pool.length)]; } }
+  return w;
+}
+
+$("start-btn").onclick = ()=>{
+  if(mode==="custom"){
+    const w = $("custom-word").value.replace(/[^A-Z]/g,"");
+    const hint = $("custom-hint");
+    if(w.length<3 || w.length>20){
+      hint.textContent = "Please type a word with 3 to 20 letters.";
+      hint.classList.add("err"); return;
+    }
+    hint.classList.remove("err");
+    hint.textContent = "3 to 20 letters. Letters only. Your child won't see it.";
+    difficulty = bandForLength(w.length);
+    startGame(w);
+    $("custom-word").value = "";
+    $("custom-word").type = "password";
+    $("toggle-see").textContent = "👁 Show";
+  } else {
+    const w = pickRandomWord(difficulty);
+    if(!w){ alert("No words available for this level."); return; }
+    startGame(w);
+  }
+};
+
+function startGame(secret){
+  lastWord = secret;
+  state = {
+    secret,
+    revealed: new Set(),
+    guessedLetters: new Set(),
+    wrongWords: [],
+    letterLeft: MAX_LETTER_WRONG,
+    wordLeft: MAX_WORD_WRONG,
+    status: "playing",
+  };
+  enableInputs();
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  $("level-badge").textContent = BANDS[difficulty].label;
+  $("word-guess").maxLength = secret.length;
+  $("word-guess").value = "";
+  $("word-guess").placeholder = "•".repeat(secret.length);
+  $("guess-label").textContent = `Think you know it? Guess all ${secret.length} letters`;
+  setMessage("Pick a letter to begin!", "");
+  buildKeyboard();
+  renderWord(true);
+  renderLives();
+  setOwl("game", "idle");
+}
+
+// ---------- rendering ----------
+function renderWord(animateNone){
+  const box = $("word-display");
+  box.innerHTML = "";
+  const over = state.status !== "playing";
+  for(const ch of state.secret){
+    const t = document.createElement("div");
+    t.className = "tile";
+    const known = state.revealed.has(ch);
+    if(known){ t.textContent = ch; t.classList.add("filled"); }
+    else if(over){ t.textContent = ch; t.classList.add("reveal"); }
+    else { t.textContent = ""; }
+    box.appendChild(t);
+  }
+}
+
+function flipRevealed(letter){
+  const tiles = $("word-display").children;
+  [...state.secret].forEach((ch,i)=>{
+    if(ch===letter && !reduceMotion){
+      const t = tiles[i];
+      t.classList.add("flip");
+      setTimeout(()=>t.classList.remove("flip"), 500);
+    }
+  });
+}
+
+function renderLives(){
+  const lp = $("letter-pips"); lp.innerHTML="";
+  for(let i=0;i<MAX_LETTER_WRONG;i++){
+    const s=document.createElement("span"); s.className="pip"+(i>=state.letterLeft?" gone":"");
+    s.textContent="❤️"; lp.appendChild(s);
+  }
+  const wp = $("word-pips"); wp.innerHTML="";
+  for(let i=0;i<MAX_WORD_WRONG;i++){
+    const s=document.createElement("span"); s.className="pip"+(i>=state.wordLeft?" gone":"");
+    s.textContent="⭐"; wp.appendChild(s);
+  }
+}
+
+function buildKeyboard(){
+  const rows = ["ABCDEFG","HIJKLMN","OPQRSTU","VWXYZ"];
+  const kb = $("keyboard"); kb.innerHTML="";
+  for(const row of rows){
+    const r=document.createElement("div"); r.className="krow";
+    for(const ch of row){
+      const b=document.createElement("button");
+      b.className="key"; b.textContent=ch; b.dataset.letter=ch;
+      b.setAttribute("aria-label","Guess letter "+ch);
+      b.onclick=()=>guessLetter(ch);
+      r.appendChild(b);
+    }
+    kb.appendChild(r);
+  }
+}
+
+function setMessage(txt, kind){
+  const m=$("message"); m.textContent=txt;
+  m.className="message"+(kind?(" "+kind):"");
+}
+
+// ---------- gameplay ----------
+function guessLetter(letter){
+  if(!state || state.status!=="playing") return;
+  letter=letter.toUpperCase();
+  if(!/[A-Z]/.test(letter)) return;
+
+  if(state.guessedLetters.has(letter)){
+    setMessage(`You already tried “${letter}”. No worries — pick another!`, "");
+    setOwl("game","think");
+    return;
+  }
+  state.guessedLetters.add(letter);
+  const keyBtn=[...document.querySelectorAll(".key")].find(k=>k.dataset.letter===letter);
+
+  if(state.secret.includes(letter)){
+    state.revealed.add(letter);
+    if(keyBtn){ keyBtn.classList.add("correct"); keyBtn.disabled=true; }
+    renderWord(); flipRevealed(letter); renderLives();
+    setMessage(`Yes! “${letter}” is in the word! 🎈`, "good");
+    setOwl("game","happy"); sound("good");
+    if([...state.secret].every(c=>state.revealed.has(c))) win();
+  } else {
+    state.letterLeft--;
+    if(keyBtn){ keyBtn.classList.add("wrong"); keyBtn.disabled=true; }
+    renderLives();
+    setMessage(`Hmm, no “${letter}” this time. ${state.letterLeft} letter tries left.`, "bad");
+    setOwl("game","worried"); sound("bad");
+    if(state.letterLeft<=0) lose();
+  }
+}
+
+function submitWordGuess(){
+  if(!state || state.status!=="playing") return;
+  const raw=$("word-guess").value.replace(/[^A-Za-z]/g,"").toUpperCase();
+  if(raw.length===0){ setMessage("Type your word guess first!", ""); return; }
+  if(raw.length!==state.secret.length){
+    setMessage(`Your guess needs exactly ${state.secret.length} letters.`, "");
+    return;
+  }
+  if(raw===state.secret){ state.revealed=new Set(state.secret.split("")); win(); return; }
+  if(state.wrongWords.includes(raw)){
+    setMessage(`You already tried “${raw}”. That one doesn't cost a star!`, "");
+    setOwl("game","think"); return;
+  }
+  state.wrongWords.push(raw);
+  state.wordLeft--;
+  renderLives();
+  $("word-guess").value="";
+  setMessage(`Not quite! ${state.wordLeft} word ${state.wordLeft===1?"try":"tries"} left.`, "bad");
+  setOwl("game","worried"); sound("bad");
+  if(state.wordLeft<=0) lose();
+}
+$("word-guess-btn").onclick = submitWordGuess;
+$("word-guess").addEventListener("keydown", e=>{ if(e.key==="Enter") submitWordGuess(); });
+$("word-guess").addEventListener("input", e=>{
+  e.target.value=e.target.value.replace(/[^a-zA-Z]/g,"").toUpperCase();
+});
+
+// physical keyboard for letters
+document.addEventListener("keydown", e=>{
+  if(!state || state.status!=="playing") return;
+  if($("screen-game").classList.contains("hide")) return;  // only when game visible
+  if(document.activeElement===$("word-guess")) return;   // don't hijack word input
+  if(/^[a-zA-Z]$/.test(e.key)) guessLetter(e.key);
+});
+
+// ---------- end states ----------
+function disableInputs(){
+  document.querySelectorAll(".key").forEach(k=>k.disabled=true);
+  $("word-guess").disabled=true; $("word-guess-btn").disabled=true;
+}
+function enableInputs(){
+  $("word-guess").disabled=false; $("word-guess-btn").disabled=false;
+}
+function win(){
+  state.status="won"; disableInputs(); renderWord(); renderLives();
+  setMessage("You found the word! 🌟", "good");
+  setOwl("game","win"); sound("win");
+  showOverlay("🎉","You did it!", state.secret, "Amazing guessing! Ready for another word?");
+  if(!reduceMotion) launchConfetti();
+}
+function lose(){
+  state.status="lost"; disableInputs(); renderWord(); renderLives();
+  setOwl("game","worried"); sound("lose");
+  showOverlay("🦉","So close!", state.secret, "That was a tricky one. Let's try a new word!");
+}
+$("end-game-btn").onclick = ()=>{
+  if(!state || state.status!=="playing") return;
+  state.status="ended"; disableInputs(); renderWord();
+  setMessage("Game ended — here's the word.", "");
+  setOwl("game","idle");
+  showOverlay("📖","Here's the word", state.secret, "Give it another go whenever you're ready!");
+};
+
+$("new-word-btn").onclick = ()=>{ hideOverlay(); enableInputs(); startNext(); };
+$("home-btn").onclick = ()=>{ hideOverlay(); goHome(); };
+$("modal-again").onclick = ()=>{ hideOverlay(); enableInputs(); startNext(); };
+$("modal-home").onclick = ()=>{ hideOverlay(); goHome(); };
+$("mute-btn").onclick = ()=>{
+  muted=!muted;
+  $("mute-btn").textContent = muted ? "🔇 Muted" : "🔊 Sound";
+  $("mute-btn").setAttribute("aria-pressed", muted);
+};
+
+function startNext(){
+  // In custom mode there's no fresh word to pick, so send them home to set one.
+  if(mode==="custom"){ goHome(); return; }
+  enableInputs();
+  const w=pickRandomWord(difficulty);
+  if(!w){ goHome(); return; }
+  startGame(w);
+}
+function goHome(){
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("home","idle");
+}
+
+// ---------- overlay ----------
+function showOverlay(face,title,word,sub){
+  $("modal-face").textContent=face;
+  $("modal-title").textContent=title;
+  $("modal-word").textContent=word;
+  $("modal-sub").textContent=sub;
+  $("overlay").classList.add("show");
+  $("modal-again").textContent = (mode==="custom") ? "New Word ✏️" : "Play Again ▶";
+}
+function hideOverlay(){ $("overlay").classList.remove("show"); stopConfetti(); }
+
+// ---------- owl expressions ----------
+function setOwl(where, mood){
+  const owl = $(where==="home" ? "owl-home" : "owl-game");
+  if(!owl) return;
+  owl.classList.remove("happy","worried","win","think");
+  if(mood!=="idle") owl.classList.add(mood);
+}
+
+// ---------- sound (WebAudio, no files) ----------
+let audioCtx=null;
+function beep(freq,dur,type="sine",when=0,gain=0.15){
+  if(muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const t=audioCtx.currentTime+when;
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+function sound(kind){
+  if(kind==="good"){ beep(660,.12,"triangle"); beep(880,.14,"triangle",.08); }
+  else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
+  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.11)); }
+  else if(kind==="lose"){ [392,330,262].forEach((f,i)=>beep(f,.25,"sine",i*.16,.13)); }
+}
+
+// ---------- confetti ----------
+let confettiRAF=null;
+function launchConfetti(){
+  const cv=$("confetti"); cv.style.display="block";
+  const ctx=cv.getContext("2d");
+  const resize=()=>{cv.width=innerWidth; cv.height=innerHeight;}; resize();
+  const colors=["#6C4AB6","#FF6B7A","#2FB37D","#FFCF43","#3FA7E0"];
+  const parts=Array.from({length:120},()=>({
+    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
+    r:5+Math.random()*7, c:colors[Math.floor(Math.random()*colors.length)],
+    vy:2+Math.random()*3, vx:-1.5+Math.random()*3, rot:Math.random()*6, vr:-.2+Math.random()*.4
+  }));
+  let frames=0;
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore();
+    });
+    frames++;
+    if(frames<220){ confettiRAF=requestAnimationFrame(draw); } else { stopConfetti(); }
+  })();
+}
+function stopConfetti(){
+  if(confettiRAF) cancelAnimationFrame(confettiRAF);
+  const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; }
+}
+
+// ---------- bouncy title ----------
+(function(){
+  const word="Word Guess Challenge";
+  const classes=["c1","c2","c3","c4"];
+  const el=$("title"); let ci=0;
+  for(const ch of word){
+    if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
+    const s=document.createElement("span");
+    s.textContent=ch; s.className=classes[ci++%classes.length];
+    if(!reduceMotion){
+      s.style.animation=`bob 2.4s ease-in-out ${ (ci*0.06).toFixed(2) }s infinite`;
+    }
+    el.appendChild(s);
+  }
+  if(!reduceMotion){
+    const st=document.createElement("style");
+    st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
+    document.head.appendChild(st);
+  }
+})();
+
+setMode("random");
+</script>
+</body>
+</html>

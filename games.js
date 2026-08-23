@@ -44,7 +44,7 @@ window.GAMES = [
   { slug: "coin-counter",       title: "Coin Counter",        emoji: "🪙", accent: "sun",
     tagline: "Make the amount with the fewest coins.",        skills: ["Money"] },
 
-  { slug: "times-table-pop",    title: "Times Table Pop",     emoji: "🎈", accent: "coral",
+  { slug: "times-table-pop",    title: "Times Table Pop",     emoji: "🎈", accent: "sky",
     tagline: "Pop the balloons that equal the product.",      skills: ["Multiplication"] },
 
   { slug: "pizza-party",        title: "Pizza Party",         emoji: "🍕", accent: "coral",
@@ -55,4 +55,7 @@ window.GAMES = [
 
   { slug: "what-comes-next",    title: "What Comes Next",     emoji: "🧩", accent: "sun",
     tagline: "Spot the pattern and finish it.",               skills: ["Patterns"] },
+
+  { slug: "word-guess",   title: "Guess the Word",            emoji: "💭", accent: "sky",
+    tagline: "Guess the hidden word.",                        skills: ["Word sense"],                       badge:"New"},
 ];
