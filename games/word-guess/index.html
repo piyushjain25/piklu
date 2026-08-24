@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="../../assets/game-shared.css" />
 <style>
   :root{
     --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
@@ -82,7 +81,6 @@
   .btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
   .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
   .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
-  .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);}
   .btn-sun{background:var(--sun); color:var(--ink); --btn-shadow:var(--sun-dark);}
   .btn-ghost{background:#F1EDFA; color:var(--grape); --btn-shadow:#d9d0ef;}
   .btn:disabled{filter:grayscale(.4) opacity(.55); cursor:not-allowed;}
@@ -127,20 +125,53 @@
   .txt:focus{outline:none; border-color:var(--grape);}
   .hint{font-size:14px; color:var(--ink-soft); font-weight:700; margin-top:8px;}
   .hint.err{color:var(--coral-dark);}
+  .howto{background:#F4F0FE; border-radius:16px; padding:14px 16px; margin-top:18px; font-weight:700;
+    color:var(--ink-soft); font-size:14px; line-height:1.5;}
+  .howto b{color:var(--grape);}
   .center{text-align:center;} .mt{margin-top:22px;} .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
 
-  /* ---------- game: lives ---------- */
-  .topbar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between; margin-bottom:6px;}
-  .lives{display:flex; flex-direction:column; gap:6px;}
+  .home-top{display:flex; margin-bottom:4px;}
+  .hub-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:none; opacity:.8;}
+  .hub-link:hover{opacity:1; text-decoration:underline;}
+
+  /* ---------- game top bar ---------- */
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+  .topbar .tb-center{display:flex; align-items:center; gap:8px; min-width:0;}
+  .topbar .tb-right{display:flex; align-items:center; gap:8px;}
+  .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape); padding:6px 14px; border-radius:999px;}
+
+  /* ---------- lives (letter hearts + word stars — these decide the round's outcome) ---------- */
+  .stats-row{display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:16px;}
   .lives-row{display:flex; align-items:center; gap:8px;}
-  .lives-row .lbl{font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px; color:var(--ink-soft); width:66px;}
+  .lives-row .lbl{font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px; color:var(--ink-soft);}
   .pips{display:flex; gap:3px; flex-wrap:wrap;}
-  .pip{font-size:20px; line-height:1; transition:transform .25s ease, filter .25s ease, opacity .25s ease;}
+  .pip{font-size:18px; line-height:1; transition:transform .25s ease, filter .25s ease, opacity .25s ease;}
   .pip.gone{filter:grayscale(1); opacity:.28; transform:scale(.8);}
-  .badge{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape); padding:5px 12px; border-radius:999px;}
+
+  /* text-link controls (Home / Skip / Next / Reset / Hint) — look like links, not buttons */
+  .tlink{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--grape); background:none; border:none;
+    cursor:pointer; text-decoration:none; padding:6px 6px; display:inline-flex; align-items:center; gap:5px; opacity:.82;}
+  .tlink:hover{opacity:1;} .tlink.off{opacity:.32; pointer-events:none;}
+  .tlink:focus-visible{outline:3px solid var(--grape); outline-offset:2px; border-radius:10px;}
+  .actions{display:flex; gap:22px; justify-content:center; align-items:center; margin:14px 0 18px;}
+  .serve-row{display:flex; justify-content:center; margin-top:6px;}
+  .invisible{visibility:hidden !important;}  /* hidden but keeps its space, so the top bar doesn't reflow */
+
+  .level-switch{position:relative; display:inline-block;}
+  .chip.level{cursor:pointer; user-select:none; border:none; display:inline-flex; align-items:center; gap:5px;}
+  .chip.level:hover{filter:brightness(1.07);} .chip.level .caret{font-size:10px; opacity:.85;}
+  .chip.level:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
+  .chip.level.static{cursor:default;} .chip.level.static:hover{filter:none;} .chip.level.static .caret{display:none;}
+  .level-menu{position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:40;
+    background:#fff; border:2px solid var(--key-line); border-radius:14px; box-shadow:var(--shadow); padding:6px; min-width:160px; display:none;}
+  .level-menu.open{display:block;}
+  .level-opt{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--ink); background:none; border:none; cursor:pointer; padding:9px 12px; border-radius:10px; white-space:nowrap;}
+  .level-opt:hover{background:#F4F0FE;} .level-opt[aria-current="true"]{background:#F1EDFA; color:var(--grape);}
+  .level-opt .tick{color:var(--leaf-dark); font-weight:700; opacity:0;} .level-opt[aria-current="true"] .tick{opacity:1;}
 
   /* ---------- game: word tiles ---------- */
-  .word{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:24px 0 8px; perspective:600px;}
+  .word{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0 8px; perspective:600px;}
   .tile{
     width:clamp(34px,8vw,52px); height:clamp(44px,10vw,64px);
     border-radius:12px; display:flex; align-items:center; justify-content:center;
@@ -154,7 +185,7 @@
   .tile.flip{animation:flip .5s ease;}
   @keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(90deg)}55%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
 
-  .message{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:18px; min-height:26px; color:var(--grape); margin:4px 0 12px;}
+  .message{text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; min-height:22px; color:var(--grape); margin:14px 0 12px;}
   .message.good{color:var(--leaf-dark);} .message.bad{color:var(--coral-dark);}
 
   /* ---------- keyboard ---------- */
@@ -183,18 +214,9 @@
   }
   .guess-input:focus{outline:none; border-color:var(--grape);}
 
-  .footer{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:22px;}
-
-  /* ---------- overlay ---------- */
-  .overlay{position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px;
-    background:rgba(51,35,107,.45); backdrop-filter:blur(3px);}
-  .overlay.show{display:flex;}
-  .modal{background:#fff; border-radius:26px; box-shadow:var(--shadow); padding:30px 28px; max-width:440px; width:100%; text-align:center; animation:pop .35s ease;}
-  @keyframes pop{0%{transform:scale(.8); opacity:0}100%{transform:scale(1); opacity:1}}
-  .modal h2{font-family:'Fredoka',sans-serif; font-size:30px; margin:12px 0 4px;}
-  .modal .reveal-word{font-family:'Fredoka',sans-serif; font-weight:700; font-size:26px; letter-spacing:3px; color:var(--grape); margin:10px 0 4px; word-break:break-word;}
-  .modal p{color:var(--ink-soft); font-weight:700; margin:6px 0 20px;}
-  .modal .big-face{font-size:56px; line-height:1;}
+  .result{text-align:center; padding:8px 4px 4px;}
+  .result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px); color:var(--leaf-dark);}
+  .result .reveal-word{font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; letter-spacing:3px; color:var(--grape); margin-top:6px; word-break:break-word;}
 
   canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
 
@@ -208,10 +230,10 @@
 <body>
 <div class="app">
   <div class="card">
-    <a href="../" class="game-back">← All games</a>
 
     <!-- ===================== HOME ===================== -->
     <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
         <!-- owl mascot -->
         <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
@@ -258,21 +280,25 @@
         <div class="hint" id="custom-hint">3 to 20 letters. Letters only. Your child won't see it.</div>
       </div>
 
+      <div class="howto">
+        🔤 <b>How to play:</b> Tap letters on the keyboard to reveal them in the word, or type your whole guess
+        into the box and press <b>Guess Word</b>. You've got 10 ❤️ letter tries and 3 ⭐ whole-word tries —
+        run out of both and the word is revealed. Stuck? <b>💡 Hint</b> reveals one letter for free, and
+        <b>↺ Reset</b> starts the word over with full tries.
+      </div>
+
       <div class="row-btns mt">
         <button id="start-btn" class="btn btn-go btn-lg">Start Game ▶</button>
       </div>
+      <div class="hint err center hide" id="start-error">Couldn't load the word list. This game needs to be served over http(s), not opened as a local file.</div>
     </section>
 
     <!-- ===================== GAME ===================== -->
     <section id="screen-game" class="hide">
       <div class="topbar">
-        <div class="lives">
-          <div class="lives-row"><span class="lbl">Letters</span><div class="pips" id="letter-pips"></div></div>
-          <div class="lives-row"><span class="lbl">Words</span><div class="pips" id="word-pips"></div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span class="badge" id="level-badge">Easy</span>
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
             <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
             <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
             <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
@@ -283,7 +309,21 @@
             <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
           </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
         </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">🔄 New word</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="lives-row"><span class="lbl">Letters</span><div class="pips" id="letter-pips"></div></div>
+        <div class="lives-row"><span class="lbl">Words</span><div class="pips" id="word-pips"></div></div>
       </div>
 
       <div class="word" id="word-display" aria-label="The word so far"></div>
@@ -296,52 +336,41 @@
         <div class="guess-row">
           <input id="word-guess" class="guess-input" type="text" autocomplete="off" spellcheck="false"
                  inputmode="latin" aria-label="Guess the whole word" />
-          <button id="word-guess-btn" class="btn btn-sun">Guess Word</button>
         </div>
       </div>
 
-      <div class="footer">
-        <button id="new-word-btn" class="btn btn-primary">🔄 New Word</button>
-        <button id="end-game-btn" class="btn btn-warn">🏁 End Game</button>
-        <button id="home-btn" class="btn btn-ghost">🏠 Home</button>
-        <button id="mute-btn" class="btn btn-ghost" aria-pressed="false">🔊 Sound</button>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div><div class="reveal-word" id="reveal-word"></div></div></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="reset-btn" class="tlink">↺ Reset</button>
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="word-guess-btn" class="btn btn-go btn-lg">Guess Word</button>
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
       </div>
     </section>
-  </div>
-</div>
-
-<!-- ===================== RESULT OVERLAY ===================== -->
-<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <div class="modal">
-    <div class="big-face" id="modal-face">🎉</div>
-    <h2 id="modal-title">You did it!</h2>
-    <div class="reveal-word" id="modal-word"></div>
-    <p id="modal-sub"></p>
-    <div class="row-btns">
-      <button id="modal-again" class="btn btn-go">Play Again ▶</button>
-      <button id="modal-home" class="btn btn-ghost">🏠 Home</button>
-    </div>
   </div>
 </div>
 
 <canvas id="confetti"></canvas>
 
 <script>
-const EMBEDDED_WORDS=["ACTION", "ACTOR", "ADVENTURE", "ADVENTURES", "ADVENTUROUS", "AFTERNOON", "AIR", "AIRPLANE", "AIRPORT", "ALLIGATOR", "ALLOSAURUS", "ALPHABET", "AMBULANCE", "ANGRY", "ANKLE", "ANKYLOSAURUS", "ANSWER", "ANT", "APE", "APPLE", "ARM", "ARTIST", "ASTEROID", "ASTRONAUT", "ATTENTION", "AUNT", "AVOCADO", "BABY", "BACK", "BACKPACK", "BACON", "BAD", "BADGER", "BAKE", "BAKER", "BAKERY", "BALL", "BALLOON", "BAMBOO", "BANANA", "BARBER", "BASEBALL", "BASKETBALL", "BAT", "BATH", "BATHTUB", "BATTING", "BEACH", "BEAD", "BEAN", "BEANS", "BEAR", "BEAT", "BEAUTIFUL", "BEAUTIFULLY", "BEAVER", "BED", "BEDROOM", "BEE", "BEG", "BEGINNING", "BELL", "BELT", "BERRY", "BICYCLE", "BIG", "BIKE", "BIRD", "BIRTHDAY", "BISCUIT", "BLACK", "BLANKET", "BLIZZARD", "BLOCKS", "BLOSSOM", "BLUE", "BLUEBERRIES", "BLUEBERRY", "BOAT", "BOOK", "BOOT", "BOUNCE", "BOW", "BOWL", "BOWLING", "BOX", "BRACHIOSAURUS", "BRAIN", "BRANCH", "BRAVE", "BREAD", "BREAKFAST", "BREEZE", "BRIDGE", "BROCCOLI", "BRONTOSAURUS", "BROOM", "BROTHER", "BROWN", "BROWNIE", "BRUSH", "BUFFALO", "BUG", "BUILD", "BUILDER", "BUN", "BUNNY", "BUS", "BUSH", "BUSY", "BUTTER", "BUTTERFLIES", "BUTTERFLY", "BUY", "CAB", "CABBAGE", "CABINET", "CACTUS", "CAKE", "CALF", "CALM", "CAMEL", "CAMP", "CANDY", "CANOE", "CANYON", "CAP", "CAPTAIN", "CAR", "CARD", "CARING", "CARPENTER", "CARROT", "CASH", "CASTLE", "CAT", "CATCH", "CATCHING", "CATERPILLAR", "CATERPILLARS", "CAVE", "CELEBRATE", "CELEBRATION", "CELEBRATIONS", "CELERY", "CHAIR", "CHALK", "CHARACTER", "CHARACTERISTICS", "CHARACTERIZATION", "CHEEK", "CHEERFUL", "CHEERFULLY", "CHEESE", "CHEETAH", "CHEF", "CHERRY", "CHEST", "CHICK", "CHILLY", "CHIMPANZEE", "CHIN", "CHIPMUNK", "CHIPS", "CHOCOLATE", "CHURCH", "CITY", "CLAM", "CLAP", "CLASS", "CLASSIFICATION", "CLASSIFICATIONS", "CLASSROOM", "CLEAN", "CLIMB", "CLOCK", "CLOUD", "CLOWN", "COAT", "COIN", "COLD", "COLLECTION", "COLT", "COMB", "COMET", "COMFORTABLE", "COMMUNITIES", "COMMUNITY", "CONGRATULATIONS", "CONNECTION", "CONVERSATION", "CONVERSATIONS", "COOK", "COOKIE", "COOL", "COP", "CORN", "COSTUME", "COUCH", "COUNTERCLOCKWISE", "COURAGE", "COUSIN", "COW", "CRAB", "CRAYON", "CREAM", "CREATION", "CRICKET", "CRIMSON", "CROCODILE", "CROW", "CROWN", "CRY", "CUB", "CUCUMBER", "CUP", "CUPCAKE", "CURTAIN", "CUSHION", "CUT", "CYAN", "DAD", "DAISY", "DANCE", "DANCER", "DANDELION", "DANGEROUS", "DARK", "DAUGHTER", "DAWN", "DAY", "DECORATION", "DECORATIONS", "DEEP", "DEER", "DELICIOUS", "DENTIST", "DESCRIPTION", "DESERT", "DESK", "DEW", "DICTIONARIES", "DICTIONARY", "DIFFERENCE", "DIFFERENT", "DIG", "DINOSAUR", "DIP", "DIPLODOCUS", "DIRECTION", "DIRTY", "DISAPPOINTMENT", "DISAPPOINTMENTS", "DISCOVER", "DISH", "DOCTOR", "DOG", "DOLL", "DOLPHIN", "DONKEY", "DONUT", "DOOR", "DOORBELL", "DOT", "DOVE", "DRAGON", "DRAW", "DREAM", "DRESS", "DRESSER", "DRIZZLE", "DRUM", "DRY", "DUCK", "DUSK", "EAGLE", "EAR", "EARLY", "EAT", "EDUCATION", "EGG", "EIGHT", "EIGHTEEN", "EIGHTY", "ELBOW", "ELECTRICITY", "ELEPHANT", "ELEVEN", "ELK", "ELM", "EMOTION", "EMU", "ENVIRONMENTALIST", "ENVIRONMENTALLY", "ERASER", "EVENING", "EVERYBODY", "EVERYTHING", "EXCELLENT", "EXPLORATION", "EXPLORE", "EXTRAORDINARY", "EYE", "EYEBROW", "EYELASH", "FACE", "FAIR", "FAIRY", "FAN", "FARM", "FARMER", "FAST", "FAT", "FATHER", "FAVORITE", "FAVOURITE", "FAWN", "FERN", "FERRY", "FIELD", "FIFTEEN", "FIFTY", "FIG", "FIND", "FINGER", "FIREFIGHTER", "FIREFIGHTERS", "FIREMAN", "FIREWORKS", "FISH", "FIVE", "FIX", "FLAG", "FLAMINGO", "FLOWER", "FLUTE", "FLY", "FOAL", "FOG", "FOGGY", "FOOT", "FOOTBALL", "FOREHEAD", "FOREST", "FORK", "FORTY", "FOUR", "FOURTEEN", "FOX", "FREEZING", "FRIEND", "FRIENDLY", "FRIENDSHIP", "FRIENDSHIPS", "FROG", "FROSTY", "FUN", "FUNNY", "FURNITURE", "FUZZY", "GALAXY", "GAME", "GARAGE", "GARDEN", "GENTLE", "GIANT", "GIFT", "GIGANTIC", "GIGGLE", "GIRAFFE", "GIVE", "GLAD", "GLOVE", "GLUE", "GOAL", "GOAT", "GOLD", "GOLF", "GOOD", "GOOSE", "GORILLA", "GRANDCHILDREN", "GRANDDAUGHTER", "GRANDDAUGHTERS", "GRANDFATHER", "GRANDFATHERS", "GRANDMA", "GRANDMOTHER", "GRANDMOTHERS", "GRANDPA", "GRANDPARENTS", "GRAPE", "GRASS", "GRASSHOPPER", "GRATEFUL", "GRAY", "GREEN", "GUITAR", "GUM", "GYM", "GYMNASIUM", "GYMNASTICS", "HAIL", "HAIR", "HAM", "HAMSTER", "HAND", "HANDSOME", "HANDWRITING", "HAPPINESS", "HAPPY", "HARBOUR", "HARE", "HAT", "HAWK", "HEAD", "HEART", "HEDGEHOG", "HELICOPTER", "HELICOPTERS", "HELP", "HELPFUL", "HEN", "HIGH", "HILL", "HIP", "HIPPOPOTAMUS", "HISTORY", "HOCKEY", "HOLIDAY", "HOME", "HOMEWORK", "HONESTY", "HONEY", "HOP", "HOPE", "HORN", "HORSE", "HOSPITAL", "HOT", "HOUR", "HOUSE", "HUG", "HUGE", "HUM", "HUMMINGBIRD", "HUNDRED", "HUSBAND", "ICE", "ICY", "IDENTIFICATION", "IGUANODON", "IMAGINATION", "IMAGINE", "IMPORTANT", "INCREDIBLE", "INDIGO", "INFORMATION", "INK", "INVESTIGATIONS", "INVISIBLE", "INVITATION", "INVITATIONS", "ISLAND", "JACKET", "JAM", "JAR", "JAW", "JEANS", "JELLY", "JELLYFISH", "JET", "JIGSAW", "JOEY", "JOG", "JOY", "JUDGE", "JUICE", "JUMP", "JUNGLE", "JUPITER", "KANGAROO", "KARATE", "KEY", "KICK", "KID", "KIDS", "KIND", "KINDERGARTEN", "KINDERGARTENER", "KINDNESS", "KING", "KITCHEN", "KITE", "KITTEN", "KNEE", "KNIFE", "KNUCKLE", "KOALA", "LAKE", "LAMB", "LAMP", "LATE", "LAUGH", "LAVENDER", "LAWYER", "LAZY", "LEAF", "LEG", "LEMON", "LEOPARD", "LESSON", "LETTER", "LETTUCE", "LIBRARIAN", "LIBRARY", "LIGHTNING", "LIME", "LION", "LIP", "LISTEN", "LIZARD", "LLAMA", "LOCK", "LOG", "LONG", "LOOK", "LOUD", "LOVE", "LOW", "MAD", "MAGIC", "MAKE", "MALL", "MAMA", "MANGO", "MAP", "MAPLE", "MARBLE", "MARKET", "MAROON", "MARS", "MARSHMALLOW", "MARVELOUS", "MAT", "MATH", "MEADOW", "MEAN", "MEAT", "MELODY", "MELON", "MERCURY", "METEOR", "MICRORAPTOR", "MIDNIGHT", "MILK", "MILLION", "MINUTE", "MIRROR", "MIST", "MISUNDERSTANDING", "MISUNDERSTANDINGS", "MITTEN", "MIX", "MOLE", "MOM", "MONKEY", "MONTH", "MOON", "MOOSE", "MORNING", "MOSS", "MOTHER", "MOTION", "MOTORCYCLE", "MOUNTAIN", "MOUSE", "MOUTH", "MUD", "MUFFIN", "MULE", "MULTIPLICATION", "MULTIPLICATIONS", "MUSCLE", "MUSEUM", "MUSIC", "MUSICIAN", "NAIL", "NANA", "NAP", "NATION", "NATURE", "NAVY", "NEAT", "NECK", "NEIGHBORHOOD", "NEPHEW", "NEPTUNE", "NEW", "NEWSPAPER", "NICE", "NIECE", "NIGHT", "NINE", "NINETEEN", "NINETY", "NOD", "NOODLE", "NOON", "NOSE", "NOTE", "NOTEBOOK", "NUMBER", "NURSE", "NUT", "OAK", "OATMEAL", "OCTOPUS", "ODD", "OLD", "OLIVE", "ONE", "ONION", "OPEN", "ORANGE", "ORBIT", "ORCHESTRA", "OSTRICH", "OTTER", "OWL", "PACHYCEPHALOSAURUS", "PAGE", "PAINT", "PAINTER", "PAJAMAS", "PALACE", "PALE", "PALM", "PAN", "PANCAKE", "PANDA", "PANTS", "PAPA", "PAPER", "PARASAUROLOPHUS", "PARENT", "PARK", "PARROT", "PARTY", "PASTA", "PATH", "PATIENT", "PAY", "PEA", "PEACE", "PEACH", "PEACOCK", "PEN", "PENCIL", "PENGUIN", "PEPPER", "PERSONALITY", "PETAL", "PHOTOGRAPH", "PHOTOGRAPHS", "PIANO", "PIE", "PIG", "PILLOW", "PILOT", "PINE", "PINEAPPLE", "PINK", "PIRATE", "PIZZA", "PLANE", "PLANET", "PLANT", "PLATE", "PLAY", "PLAYGROUND", "PLAYGROUNDS", "PLUMBER", "POLICEMAN", "POLITE", "POND", "PONY", "POOR", "POPCORN", "POPSICLE", "PORCUPINE", "POSITION", "POSTMAN", "POT", "POTATO", "PRESENT", "PRETTY", "PRETZEL", "PRINCIPAL", "PTERODACTYL", "PULL", "PUMPKIN", "PUPPET", "PUPPY", "PURPLE", "PUSH", "PUZZLE", "QUEEN", "QUESTION", "RABBIT", "RACCOON", "RACE", "RADIO", "RAIN", "RAINBOW", "RAINCOAT", "RAINY", "RAPTOR", "RASPBERRY", "RAT", "REACH", "READ", "RECOMMENDATION", "RECTANGLE", "RECTANGULAR", "RED", "REFLECTION", "REFLECTIONS", "REFRIGERATOR", "REINDEER", "REMEMBER", "REPRESENTATIVES", "RESPECT", "RESPONSIBILITIES", "RESPONSIBILITY", "RESTAURANT", "RHINOCEROS", "RHYTHM", "RIB", "RICE", "RICH", "RING", "RIVER", "ROAD", "ROBIN", "ROBOT", "ROCK", "ROCKET", "ROLL", "ROOF", "ROOT", "ROPE", "ROSE", "ROUGH", "ROW", "RUB", "RUG", "RULE", "RULER", "RUN", "RUNNING", "SAD", "SAFE", "SAILBOAT", "SAILOR", "SALMON", "SALT", "SAND", "SANDAL", "SANDWICH", "SATURN", "SAUSAGE", "SAY", "SCARECROW", "SCARF", "SCARLET", "SCARY", "SCHOOL", "SCIENCE", "SCIENTIST", "SCOOTER", "SEA", "SEAHORSE", "SEAL", "SEASON", "SECOND", "SEE", "SEED", "SEESAW", "SEPTEMBER", "SEVEN", "SEVENTEEN", "SHARE", "SHARK", "SHEEP", "SHELF", "SHINY", "SHIP", "SHIRT", "SHOE", "SHOP", "SHOULDER", "SHOUT", "SHREW", "SHY", "SILLY", "SILVER", "SING", "SINGER", "SINK", "SIP", "SIS", "SISTER", "SIT", "SIX", "SIXTEEN", "SIXTY", "SKATEBOARD", "SKATING", "SKIP", "SKIRT", "SKUNK", "SKY", "SLED", "SLEEP", "SLEIGH", "SLIDE", "SLIPPER", "SLOW", "SMILE", "SMOOTH", "SNAIL", "SNAKE", "SNEAKER", "SNOW", "SOAP", "SOCCER", "SOCK", "SOFA", "SOFT", "SOLDIER", "SOMERSAULT", "SON", "SONG", "SOON", "SOUP", "SOUR", "SPACE", "SPACESHIP", "SPARROW", "SPELLING", "SPIDER", "SPINACH", "SPINNER", "SPINOSAURUS", "SPLASH", "SPOON", "SQUIRREL", "STADIUM", "STAIRCASE", "STAR", "STARFISH", "STATION", "STEGOSAURUS", "STOMACH", "STONE", "STOOL", "STORE", "STORM", "STORY", "STRAWBERRIES", "STRAWBERRY", "STREAM", "STUDENT", "STUMP", "SUBJECT", "SUBMARINE", "SUBTRACTION", "SUBWAY", "SUGAR", "SUN", "SUNFLOWER", "SUNGLASSES", "SUNNY", "SUPERMARKET", "SURPRISE", "SWAN", "SWEATER", "SWEET", "SWIM", "SWIMMING", "SWING", "SYRUP", "TABLE", "TACO", "TADPOLE", "TAKE", "TALK", "TALL", "TAN", "TAP", "TAPE", "TAXI", "TEA", "TEACHER", "TEAL", "TEAM", "TEDDY", "TELEPHONE", "TELESCOPE", "TELEVISION", "TEMPERATURE", "TEN", "TENNIS", "TEST", "THANKFUL", "THIRTEEN", "THIRTY", "THOUSAND", "THREE", "THROAT", "THROW", "THUMB", "THUNDER", "THUNDERSTORM", "TIE", "TIGER", "TIME", "TINY", "TOAD", "TOAST", "TODAY", "TOE", "TOMATO", "TOMORROW", "TONGUE", "TONIGHT", "TOOTH", "TOP", "TOWEL", "TOWN", "TOY", "TRACTOR", "TRAIN", "TRAM", "TRAMPOLINE", "TRANSFORMATIONS", "TRANSPORTATION", "TRAY", "TREASURE", "TRIANGLE", "TRICERATOPS", "TRICYCLE", "TROLLEY", "TRUCK", "TRUMPET", "TULIP", "TUMMY", "TUNE", "TURKEY", "TURNIP", "TURQUOISE", "TURTLE", "TWELVE", "TWENTY", "TWIG", "TWIN", "TWINKLING", "TWO", "TYRANNOSAURUS", "UGLY", "UNBELIEVABLE", "UNCLE", "UNCOMFORTABLE", "UNCONTROLLABLE", "UNDERGROUND", "UNDERSTAND", "UNDERSTANDABLE", "UNDERSTANDING", "UNIVERSE", "URANUS", "VACATION", "VALENTINE", "VALLEY", "VAN", "VEGETABLE", "VEGETABLES", "VELOCIRAPTOR", "VEST", "VET", "VILLAGE", "VINE", "VIOLET", "VIOLIN", "VOLCANO", "VOLLEYBALL", "WAFFLE", "WAGON", "WAITER", "WALK", "WALL", "WALRUS", "WAND", "WANDER", "WARM", "WASH", "WATCH", "WATERFALL", "WATERFALLS", "WATERMELON", "WATERMELONS", "WEAK", "WEATHER", "WEB", "WEE", "WEED", "WEEK", "WEEKEND", "WET", "WHALE", "WHISPER", "WHISTLE", "WHITE", "WIDE", "WIFE", "WIGGLE", "WIN", "WIND", "WINDOW", "WINDY", "WIZARD", "WOLF", "WONDERFUL", "WONDERFULLY", "WOODPECKER", "WORD", "WREN", "WRIST", "WRITE", "XYLOPHONE", "YACHT", "YAK", "YEAR", "YELLOW", "YESTERDAY", "ZEBRA", "ZERO", "ZIP", "ZOO"];
-
-const BANDS = {
-  EASY:   {min:3,  max:5,  label:"Easy"},
-  MEDIUM: {min:6,  max:10, label:"Medium"},
-  HARD:   {min:11, max:15, label:"Hard"},
-  EXPERT: {min:16, max:20, label:"Expert"},
+const LEVELS = {
+  EASY:   {min:3,  max:5,  label:"🌱 Easy"},
+  MEDIUM: {min:6,  max:10, label:"⭐ Medium"},
+  HARD:   {min:11, max:15, label:"🔥 Hard"},
+  EXPERT: {min:16, max:20, label:"🏆 Expert"},
 };
 const MAX_LETTER_WRONG = 10;
 const MAX_WORD_WRONG = 3;
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-let WORDS = (typeof EMBEDDED_WORDS !== "undefined") ? EMBEDDED_WORDS.slice() : [];
+// This game only works when served (fetch() is blocked under file://) — no embedded
+// fallback word list, by design: see CLAUDE.md.
+let WORDS = [];
 
-// Try to load the external words.json (when served); fall back to embedded list.
 (async function loadWords(){
   try{
     const res = await fetch("words.json", {cache:"no-store"});
@@ -351,7 +380,7 @@ let WORDS = (typeof EMBEDDED_WORDS !== "undefined") ? EMBEDDED_WORDS.slice() : [
         WORDS = data.filter(w => /^[A-Za-z]+$/.test(w)).map(w => w.toUpperCase());
       }
     }
-  }catch(e){ /* file:// or offline — embedded list is used */ }
+  }catch(e){ /* file:// or offline — WORDS stays empty and the game can't be played */ }
 })();
 
 // ---------- state ----------
@@ -360,10 +389,11 @@ let muted = false;
 let lastWord = "";
 
 const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random()*n);
 
 // ---------- setup screen ----------
 let mode = "random";
-let difficulty = "EASY";
+let level = "EASY";
 
 function setMode(m){
   mode = m;
@@ -371,15 +401,17 @@ function setMode(m){
   $("mode-custom").setAttribute("aria-pressed", m==="custom");
   $("random-setup").classList.toggle("hide", m!=="random");
   $("custom-setup").classList.toggle("hide", m!=="custom");
+  $("start-error").classList.add("hide");
 }
 $("mode-random").onclick = ()=>setMode("random");
 $("mode-custom").onclick = ()=>setMode("custom");
 
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+}
 document.querySelectorAll(".diff").forEach(btn=>{
-  btn.onclick = ()=>{
-    difficulty = btn.dataset.diff;
-    document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b===btn));
-  };
+  btn.onclick = ()=>setLevel(btn.dataset.diff);
 });
 
 // show/hide custom word
@@ -394,21 +426,42 @@ $("custom-word").addEventListener("input", e=>{
 });
 
 function bandForLength(n){
-  for(const k in BANDS){ if(n>=BANDS[k].min && n<=BANDS[k].max) return k; }
+  for(const k in LEVELS){ if(n>=LEVELS[k].min && n<=LEVELS[k].max) return k; }
   return null;
+}
+
+// level switcher (tap the chip at the top to change difficulty mid-game) — random mode only
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
+function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); startNext(); }
+$("q-level").onclick=(e)=>{ if(mode==="custom") return; e.stopPropagation(); toggleLevelMenu(); };
+document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+function updateLevelChip(){
+  const chip=$("q-level"), lbl=$("q-level-label");
+  lbl.textContent = LEVELS[level].label;
+  chip.classList.toggle("static", mode==="custom");
+  chip.setAttribute("aria-haspopup", mode==="random");
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===level));
 }
 
 // ---------- start / pick word ----------
 function pickRandomWord(diff){
-  const {min,max} = BANDS[diff];
+  const {min,max} = LEVELS[diff];
   const pool = WORDS.filter(w => w.length>=min && w.length<=max);
   if(!pool.length) return null;
-  let w = pool[Math.floor(Math.random()*pool.length)];
-  if(pool.length>1){ let guard=0; while(w===lastWord && guard++<8){ w = pool[Math.floor(Math.random()*pool.length)]; } }
+  let w = pool[rnd(pool.length)];
+  if(pool.length>1){ let guard=0; while(w===lastWord && guard++<8){ w = pool[rnd(pool.length)]; } }
   return w;
 }
 
 $("start-btn").onclick = ()=>{
+  $("start-error").classList.add("hide");
   if(mode==="custom"){
     const w = $("custom-word").value.replace(/[^A-Z]/g,"");
     const hint = $("custom-hint");
@@ -418,14 +471,14 @@ $("start-btn").onclick = ()=>{
     }
     hint.classList.remove("err");
     hint.textContent = "3 to 20 letters. Letters only. Your child won't see it.";
-    difficulty = bandForLength(w.length);
+    level = bandForLength(w.length);
     startGame(w);
     $("custom-word").value = "";
     $("custom-word").type = "password";
     $("toggle-see").textContent = "👁 Show";
   } else {
-    const w = pickRandomWord(difficulty);
-    if(!w){ alert("No words available for this level."); return; }
+    const w = pickRandomWord(level);
+    if(!w){ $("start-error").classList.remove("hide"); return; }
     startGame(w);
   }
 };
@@ -441,46 +494,37 @@ function startGame(secret){
     wordLeft: MAX_WORD_WRONG,
     status: "playing",
   };
-  enableInputs();
   $("screen-home").classList.add("hide");
   $("screen-game").classList.remove("hide");
-  $("level-badge").textContent = BANDS[difficulty].label;
+  updateLevelChip();
+  $("word-guess").disabled = false;
   $("word-guess").maxLength = secret.length;
   $("word-guess").value = "";
   $("word-guess").placeholder = "•".repeat(secret.length);
   $("guess-label").textContent = `Think you know it? Guess all ${secret.length} letters`;
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("word-guess-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   setMessage("Pick a letter to begin!", "");
   buildKeyboard();
-  renderWord(true);
+  renderWord();
   renderLives();
-  setOwl("game", "idle");
+  setOwl("idle");
 }
 
 // ---------- rendering ----------
-function renderWord(animateNone){
+function renderWord(){
   const box = $("word-display");
   box.innerHTML = "";
   const over = state.status !== "playing";
   for(const ch of state.secret){
     const t = document.createElement("div");
     t.className = "tile";
-    const known = state.revealed.has(ch);
-    if(known){ t.textContent = ch; t.classList.add("filled"); }
+    if(state.revealed.has(ch)){ t.textContent = ch; t.classList.add("filled"); }
     else if(over){ t.textContent = ch; t.classList.add("reveal"); }
     else { t.textContent = ""; }
     box.appendChild(t);
   }
-}
-
-function flipRevealed(letter){
-  const tiles = $("word-display").children;
-  [...state.secret].forEach((ch,i)=>{
-    if(ch===letter && !reduceMotion){
-      const t = tiles[i];
-      t.classList.add("flip");
-      setTimeout(()=>t.classList.remove("flip"), 500);
-    }
-  });
 }
 
 function renderLives(){
@@ -494,6 +538,17 @@ function renderLives(){
     const s=document.createElement("span"); s.className="pip"+(i>=state.wordLeft?" gone":"");
     s.textContent="⭐"; wp.appendChild(s);
   }
+}
+
+function flipRevealed(letter){
+  const tiles = $("word-display").children;
+  [...state.secret].forEach((ch,i)=>{
+    if(ch===letter && !reduceMotion){
+      const t = tiles[i];
+      t.classList.add("flip");
+      setTimeout(()=>t.classList.remove("flip"), 500);
+    }
+  });
 }
 
 function buildKeyboard(){
@@ -524,8 +579,8 @@ function guessLetter(letter){
   if(!/[A-Z]/.test(letter)) return;
 
   if(state.guessedLetters.has(letter)){
-    setMessage(`You already tried “${letter}”. No worries — pick another!`, "");
-    setOwl("game","think");
+    setMessage(`You already tried "${letter}". No worries — pick another!`, "");
+    setOwl("think");
     return;
   }
   state.guessedLetters.add(letter);
@@ -534,16 +589,16 @@ function guessLetter(letter){
   if(state.secret.includes(letter)){
     state.revealed.add(letter);
     if(keyBtn){ keyBtn.classList.add("correct"); keyBtn.disabled=true; }
-    renderWord(); flipRevealed(letter); renderLives();
-    setMessage(`Yes! “${letter}” is in the word! 🎈`, "good");
-    setOwl("game","happy"); sound("good");
+    renderWord(); flipRevealed(letter);
+    setMessage(`Yes! "${letter}" is in the word! 🎈`, "good");
+    setOwl("happy"); sound("good");
     if([...state.secret].every(c=>state.revealed.has(c))) win();
   } else {
-    state.letterLeft--;
     if(keyBtn){ keyBtn.classList.add("wrong"); keyBtn.disabled=true; }
+    state.letterLeft--;
     renderLives();
-    setMessage(`Hmm, no “${letter}” this time. ${state.letterLeft} letter tries left.`, "bad");
-    setOwl("game","worried"); sound("bad");
+    setMessage(`Hmm, no "${letter}" this time. ${state.letterLeft} letter ${state.letterLeft===1?'try':'tries'} left.`, "bad");
+    setOwl("worried"); sound("bad");
     if(state.letterLeft<=0) lose();
   }
 }
@@ -558,15 +613,15 @@ function submitWordGuess(){
   }
   if(raw===state.secret){ state.revealed=new Set(state.secret.split("")); win(); return; }
   if(state.wrongWords.includes(raw)){
-    setMessage(`You already tried “${raw}”. That one doesn't cost a star!`, "");
-    setOwl("game","think"); return;
+    setMessage(`You already tried "${raw}". Give it another go!`, "");
+    setOwl("think"); return;
   }
   state.wrongWords.push(raw);
   state.wordLeft--;
   renderLives();
   $("word-guess").value="";
-  setMessage(`Not quite! ${state.wordLeft} word ${state.wordLeft===1?"try":"tries"} left.`, "bad");
-  setOwl("game","worried"); sound("bad");
+  setMessage(`Not quite! ${state.wordLeft} word ${state.wordLeft===1?'try':'tries'} left.`, "bad");
+  setOwl("worried"); sound("bad");
   if(state.wordLeft<=0) lose();
 }
 $("word-guess-btn").onclick = submitWordGuess;
@@ -577,81 +632,92 @@ $("word-guess").addEventListener("input", e=>{
 
 // physical keyboard for letters
 document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
   if(!state || state.status!=="playing") return;
   if($("screen-game").classList.contains("hide")) return;  // only when game visible
   if(document.activeElement===$("word-guess")) return;   // don't hijack word input
+  if(e.key.toLowerCase()==="r"){ resetWord(); return; }
+  if(e.key.toLowerCase()==="h"){ giveHint(); return; }
   if(/^[a-zA-Z]$/.test(e.key)) guessLetter(e.key);
 });
+
+// ---------- reset / hint ----------
+function resetWord(){
+  if(!state || state.status!=="playing") return;
+  state.revealed = new Set();
+  state.guessedLetters = new Set();
+  state.wrongWords = [];
+  state.letterLeft = MAX_LETTER_WRONG;
+  state.wordLeft = MAX_WORD_WRONG;
+  document.querySelectorAll(".key").forEach(k=>{ k.disabled=false; k.classList.remove("correct","wrong"); });
+  $("word-guess").value="";
+  renderWord();
+  renderLives();
+  setMessage("Board reset — pick a letter to begin!", ""); setOwl("idle");
+}
+function giveHint(){
+  if(!state || state.status!=="playing") return;
+  const left=[...new Set(state.secret.split(""))].filter(ch=>!state.revealed.has(ch));
+  if(!left.length){ setMessage("You've already got every letter!", "hint"); return; }
+  const letter = left[rnd(left.length)];
+  guessLetter(letter);
+  if(state && state.status==="playing") setMessage(`💡 Free letter: "${letter}" is in the word!`, "hint");
+}
 
 // ---------- end states ----------
 function disableInputs(){
   document.querySelectorAll(".key").forEach(k=>k.disabled=true);
-  $("word-guess").disabled=true; $("word-guess-btn").disabled=true;
-}
-function enableInputs(){
-  $("word-guess").disabled=false; $("word-guess-btn").disabled=false;
+  $("word-guess").disabled=true;
 }
 function win(){
   state.status="won"; disableInputs(); renderWord(); renderLives();
-  setMessage("You found the word! 🌟", "good");
-  setOwl("game","win"); sound("win");
-  showOverlay("🎉","You did it!", state.secret, "Amazing guessing! Ready for another word?");
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("rlabel").textContent = "🌟 You found the word!";
+  $("reveal-word").textContent = state.secret;
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; New word keeps its slot so nothing shifts
+  $("word-guess-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  setMessage("", "");
+  setOwl("win"); sound("win");
   if(!reduceMotion) launchConfetti();
 }
 function lose(){
   state.status="lost"; disableInputs(); renderWord(); renderLives();
-  setOwl("game","worried"); sound("lose");
-  showOverlay("🦉","So close!", state.secret, "That was a tricky one. Let's try a new word!");
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("rlabel").textContent = "🦉 So close!";
+  $("reveal-word").textContent = state.secret;
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; New word keeps its slot so nothing shifts
+  $("word-guess-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  setMessage("", "");
+  setOwl("worried"); sound("lose");
 }
-$("end-game-btn").onclick = ()=>{
-  if(!state || state.status!=="playing") return;
-  state.status="ended"; disableInputs(); renderWord();
-  setMessage("Game ended — here's the word.", "");
-  setOwl("game","idle");
-  showOverlay("📖","Here's the word", state.secret, "Give it another go whenever you're ready!");
-};
 
-$("new-word-btn").onclick = ()=>{ hideOverlay(); enableInputs(); startNext(); };
-$("home-btn").onclick = ()=>{ hideOverlay(); goHome(); };
-$("modal-again").onclick = ()=>{ hideOverlay(); enableInputs(); startNext(); };
-$("modal-home").onclick = ()=>{ hideOverlay(); goHome(); };
-$("mute-btn").onclick = ()=>{
-  muted=!muted;
-  $("mute-btn").textContent = muted ? "🔇 Muted" : "🔊 Sound";
-  $("mute-btn").setAttribute("aria-pressed", muted);
-};
+$("skip-btn").onclick = ()=>{ if(!state || state.status!=="playing") return; startNext(); };
+$("home-btn").onclick = goHome;
+$("next-btn").onclick = startNext;
+$("reset-btn").onclick = resetWord;
+$("hint-link").onclick = giveHint;
 
 function startNext(){
   // In custom mode there's no fresh word to pick, so send them home to set one.
   if(mode==="custom"){ goHome(); return; }
-  enableInputs();
-  const w=pickRandomWord(difficulty);
+  const w=pickRandomWord(level);
   if(!w){ goHome(); return; }
   startGame(w);
 }
 function goHome(){
+  stopConfetti();
   $("screen-game").classList.add("hide");
   $("screen-home").classList.remove("hide");
-  setOwl("home","idle");
+  setOwl("idle");
 }
-
-// ---------- overlay ----------
-function showOverlay(face,title,word,sub){
-  $("modal-face").textContent=face;
-  $("modal-title").textContent=title;
-  $("modal-word").textContent=word;
-  $("modal-sub").textContent=sub;
-  $("overlay").classList.add("show");
-  $("modal-again").textContent = (mode==="custom") ? "New Word ✏️" : "Play Again ▶";
-}
-function hideOverlay(){ $("overlay").classList.remove("show"); stopConfetti(); }
 
 // ---------- owl expressions ----------
-function setOwl(where, mood){
-  const owl = $(where==="home" ? "owl-home" : "owl-game");
-  if(!owl) return;
-  owl.classList.remove("happy","worried","win","think");
-  if(mood!=="idle") owl.classList.add(mood);
+function setOwl(mood){
+  [ $("owl-game"), $("owl-home") ].forEach(owl=>{
+    if(!owl) return;
+    owl.classList.remove("happy","worried","win","think");
+    if(mood!=="idle") owl.classList.add(mood);
+  });
 }
 
 // ---------- sound (WebAudio, no files) ----------
@@ -679,7 +745,7 @@ let confettiRAF=null;
 function launchConfetti(){
   const cv=$("confetti"); cv.style.display="block";
   const ctx=cv.getContext("2d");
-  const resize=()=>{cv.width=innerWidth; cv.height=innerHeight;}; resize();
+  cv.width=innerWidth; cv.height=innerHeight;
   const colors=["#6C4AB6","#FF6B7A","#2FB37D","#FFCF43","#3FA7E0"];
   const parts=Array.from({length:120},()=>({
     x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
@@ -709,7 +775,7 @@ function stopConfetti(){
   const classes=["c1","c2","c3","c4"];
   const el=$("title"); let ci=0;
   for(const ch of word){
-    if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
+    if(ch===" "){ el.appendChild(document.createTextNode(" ")); continue; }
     const s=document.createElement("span");
     s.textContent=ch; s.className=classes[ci++%classes.length];
     if(!reduceMotion){

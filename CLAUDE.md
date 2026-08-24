@@ -12,13 +12,24 @@ online toy store later. Read the rules below before changing anything.
 2. **The root `index.html` is reserved for the future store.** It currently just
    redirects to `/games/`. Don't put game content in it. When the store is built, the
    store home replaces this file and everything under `/games/` stays untouched.
-3. **No build step, no dependencies, no tooling.** Keep it plain static files that work
-   both when opened directly (`file://`) and when hosted. Use **relative** paths. Do not
-   add bundlers, package managers, frameworks, or a `node_modules` requirement to run
-   the site.
-4. **Each game is one self-contained file.** A game is a single `games/<slug>/index.html`
-   with its CSS and JS inline. The only allowed external calls are Google Fonts and (for
-   a couple of games) `cdnjs.cloudflare.com`. Don't split a game into extra files.
+3. **No build step, no dependencies, no tooling.** Keep it plain static files. Use
+   **relative** paths. Do not add bundlers, package managers, frameworks, or a
+   `node_modules` requirement to run the site. Most games work when opened directly
+   (`file://`) *and* when hosted — but **games that load a data file via `fetch()` only
+   work when served** (a browser blocks local `fetch()` under `file://`). That's an
+   accepted exception for data-driven games: preview them on the hosted site or a local
+   static server, not by double-clicking the file. **Don't add an embedded/inline copy of
+   the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
+   two places and lets it silently drift out of sync. If the fetch fails, the game is
+   simply not playable (`word-guess`, `guess-the-capital`); that's expected, not a bug.
+4. **Each game is one self-contained folder.** The game's code is a single
+   `games/<slug>/index.html` with its CSS and JS **inline** — don't split code into extra
+   files. A game **may** keep **data** in sibling files in the same folder (e.g.
+   `words.json`, `capitals.json`) that `index.html` loads at runtime with a **relative**
+   `fetch()` (e.g. `fetch('words.json')`) — keep the data next to that game's
+   `index.html` and reference it by relative path so the game stays portable. The only
+   allowed external network calls are Google Fonts and (for a couple of games)
+   `cdnjs.cloudflare.com`.
 5. **Keep it kid-safe and ad-free.** Age-appropriate content and friendly tone only.
    No ads, no analytics/tracking, no third-party trackers, no data collection.
 
@@ -30,6 +41,7 @@ online toy store later. Read the rules below before changing anything.
 /assets/site.css        shared styles for the hub
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one self-contained game per folder
+/games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
 /CLAUDE.md              this file
 ```
 
@@ -37,8 +49,11 @@ online toy store later. Read the rules below before changing anything.
 
 Two steps — never edit the hub's HTML or CSS to add a game:
 
-1. Create the game at `games/<slug>/index.html` (self-contained, following the
+1. Create the game at `games/<slug>/index.html` (code inline, following the
    conventions below). `<slug>` is lowercase words joined by hyphens, e.g. `shape-sorter`.
+   If the game needs a data set (word list, capitals, etc.), put the JSON in the **same
+   folder** and load it with a relative `fetch()` (see rules 3–4 — such a game must be
+   viewed on the hosted site or a local server, not via `file://`).
 2. Add **one entry** to the `GAMES` array in `games.js`:
 
    ```js
@@ -62,10 +77,15 @@ The card, its link, and the search filter appear automatically.
   `#e6a800`, sky `#3FA7E0`, ink `#33236B`; sky→green background with floating clouds.
   Reuse the **owl mascot** SVG with mood states (idle / happy / worried / win / think).
 - **Four difficulty levels** — `EASY`, `MEDIUM`, `HARD`, `EXPERT` — each meaningfully
-  different.
+  different. Exception: `guess-the-capital` has no difficulty levels — it's purely a
+  choice of game (Indian States vs World Countries), so it has no level chip at all (see
+  below).
 - **Endless and score-free.** No points, no lives, and **no per-game streak** (a single
   combined streak across all games will be added at the site level later — do not add a
-  🔥 streak inside a game). Reward with stars, confetti, and sounds.
+  🔥 streak inside a game). Reward with stars, confetti, and sounds. Exception:
+  `word-guess` is a hangman-style game where wrong guesses are the core mechanic, so it
+  keeps its 10 letter hearts + 3 word stars — these decide whether the round is won or
+  lost, they are not a score or a streak.
 - **Feel:** juicy and encouraging — meters, star ratings, confetti canvas, gentle
   WebAudio beeps.
 - **Accessibility:** respect `prefers-reduced-motion` (guard all animation/sound),
@@ -106,6 +126,8 @@ exact control scheme:
   `LEVELS`, listing all levels with the current one marked. Picking a different level
   switches difficulty, starts a fresh puzzle at that level **while staying in the game**,
   and closes the menu. Close the menu on **Escape** or an outside click.
+  Exception: a game with no difficulty levels (`guess-the-capital`) omits the level chip
+  entirely — the top bar centre is just the owl mascot.
 - **Start screen only:** a subtle **`← All games`** link at the top-left that points to
   `../` (the games hub). It must appear only on the start screen, never during play.
 
@@ -129,7 +151,12 @@ Nothing deploys until they push.
 
 matchstick-math · number-detective · number-builder · race-to-100 ·
 robot-instructions · shopping-adventure · coin-counter · times-table-pop ·
-pizza-party · set-the-clock · what-comes-next
+pizza-party · set-the-clock · what-comes-next ·
+word-guess · guess-the-capital
+
+`word-guess` and `guess-the-capital` are the two **data-driven** originals: each
+loads its data from a JSON file in its own folder (`word-guess/words.json`,
+`guess-the-capital/capitals.json`).
 
 ## When the store is added later
 

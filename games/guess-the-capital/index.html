@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guess the Capital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --sky-top:#A8E0FF; --sky-bot:#D9F6E4;
+    --ink:#33236B; --ink-soft:#6a5aa0;
+    --grape:#6C4AB6; --grape-dark:#553a95;
+    --sun:#FFCF43; --sun-dark:#e6a800;
+    --coral:#FF6B7A; --coral-dark:#e24a5c;
+    --leaf:#2FB37D; --leaf-dark:#218a60;
+    --sky:#3FA7E0; --sky-dark:#2b86ba;
+    --card:#FFFFFF; --key-line:#E4DCF5;
+    --shadow:0 18px 40px rgba(72,45,130,.18);
+    --radius:26px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif; color:var(--ink); min-height:100vh;
+    background:linear-gradient(180deg,var(--sky-top) 0%,#C6ECEC 45%,var(--sky-bot) 100%);
+    background-attachment:fixed;
+    display:flex; align-items:flex-start; justify-content:center; padding:22px 14px 60px;
+  }
+  body::before,body::after{
+    content:""; position:fixed; z-index:0; border-radius:50%;
+    background:rgba(255,255,255,.55); filter:blur(1px);
+    box-shadow:60px 10px 0 -6px rgba(255,255,255,.55), 120px 4px 0 -10px rgba(255,255,255,.5);
+  }
+  body::before{width:90px;height:34px;top:8%;left:6%;}
+  body::after{width:70px;height:26px;top:16%;right:10%;}
+
+  .app{position:relative; z-index:1; width:100%; max-width:720px;}
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px;}
+
+  .brand{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:4px;}
+  .title{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,5.5vw,42px);
+    line-height:1; margin:0; text-align:center;}
+  .title .c1{color:var(--grape);} .title .c2{color:var(--coral);}
+  .title .c3{color:var(--leaf);} .title .c4{color:var(--sun-dark);}
+  .subtitle{text-align:center; color:var(--ink-soft); font-weight:700; margin:2px 0 20px; font-size:15px;}
+
+  /* owl */
+  .owl{width:60px; height:60px; flex:0 0 auto;}
+  .owl .pupil{transition:transform .2s ease;}
+  .owl .brow{transition:transform .2s ease; transform-origin:center;}
+  .owl.worried .brow-l{transform:rotate(14deg) translateY(-1px);}
+  .owl.worried .brow-r{transform:rotate(-14deg) translateY(-1px);}
+  .owl.happy .beak,.owl.win .beak{transform:translateY(1px) scale(1.05);}
+
+  /* buttons */
+  .btn{font-family:'Fredoka',sans-serif; font-weight:600; font-size:17px; border:none; cursor:pointer;
+    color:#fff; border-radius:16px; padding:13px 22px; position:relative;
+    transition:transform .06s ease, filter .15s ease; box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;}
+  .btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);}
+  .btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
+  .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
+  .btn-ghost{background:#F1EDFA; color:var(--grape); --btn-shadow:#d9d0ef;}
+  .btn:disabled{filter:grayscale(.35) opacity(.55); cursor:not-allowed;}
+  .btn-lg{font-size:20px; padding:16px 34px;}
+
+  .block-label{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape); font-size:15px;
+    text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px;}
+
+  /* mode cards */
+  .modes{display:grid; grid-template-columns:1fr; gap:14px;}
+  @media(min-width:520px){.modes{grid-template-columns:1fr 1fr;}}
+  .mode{border:3px solid #EEE8FB; background:#fff; border-radius:20px; cursor:pointer; padding:22px 16px;
+    text-align:center; transition:all .15s ease;}
+  .mode:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .mode .m-emoji{font-size:44px; line-height:1;}
+  .mode .m-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:20px; margin-top:8px;}
+  .mode .m-desc{font-size:13px; font-weight:700; color:var(--ink-soft); margin-top:3px;}
+  .mode[aria-pressed="true"]{border-color:var(--mc,var(--grape)); background:var(--mbg,#F4F0FE);
+    transform:translateY(-2px); box-shadow:var(--shadow);}
+  .mode.india{--mc:var(--sun-dark); --mbg:#FFF6DC;}
+  .mode.world{--mc:var(--sky); --mbg:#E6F4FC;}
+
+  .howto{background:#F4F0FE; border-radius:16px; padding:14px 16px; margin-top:18px; font-weight:700;
+    color:var(--ink-soft); font-size:14px; line-height:1.5;}
+  .howto b{color:var(--grape);}
+  .center{text-align:center;} .mt{margin-top:22px;}
+  .row-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+
+  .home-top{display:flex; margin-bottom:4px;}
+  .hub-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:none; opacity:.8;}
+  .hub-link:hover{opacity:1; text-decoration:underline;}
+
+  /* quiz top bar */
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:18px;}
+  .topbar .tb-center{display:flex; align-items:center; gap:8px; min-width:0;}
+  .topbar .tb-right{display:flex; align-items:center; gap:8px;}
+  .chip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#fff; background:var(--grape);
+    padding:6px 14px; border-radius:999px;}
+
+  /* text-link controls (Home / Skip / Next / Hint) — look like links, not buttons */
+  .tlink{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:var(--grape); background:none; border:none;
+    cursor:pointer; text-decoration:none; padding:6px 6px; display:inline-flex; align-items:center; gap:5px; opacity:.82;}
+  .tlink:hover{opacity:1;} .tlink.off{opacity:.32; pointer-events:none;}
+  .tlink:focus-visible{outline:3px solid var(--grape); outline-offset:2px; border-radius:10px;}
+  .actions{display:flex; gap:22px; justify-content:center; align-items:center; margin:12px 0 18px;}
+  .serve-row{display:flex; justify-content:center; margin-top:6px;}
+  .invisible{visibility:hidden !important;}  /* hidden but keeps its space, so the top bar doesn't reflow */
+
+  /* prompt */
+  .prompt{text-align:center; margin:0 0 6px;}
+  .flag{height:110px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
+  .flag .flag-emoji{font-size:84px; line-height:1;}
+  .flag .flag-img{display:none; height:96px; width:auto; border-radius:10px; box-shadow:0 6px 16px rgba(0,0,0,.18);
+    border:2px solid #fff;}
+  .india-badge{font-size:48px; line-height:1; margin-bottom:6px;}
+  .ask{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:15px;}
+  .place{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape);
+    font-size:clamp(24px,6vw,34px); line-height:1.15; margin-top:2px;}
+
+  /* options */
+  .options{display:grid; grid-template-columns:1fr; gap:12px; margin:18px 0 6px;}
+  @media(min-width:520px){.options{grid-template-columns:1fr 1fr;}}
+  .opt{border:3px solid #EEE8FB; background:#fff; border-radius:16px; cursor:pointer; padding:16px 14px;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:18px; color:var(--ink);
+    text-align:left; display:flex; align-items:center; gap:12px; transition:all .12s ease;}
+  .opt:hover:not(:disabled){border-color:var(--grape); transform:translateY(-1px);}
+  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .opt .num{font-family:'Fredoka',sans-serif; font-weight:600; background:#F1EDFA; color:var(--grape);
+    width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; flex:0 0 auto;}
+  .opt.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
+  .opt.correct .num{background:rgba(255,255,255,.3); color:#fff;}
+  .opt.wrong{background:#FFE1E6; border-color:var(--coral); color:var(--coral-dark);}
+  .opt.wrong .num{background:var(--coral); color:#fff;}
+  .opt.gone{background:#F2EEF9; border-color:#E0D8F0; color:#b7abd6; cursor:not-allowed; text-decoration:line-through;}
+  .opt.gone .num{background:#E0D8F0; color:#b7abd6;}
+  .opt:disabled{cursor:default;}
+  @keyframes oshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .opt.shake{animation:oshake .3s ease;}
+
+  .result{text-align:center; padding:8px 4px 4px;}
+  .result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px); color:var(--leaf-dark);}
+  .fact{text-align:center; background:#F4F0FE; border-radius:14px; padding:10px 14px; color:var(--ink);
+    font-weight:700; font-size:14px; margin:10px 0 4px; display:none;}
+  .fact.show{display:block;}
+
+  .feedback{min-height:22px; text-align:center; font-family:'Nunito',sans-serif; font-weight:700;
+    font-size:14px; margin:14px 0 12px;}
+  .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
+
+  canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
+  .hide{display:none !important;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+
+    <!-- ===== HOME ===== -->
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">Pick the right capital city — can you get them all?</p>
+
+      <div class="block-label">Choose a game</div>
+      <div class="modes" role="group" aria-label="Game mode">
+        <button class="mode india" id="mode-india" aria-pressed="true">
+          <div class="m-emoji">🏛️</div><div class="m-name">Indian States</div>
+          <div class="m-desc">28 state capitals</div>
+        </button>
+        <button class="mode world" id="mode-world" aria-pressed="false">
+          <div class="m-emoji">🌍</div><div class="m-name">World Countries</div>
+          <div class="m-desc">capitals with flags</div>
+        </button>
+      </div>
+
+      <div class="howto">
+        📌 <b>How to play:</b> Read the state or country, then tap the matching capital city. A wrong
+        pick gets crossed out so you can try again — tap <b>💡 Hint</b> if you'd like one ruled out for you.
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <!-- ===== QUIZ ===== -->
+    <section id="screen-quiz" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-quiz" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="prompt">
+        <div class="flag hide" id="flag-wrap">
+          <span class="flag-emoji" id="flag-emoji"></span>
+          <img class="flag-img" id="flag-img" alt="" />
+        </div>
+        <div class="india-badge hide" id="india-badge">🏛️</div>
+        <div class="ask" id="ask">What is the capital of</div>
+        <div class="place" id="place">—</div>
+      </div>
+
+      <div class="options" id="options"></div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+      <div class="fact" id="fact"></div>
+      <div class="feedback" id="feedback"></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// This game only works when served (fetch() is blocked under file://) — no embedded
+// fallback data, by design: see CLAUDE.md.
+let DATA = {india:[],world:[]};
+
+(async function(){
+  try{
+    const res = await fetch("capitals.json",{cache:"no-store"});
+    if(res.ok){ const d=await res.json(); if(d&&d.india&&d.world) DATA=d; }
+  }catch(e){ /* file:// or offline — DATA stays empty and the game can't be played */ }
+})();
+
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random()*n);
+let muted = false;
+
+// ---- helpers ----
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function flagEmoji(iso){ return String(iso).toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0))); }
+function uniqueCapitals(pool){ const set=new Set(); pool.forEach(x=>set.add(x.capital)); return [...set]; }
+
+/* ===== engine ===== */
+function genQuestion(mode){
+  const pool = DATA[mode] || [];
+  if(!pool.length) return null;
+  const item = pool[rnd(pool.length)];
+  const caps = uniqueCapitals(pool).filter(c=>c!==item.capital);
+  const distractors = shuffle(caps).slice(0, 3);
+  const options = shuffle([item.capital, ...distractors]);
+  return { mode, item, options, correctIdx: options.indexOf(item.capital) };
+}
+
+/* ===== state ===== */
+let mode = "india", Q = null, phase = "play", prevSig = null;
+
+function setMode(m){
+  mode=m;
+  $("mode-india").setAttribute("aria-pressed", m==="india");
+  $("mode-world").setAttribute("aria-pressed", m==="world");
+}
+$("mode-india").onclick=()=>setMode("india");
+$("mode-world").onclick=()=>setMode("world");
+
+$("start-btn").onclick = startQuiz;
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = ()=>{ if(phase!=='play') return; newQuestion(); };
+$("next-btn").onclick = newQuestion;
+$("hint-link").onclick = giveHint;
+
+function startQuiz(){
+  $("screen-home").classList.add("hide");
+  $("screen-quiz").classList.remove("hide");
+  setOwl("idle");
+  newQuestion();
+}
+
+const qSig = q => q.mode+':'+q.item.name;
+function newQuestion(){
+  let q; for(let a=0;a<15;a++){ q=genQuestion(mode); if(!q || !prevSig || qSig(q)!==prevSig) break; }
+  if(!q){ flash("Couldn't load the capitals data. This game needs to be served over http(s), not opened as a local file.", 'bad'); return; }
+  Q=q; prevSig=qSig(Q); phase='play';
+
+  $("place").textContent = Q.item.name;
+  if(mode==="world"){
+    $("flag-wrap").classList.remove("hide");
+    $("india-badge").classList.add("hide");
+    const emoji = flagEmoji(Q.item.iso2);
+    $("flag-emoji").textContent = emoji;
+    $("flag-emoji").style.display = "";
+    const img = $("flag-img");
+    img.style.display="none";
+    img.onload = ()=>{ img.style.display="block"; $("flag-emoji").style.display="none"; };
+    img.onerror = ()=>{ img.style.display="none"; $("flag-emoji").style.display=""; };
+    img.src = `https://flagcdn.com/w320/${String(Q.item.iso2).toLowerCase()}.png`;
+  } else {
+    $("flag-wrap").classList.add("hide");
+    $("india-badge").classList.remove("hide");
+  }
+
+  const box=$("options"); box.innerHTML="";
+  Q.options.forEach((cap,idx)=>{
+    const b=document.createElement("button");
+    b.className="opt"; b.dataset.idx=idx;
+    b.innerHTML=`<span class="num">${idx+1}</span><span>${cap}</span>`;
+    b.onclick=()=>answer(idx,b);
+    box.appendChild(b);
+  });
+
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("fact").textContent=""; $("fact").classList.remove("show");
+  flash("Pick the capital city!", '');
+  setOwl('idle');
+}
+
+function answer(idx, btn){
+  if(phase!=='play') return;
+  if(idx===Q.correctIdx){
+    phase='done';
+    btn.classList.add("correct"); btn.disabled=true;
+    document.querySelectorAll(".opt").forEach(b=>b.disabled=true);
+    if(Q.item.fact){ $("fact").textContent = "💡 " + Q.item.fact; $("fact").classList.add("show"); }
+    flash('', '');
+    $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+    $("rlabel").textContent = pickPraise();
+    $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
+    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+    setOwl('win'); sound('good');
+    if(!reduceMotion) miniConfetti();
+  } else {
+    btn.classList.remove("wrong","shake"); void btn.offsetWidth; btn.classList.add("wrong","shake");
+    setTimeout(()=>{ btn.classList.remove("shake","wrong"); btn.classList.add("gone"); btn.disabled=true; }, 300);
+    flash(`Not ${Q.options[idx]} — try again!`, 'bad'); setOwl('worried'); sound('bad');
+  }
+}
+
+function pickPraise(){
+  const p=["🎉 Correct!","🌟 Yes! Well done!","👏 That's right!","✨ Brilliant!","🙌 You got it!"];
+  return p[rnd(p.length)];
+}
+
+function giveHint(){
+  if(phase!=='play') return;
+  const opts=[...document.querySelectorAll(".opt")];
+  const eliminable=opts.filter((b,i)=> i!==Q.correctIdx && !b.disabled);
+  if(eliminable.length===0){ flash("Only the right answer is left — go for it!", 'hint'); return; }
+  const b=eliminable[rnd(eliminable.length)];
+  b.classList.add("gone"); b.disabled=true;
+  flash(`💡 It's not ${Q.options[+b.dataset.idx]}.`, 'hint'); setOwl('think');
+}
+
+function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
+function goHome(){ stopConfetti(); Q=null; $("screen-quiz").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+
+// keyboard: 1-6 to answer, Enter/Space for next, H hint
+document.addEventListener("keydown", e=>{
+  if($("screen-quiz").classList.contains("hide") || !Q) return;
+  if((e.key==="Enter"||e.key===" ") && phase==='done'){ e.preventDefault(); newQuestion(); return; }
+  if(e.key.toLowerCase()==="h" && phase==='play'){ giveHint(); return; }
+  const n=parseInt(e.key,10);
+  if(!isNaN(n) && n>=1 && n<=Q.options.length && phase==='play'){
+    const b=document.querySelector(`.opt[data-idx="${n-1}"]`);
+    if(b && !b.disabled) b.click();
+  }
+});
+
+// ---- owl ----
+function setOwl(mood){
+  [ $("owl-quiz"), $("owl-home") ].forEach(o=>{ if(!o) return;
+    o.classList.remove("happy","worried","win"); if(mood!=="idle") o.classList.add(mood); });
+}
+
+// ---- sound ----
+let audioCtx=null;
+function beep(freq,dur,type="sine",when=0,gain=0.15){
+  if(muted) return;
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+function sound(kind){
+  if(kind==="good"){ beep(660,.12,"triangle"); beep(880,.14,"triangle",.08); }
+  else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
+}
+
+// ---- confetti ----
+let confettiRAF=null;
+function miniConfetti(){
+  const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:60},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*6,
+    c:colors[Math.floor(Math.random()*colors.length)],vy:-4+Math.random()*2,vx:-4+Math.random()*8,rot:0,vr:.2}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<60) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
+}
+function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF);
+  const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
+
+// ---- bouncy title ----
+(function(){
+  const word="Guess the Capital"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
+  for(const ch of word){
+    if(ch===" "){ el.appendChild(document.createTextNode(" ")); continue; }
+    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
+    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.06).toFixed(2)}s infinite`;
+    el.appendChild(s);
+  }
+  if(!reduceMotion){ const st=document.createElement("style");
+    st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
+    document.head.appendChild(st); }
+})();
+
+setMode("india");
+</script>
+</body>
+</html>

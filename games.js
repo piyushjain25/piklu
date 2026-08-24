@@ -23,8 +23,8 @@ window.GAMES = [
   { slug: "matchstick-math",    title: "Matchstick Math",     emoji: "🔥", accent: "coral",
     tagline: "Move one matchstick to make the sum true.",     skills: ["Arithmetic", "Logic"] },
 
-  { slug: "guess-capital",   title: "Guess the Capital",      emoji: "📌", accent: "sun",
-    tagline: "Pick the right capital city.",                  skills: ["Memory"],                       badge:"New"},
+  { slug: "guess-the-capital",   title: "Guess the Capital",  emoji: "📌", accent: "sun",
+    tagline: "Pick the right capital city.",                  skills: ["Geography"],                       badge:"New"},
 
   { slug: "number-detective",   title: "Number Detective",    emoji: "🕵️", accent: "grape",
     tagline: "Crack the secret number from the clues.",       skills: ["Number sense", "Logic"] },
@@ -57,5 +57,5 @@ window.GAMES = [
     tagline: "Spot the pattern and finish it.",               skills: ["Patterns"] },
 
   { slug: "word-guess",   title: "Guess the Word",            emoji: "💭", accent: "sky",
-    tagline: "Guess the hidden word.",                        skills: ["Word sense"],                       badge:"New"},
+    tagline: "Guess the hidden word, one letter at a time.",  skills: ["Spelling", "Vocabulary"],                       badge:"New"},
 ];
