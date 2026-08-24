@@ -22,11 +22,12 @@ online toy store later. Read the rules below before changing anything.
    the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
    two places and lets it silently drift out of sync. If the fetch fails, the game is
    simply not playable (`word-guess`, `guess-the-capital`); that's expected, not a bug.
-4. **Each game is one file plus two shared assets.** The game's own CSS and JS are
+4. **Each game is one file plus three shared assets.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
-   into extra files. Every game also links two things from `/assets/` that must never be
-   copy-pasted into a game's own `<style>`: `assets/site.css` (the shared design system —
-   see "Standard layout & controls") and the Google Fonts stylesheet. A game **may** keep
+   into extra files. Every game also links three things from `/assets/` that must never be
+   copy-pasted into a game's own `<style>`/`<script>`: `assets/site.css` (the shared design
+   system — see "Standard layout & controls"), `assets/site.js` (the shared JS helpers —
+   see "Shared JS helpers"), and the Google Fonts stylesheet. A game **may** keep
    **data** in sibling files in the same folder (e.g. `words.json`, `capitals.json`) that
    `index.html` loads at runtime with a **relative** `fetch()` (e.g. `fetch('words.json')`)
    — keep the data next to that game's `index.html` and reference it by relative path so
@@ -42,6 +43,8 @@ online toy store later. Read the rules below before changing anything.
 /games.js               THE CATALOG — single source of truth for the game list
 /assets/site.css        shared styles — hub layout AND the shared game-page design
                         system (colours, owl, buttons, topbar/tlink/level-switch, etc.)
+/assets/site.js         shared JS helpers every game links before its own inline script
+                        ($, reduceMotion, flash, setOwl, level-menu, beep, confetti, title)
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
@@ -57,7 +60,12 @@ Two steps — never edit the hub's HTML or CSS to add a game:
    In `<head>`, link the Google Fonts stylesheet **and** `<link rel="stylesheet"
    href="../../assets/site.css" />`, and give `<body>` the class `game`
    (`<body class="game">`) — that's what pulls in the shared design system and control
-   scheme. Only put a rule in the game's own `<style>` if it's genuinely unique to that
+   scheme. Right before the game's own `<script>` (after the `<canvas id="confetti">`),
+   add `<script src="../../assets/site.js"></script>` — it defines globals
+   (`$`, `reduceMotion`, `flash`, `setOwl`, `wireLevelMenu`, `beep`, `stopConfetti`,
+   `initBouncyTitle`, …; see "Shared JS helpers") that the game's inline script calls
+   directly, unqualified. Never redeclare any of those names in the game's own script.
+   Only put a rule in the game's own `<style>` if it's genuinely unique to that
    game (colors, a `.app{max-width}` / `.title{font-size}` override, one-off components);
    never re-declare something `site.css` already defines. If the game needs a data set
    (word list, capitals, etc.), put the JSON in the **same folder** and load it with a
@@ -146,6 +154,35 @@ don't redefine these classes in a game's own `<style>`.
   entirely — the top bar centre is just the owl mascot.
 - **Start screen only:** a subtle **`← All games`** link at the top-left that points to
   `../` (the games hub). It must appear only on the start screen, never during play.
+
+## Shared JS helpers (`assets/site.js`)
+
+`assets/site.js` holds the JS that was byte-identical (or safely parameterized) across
+every game. Link it once, right before the game's own inline `<script>` — it defines
+globals the game calls directly:
+
+- `$(id)` — `document.getElementById(id)`.
+- `reduceMotion` — `matchMedia("(prefers-reduced-motion: reduce)").matches`, computed once.
+- `flash(msg, kind)` — writes into `#feedback` (`kind` is `''`/`'good'`/`'bad'`/`'hint'`).
+- `setOwl(mood)` — toggles the mood class (`idle`/`happy`/`worried`/`win`/`think`) on
+  whichever of `#owl-game`/`#owl-quiz`/`#owl-home` exist on the page.
+- `wireLevelMenu()` — wires the `#q-level` chip's click-to-open and an outside-click-to-close
+  listener for `#level-menu` (a game with no level chip just doesn't call it). Use
+  `toggleLevelMenu()` / `closeLevelMenu()` directly, and `wireLevelMenuOutsideClick()`
+  alone, if a game needs to wire `#q-level`'s `onclick` itself (e.g. to add a guard clause).
+- `beep(freq, dur, type, when, gain)` — a single WebAudio oscillator beep; build a game's
+  `sound(kind)` dispatcher out of calls to this.
+- `stopConfetti()` — clears and hides `#confetti` and cancels the shared `confettiRAF`
+  handle. A game's own confetti *launcher* (particle count/colors/shapes vary per game)
+  stays inline in the game's script, and should assign into the shared `confettiRAF`
+  (don't redeclare it with `let`).
+- `initBouncyTitle(text)` — builds the animated per-letter `<h1 id="title">` and injects
+  its keyframes (a no-op past text into the bouncing title, respecting `reduceMotion`).
+
+A game's own script must not redeclare any of these names (that throws a `SyntaxError`
+at load) — if a game needs different behavior for one of them (e.g. `word-guess`'s
+`#q-level` guard), call the lower-level helper instead of the all-in-one wrapper, as
+described above.
 
 ## Quality bar (how games are verified)
 

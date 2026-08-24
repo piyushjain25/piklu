@@ -13,9 +13,7 @@
   .app{max-width:800px;}
   .card{padding:26px 26px 30px;}
   .brand{margin-bottom:6px;}
-  .title{font-size:clamp(28px,5.5vw,44px); letter-spacing:.5px;}
-  .title span{display:inline-block;}
-  .owl{width:64px; height:64px;}
+  .title{font-size:clamp(28px,5.5vw,44px);}
   .segment{display:flex; gap:10px; background:#F1EDFA; padding:6px; border-radius:18px;}
   .segment button{
     flex:1; border:none; background:transparent; cursor:pointer;
@@ -215,6 +213,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="../../assets/site.js"></script>
 <script>
 const LEVELS = {
   EASY:   {min:3,  max:5,  label:"🌱 Easy"},
@@ -224,7 +223,6 @@ const LEVELS = {
 };
 const MAX_LETTER_WRONG = 10;
 const MAX_WORD_WRONG = 3;
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // This game only works when served (fetch() is blocked under file://) — no embedded
 // fallback word list, by design: see CLAUDE.md.
@@ -244,10 +242,8 @@ let WORDS = [];
 
 // ---------- state ----------
 let state = null;
-let muted = false;
 let lastWord = "";
 
-const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random()*n);
 
 // ---------- setup screen ----------
@@ -296,11 +292,9 @@ function bandForLength(n){
     `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
   menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
 })();
-function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
-function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); startNext(); }
 $("q-level").onclick=(e)=>{ if(mode==="custom") return; e.stopPropagation(); toggleLevelMenu(); };
-document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+wireLevelMenuOutsideClick();
 function updateLevelChip(){
   const chip=$("q-level"), lbl=$("q-level-label");
   lbl.textContent = LEVELS[level].label;
@@ -570,28 +564,7 @@ function goHome(){
   setOwl("idle");
 }
 
-// ---------- owl expressions ----------
-function setOwl(mood){
-  [ $("owl-game"), $("owl-home") ].forEach(owl=>{
-    if(!owl) return;
-    owl.classList.remove("happy","worried","win","think");
-    if(mood!=="idle") owl.classList.add(mood);
-  });
-}
-
-// ---------- sound (WebAudio, no files) ----------
-let audioCtx=null;
-function beep(freq,dur,type="sine",when=0,gain=0.15){
-  if(muted) return;
-  try{
-    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-    const t=audioCtx.currentTime+when;
-    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type=type; o.frequency.value=freq;
-    g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur);
-  }catch(e){}
-}
+// ---------- sound (setOwl/beep are shared in site.js) ----------
 function sound(kind){
   if(kind==="good"){ beep(660,.12,"triangle"); beep(880,.14,"triangle",.08); }
   else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
@@ -599,8 +572,7 @@ function sound(kind){
   else if(kind==="lose"){ [392,330,262].forEach((f,i)=>beep(f,.25,"sine",i*.16,.13)); }
 }
 
-// ---------- confetti ----------
-let confettiRAF=null;
+// ---------- confetti (stopConfetti is shared in site.js) ----------
 function launchConfetti(){
   const cv=$("confetti"); cv.style.display="block";
   const ctx=cv.getContext("2d");
@@ -623,32 +595,8 @@ function launchConfetti(){
     if(frames<220){ confettiRAF=requestAnimationFrame(draw); } else { stopConfetti(); }
   })();
 }
-function stopConfetti(){
-  if(confettiRAF) cancelAnimationFrame(confettiRAF);
-  const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; }
-}
 
-// ---------- bouncy title ----------
-(function(){
-  const word="Word Guess Challenge";
-  const classes=["c1","c2","c3","c4"];
-  const el=$("title"); let ci=0;
-  for(const ch of word){
-    if(ch===" "){ el.appendChild(document.createTextNode(" ")); continue; }
-    const s=document.createElement("span");
-    s.textContent=ch; s.className=classes[ci++%classes.length];
-    if(!reduceMotion){
-      s.style.animation=`bob 2.4s ease-in-out ${ (ci*0.06).toFixed(2) }s infinite`;
-    }
-    el.appendChild(s);
-  }
-  if(!reduceMotion){
-    const st=document.createElement("style");
-    st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
-    document.head.appendChild(st);
-  }
-})();
-
+initBouncyTitle("Word Guess Challenge");
 setMode("random");
 </script>
 </body>

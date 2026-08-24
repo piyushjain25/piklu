@@ -144,9 +144,8 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../assets/site.js"></script>
 <script>
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 // This game only works when served (fetch() is blocked under file://) — no embedded
 // fallback data, by design: see CLAUDE.md.
 let DATA = {india:[],world:[]};
@@ -158,9 +157,7 @@ let DATA = {india:[],world:[]};
   }catch(e){ /* file:// or offline — DATA stays empty and the game can't be played */ }
 })();
 
-const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random()*n);
-let muted = false;
 
 // ---- helpers ----
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]];} return a; }
@@ -277,7 +274,6 @@ function giveHint(){
   flash(`💡 It's not ${Q.options[+b.dataset.idx]}.`, 'hint'); setOwl('think');
 }
 
-function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
 function goHome(){ stopConfetti(); Q=null; $("screen-quiz").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
 
 // keyboard: 1-6 to answer, Enter/Space for next, H hint
@@ -292,31 +288,12 @@ document.addEventListener("keydown", e=>{
   }
 });
 
-// ---- owl ----
-function setOwl(mood){
-  [ $("owl-quiz"), $("owl-home") ].forEach(o=>{ if(!o) return;
-    o.classList.remove("happy","worried","win"); if(mood!=="idle") o.classList.add(mood); });
-}
-
-// ---- sound ----
-let audioCtx=null;
-function beep(freq,dur,type="sine",when=0,gain=0.15){
-  if(muted) return;
-  try{
-    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination);
-    o.start(t); o.stop(t+dur);
-  }catch(e){}
-}
+// ---- sound / confetti (setOwl/beep/stopConfetti are shared in site.js) ----
 function sound(kind){
   if(kind==="good"){ beep(660,.12,"triangle"); beep(880,.14,"triangle",.08); }
   else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
 }
 
-// ---- confetti ----
-let confettiRAF=null;
 function miniConfetti(){
   const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
   cv.width=innerWidth; cv.height=innerHeight;
@@ -328,23 +305,7 @@ function miniConfetti(){
       ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
     f++; if(f<60) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
 }
-function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF);
-  const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
-
-// ---- bouncy title ----
-(function(){
-  const word="Guess the Capital"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
-  for(const ch of word){
-    if(ch===" "){ el.appendChild(document.createTextNode(" ")); continue; }
-    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
-    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.06).toFixed(2)}s infinite`;
-    el.appendChild(s);
-  }
-  if(!reduceMotion){ const st=document.createElement("style");
-    st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
-    document.head.appendChild(st); }
-})();
-
+initBouncyTitle("Guess the Capital");
 setMode("india");
 </script>
 </body>

@@ -136,10 +136,9 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../assets/site.js"></script>
 <script>
 "use strict";
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random()*n);
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const digitSum = n => String(n).split('').reduce((s,d)=>s+ +d,0);
@@ -234,7 +233,7 @@ function buildPuzzle(levelKey){
 /* ============================================================
    GAME STATE + FLOW  (endless play, no scoring)
    ============================================================ */
-let level="EASY", game=null, muted=false, prevSig=null;
+let level="EASY", game=null, prevSig=null;
 
 function setLevel(l){
   level=l;
@@ -251,11 +250,8 @@ document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.
     `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
   menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
 })();
-function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
-function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newCase(); }
-$("q-level").onclick=(e)=>{ e.stopPropagation(); toggleLevelMenu(); };
-document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+wireLevelMenu();
 
 $("start-btn").onclick = startGame;
 $("home-btn").onclick  = goHome;
@@ -372,8 +368,6 @@ function praise(){
   const p=["🎉","🌟","Great detective work! 🕵️","Sharp thinking! 👀","Brilliant! 👏","You nailed it! 🙌"];
   return p[rnd(p.length)];
 }
-function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
-
 function goHome(){
   stopConfetti();
   $("screen-game").classList.add("hide");
@@ -395,29 +389,13 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ============================================================
-   OWL / SOUND / CONFETTI / TITLE  (shared with sibling games)
+   SOUND / CONFETTI / TITLE  (beep/stopConfetti/initBouncyTitle are shared in site.js)
    ============================================================ */
-function setOwl(mood){
-  [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return;
-    o.classList.remove("happy","worried","win","think"); if(mood!=="idle") o.classList.add(mood); });
-}
-let audioCtx=null;
-function beep(freq,dur,type="sine",when=0,gain=0.15){
-  if(muted) return;
-  try{
-    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination);
-    o.start(t); o.stop(t+dur);
-  }catch(e){}
-}
 function sound(kind){
   if(kind==="tick"){ beep(520,.05,"square",0,.06); }
   else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
   else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
 }
-let confettiRAF=null;
 function miniConfetti(){
   const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
   cv.width=innerWidth; cv.height=innerHeight;
@@ -429,22 +407,8 @@ function miniConfetti(){
       ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
     f++; if(f<64) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
 }
-function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF);
-  const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
 
-(function(){
-  const word="Number Detective"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
-  for(const ch of word){
-    if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
-    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
-    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.06).toFixed(2)}s infinite`;
-    el.appendChild(s);
-  }
-  if(!reduceMotion){ const st=document.createElement("style");
-    st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
-    document.head.appendChild(st); }
-})();
-
+initBouncyTitle("Number Detective");
 setLevel("EASY");
 </script>
 </body>

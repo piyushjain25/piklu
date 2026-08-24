@@ -155,10 +155,9 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../assets/site.js"></script>
 <script>
 "use strict";
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random()*n);
 if(typeof window.STEP_DELAY==="undefined") window.STEP_DELAY = 340;
 
@@ -206,7 +205,7 @@ function genPuzzle(levelKey){
 }
 
 /* ===== state ===== */
-let level="EASY", muted=false, P=null, program=[], robotPos=[0,0], running=false, solved=false, hintStep=0, trail=[], prevSig=null;
+let level="EASY", P=null, program=[], robotPos=[0,0], running=false, solved=false, hintStep=0, trail=[], prevSig=null;
 
 function setLevel(l){
   level=l;
@@ -223,11 +222,8 @@ document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.
     `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
   menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
 })();
-function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
-function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(false); }
-$("q-level").onclick=(e)=>{ e.stopPropagation(); toggleLevelMenu(); };
-document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+wireLevelMenu();
 
 $("start-btn").onclick = ()=>{ newPuzzle(true); };
 $("home-btn").onclick  = goHome;
@@ -391,7 +387,6 @@ function giveHint(){
 }
 
 function bonk(){ const tok=$("robot"); tok.classList.remove('bonk'); void tok.offsetWidth; tok.classList.add('bonk'); sound('bad'); }
-function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
 function goHome(){ stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
 
 // keyboard: arrows move/add, Backspace undo (program), Enter run/next, Escape reset, H hint
@@ -410,20 +405,10 @@ document.addEventListener("keydown", e=>{
   if(e.key.toLowerCase()==='h' && !solved){ giveHint(); }
 });
 
-/* ===== owl / sound / confetti / title (shared) ===== */
-function setOwl(mood){ [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return;
-  o.classList.remove("worried","win","think"); if(mood!=="idle") o.classList.add(mood); }); }
-let audioCtx=null;
-function beep(freq,dur,type="sine",when=0,gain=0.12){ if(muted) return;
-  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur);
-  }catch(e){} }
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="tick") beep(560,.05,"square",0,.05);
   else if(kind==="bad") beep(180,.16,"sawtooth",0,.10);
   else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
-let confettiRAF=null;
 function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
   cv.width=innerWidth; cv.height=innerHeight;
   const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
@@ -431,15 +416,8 @@ function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const
   let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);
     parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
     f++; if(f<70) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
-function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF); const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
 
-(function(){ const word="Robot Instructions"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
-  for(const ch of word){ if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
-    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
-    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.05).toFixed(2)}s infinite`; el.appendChild(s); }
-  if(!reduceMotion){ const st=document.createElement("style"); st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"; document.head.appendChild(st); }
-})();
-
+initBouncyTitle("Robot Instructions");
 setLevel("EASY");
 </script>
 </body>

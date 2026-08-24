@@ -1,0 +1,90 @@
+"use strict";
+/* Shared JS for every /games/<slug>/index.html — link this before the game's own
+   inline <script> (it defines globals the game script calls directly, unqualified).
+   Keep this file limited to pieces that are identical, or safely parameterized,
+   across every game. Game-specific logic stays inline in the game's own script. */
+
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function flash(msg, kind) {
+  const f = $("feedback");
+  if (!f) return;
+  f.textContent = msg;
+  f.className = "feedback " + (kind || "");
+}
+
+/* ---------- owl mascot mood (idle / happy / worried / win / think) ---------- */
+function setOwl(mood) {
+  ["owl-game", "owl-quiz", "owl-home"].forEach(id => {
+    const o = $(id);
+    if (!o) return;
+    o.classList.remove("happy", "worried", "win", "think");
+    if (mood !== "idle") o.classList.add(mood);
+  });
+}
+
+/* ---------- level-switch dropdown in the topbar chip ---------- */
+function closeLevelMenu() {
+  const m = $("level-menu"), q = $("q-level");
+  if (!m || !q) return;
+  m.classList.remove("open");
+  q.setAttribute("aria-expanded", "false");
+}
+function toggleLevelMenu() {
+  const m = $("level-menu"), q = $("q-level");
+  if (!m || !q) return;
+  const open = m.classList.toggle("open");
+  q.setAttribute("aria-expanded", open);
+}
+// closes the menu on an outside click; call on its own if a game wires q-level's
+// onclick itself (e.g. to guard opening it in certain modes)
+function wireLevelMenuOutsideClick() {
+  document.addEventListener("click", e => { if (!e.target.closest(".level-switch")) closeLevelMenu(); });
+}
+function wireLevelMenu() {
+  const q = $("q-level");
+  if (!q) return;
+  q.onclick = (e) => { e.stopPropagation(); toggleLevelMenu(); };
+  wireLevelMenuOutsideClick();
+}
+
+/* ---------- WebAudio beep ---------- */
+let audioCtx = null;
+function beep(freq, dur, type = "sine", when = 0, gain = 0.12) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime + when, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+
+/* ---------- confetti canvas ---------- */
+let confettiRAF = null;
+function stopConfetti() {
+  if (confettiRAF) cancelAnimationFrame(confettiRAF);
+  const cv = $("confetti");
+  if (cv) { cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); cv.style.display = "none"; }
+}
+
+/* ---------- bouncy animated <title> ---------- */
+function initBouncyTitle(word) {
+  const cls = ["c1", "c2", "c3", "c4"];
+  const el = $("title");
+  if (!el) return;
+  let ci = 0;
+  for (const ch of word) {
+    if (ch === " ") { el.appendChild(document.createTextNode(" ")); continue; }
+    const s = document.createElement("span");
+    s.textContent = ch; s.className = cls[ci++ % cls.length];
+    if (!reduceMotion) s.style.animation = `siteTitleBob 2.4s ease-in-out ${(ci * 0.05).toFixed(2)}s infinite`;
+    el.appendChild(s);
+  }
+  if (!reduceMotion) {
+    const st = document.createElement("style");
+    st.textContent = "@keyframes siteTitleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
+    document.head.appendChild(st);
+  }
+}

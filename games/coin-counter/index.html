@@ -142,10 +142,9 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../assets/site.js"></script>
 <script>
 "use strict";
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random()*n);
 const IS_NOTE = d => d>=20;
 
@@ -174,7 +173,7 @@ function starsFor(count,optimal){ if(count===optimal) return {stars:3,label:"⭐
   if(count<=optimal+2) return {stars:2,label:"Nice counting!"}; return {stars:1,label:"You made it! Try fewer next time."}; }
 
 /* ===== state ===== */
-let level="EASY", muted=false, P=null, pile=[], phase='build', prevSig=null;
+let level="EASY", P=null, pile=[], phase='build', prevSig=null;
 function setLevel(l){
   level=l;
   document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
@@ -190,11 +189,8 @@ document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.
     `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
   menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
 })();
-function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
-function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(false); }
-$("q-level").onclick=(e)=>{ e.stopPropagation(); toggleLevelMenu(); };
-document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+wireLevelMenu();
 
 $("start-btn").onclick=()=>newPuzzle(true); $("home-btn").onclick=goHome; $("new-btn").onclick=()=>newPuzzle(false); $("next-btn").onclick=()=>newPuzzle(false);
 $("undo-btn").onclick=()=>{ if(phase!=='build'||!pile.length) return; pile.pop(); clearHint(); render(); };
@@ -278,7 +274,6 @@ function giveHint(){
   flash(`💡 Add a ₹${best} — it's the biggest that still fits in ₹${rem}.`, 'hint'); setOwl('think');
 }
 function clearHint(){ document.querySelectorAll('.money.hintit').forEach(b=>b.classList.remove('hintit')); }
-function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
 function goHome(){ stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
 
 document.addEventListener("keydown", e=>{
@@ -291,16 +286,10 @@ document.addEventListener("keydown", e=>{
   if(e.key.toLowerCase()==='h' && phase==='build') giveHint();
 });
 
-/* ===== owl / sound / confetti / title (shared) ===== */
-function setOwl(mood){ [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return; o.classList.remove("worried","win","think"); if(mood!=="idle") o.classList.add(mood); }); }
-let audioCtx=null;
-function beep(freq,dur,type="sine",when=0,gain=0.12){ if(muted) return;
-  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur); }catch(e){} }
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="tick") beep(520,.05,"square",0,.05); else if(kind==="coin"){ beep(880,.05,"square",0,.05); beep(1250,.07,"square",.04,.04); }
   else if(kind==="good") beep(660,.09,"triangle",0,.07); else if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
   else if(kind==="win") [523,659,784,1047,1319].forEach((f,i)=>beep(f,.2,"triangle",i*.09)); }
-let confettiRAF=null;
 function burst(colors,count,round){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
   const parts=Array.from({length:count},()=>({x:cv.width/2,y:cv.height*0.4,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25,round}));
   let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;
@@ -308,14 +297,8 @@ function burst(colors,count,round){ const cv=$("confetti"); cv.style.display="bl
     f++; if(f<80) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
 function miniConfetti(){ burst(["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"],70,false); }
 function coinRain(){ burst(["#FFD65C","#FFC02E","#F5A623","#FFE79A"],110,true); }
-function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF); const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
 
-(function(){ const word="Coin Counter"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
-  for(const ch of word){ if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
-    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
-    if(!reduceMotion) s.style.animation=`bob 2.4s ease-in-out ${(ci*0.05).toFixed(2)}s infinite`; el.appendChild(s); }
-  if(!reduceMotion){ const st=document.createElement("style"); st.textContent="@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"; document.head.appendChild(st); }
-})();
+initBouncyTitle("Coin Counter");
 setLevel("EASY");
 </script>
 </body>

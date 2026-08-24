@@ -126,10 +126,9 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../assets/site.js"></script>
 <script>
 "use strict";
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random()*n);
 
 /* ===== engine (verified offline) ===== */
@@ -144,7 +143,7 @@ function genTime(level){ const cfg=LEVELS[level]; const h=1+rnd(12); const m=cfg
   return { level, hour:h, minute:m, step:cfg.step, digital:digital(h,m), phrase:phraseFor(h,m) }; }
 
 /* ===== state ===== */
-let level="EASY", muted=false, T=null, setH=12, setM=0, startH=12, startM=0, phase='set', step=60, prevSig=null;
+let level="EASY", T=null, setH=12, setM=0, startH=12, startM=0, phase='set', step=60, prevSig=null;
 function setLevel(l){
   level=l;
   document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
@@ -160,11 +159,8 @@ document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.
     `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
   menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
 })();
-function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
-function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newTime(false); }
-$("q-level").onclick=(e)=>{ e.stopPropagation(); toggleLevelMenu(); };
-document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+wireLevelMenu();
 
 $("start-btn").onclick=()=>{ newTime(true); }; $("home-btn").onclick=goHome;
 $("new-btn").onclick=()=>{ newTime(false); }; $("next-btn").onclick=()=>newTime(false);
@@ -271,7 +267,6 @@ function giveHint(){
     (T.minute%5===0 ? `the big hand points to ${T.minute/5===12?12:T.minute/5*1} (the ${T.minute} mark)` : `the big hand is on ${T.minute} minutes`);
   flash(`💡 The little hand is near ${T.hour}, and ${mtxt}.`, 'hint'); setOwl('think');
 }
-function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
 function goHome(){ stopConfetti(); T=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
 
 document.addEventListener("keydown", e=>{
@@ -289,27 +284,15 @@ document.addEventListener("keydown", e=>{
   } else if(e.key==='Enter'){ e.preventDefault(); newTime(false); }
 });
 
-/* ===== owl / sound / confetti / title (shared) ===== */
-function setOwl(mood){ [ $("owl-game"), $("owl-home") ].forEach(o=>{ if(!o) return; o.classList.remove("worried","win","think"); if(mood!=="idle") o.classList.add(mood); }); }
-let audioCtx=null;
-function beep(freq,dur,type="sine",when=0,gain=0.12){ if(muted) return;
-  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur); }catch(e){} }
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
-let confettiRAF=null;
 function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
   const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
   const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
   let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
     f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
-function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF); const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
 
-(function(){ const word="Set the Clock"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
-  for(const ch of word){ if(ch===" "){ el.appendChild(document.createTextNode("\u00A0")); continue; }
-    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
-    if(!reduceMotion) s.style.animation=`bobc 2.4s ease-in-out ${(ci*0.05).toFixed(2)}s infinite`; el.appendChild(s); }
-  if(!reduceMotion){ const st=document.createElement("style"); st.textContent="@keyframes bobc{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"; document.head.appendChild(st); }
-})();
+initBouncyTitle("Set the Clock");
 setLevel("EASY");
 </script>
 </body>
