@@ -13,8 +13,6 @@
   .app{max-width:600px;}
   .title{font-size:clamp(26px,5.2vw,40px);}
   .topbar{margin-bottom:14px;}
-  .chip.par{background:var(--sun); color:var(--ink);}
-  .stats-row{display:flex; gap:8px; justify-content:center; align-items:center; margin-bottom:14px; flex-wrap:wrap; min-height:1px;}
   .goal{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:14px 16px; margin-bottom:12px; text-align:center;}
   .goal .ctx{font-weight:700; color:var(--ink-soft); font-size:14px;}
   .goal .make{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(22px,6vw,32px); color:var(--grape-dark); margin-top:2px;}
@@ -99,7 +97,7 @@
           </div>
         </div>
         <div class="tb-right">
-          <button id="new-btn" class="tlink">🔄 New amount</button>
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
         </div>
       </div>
 
@@ -189,7 +187,7 @@ document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(false); }
 wireLevelMenu();
 
-$("start-btn").onclick=()=>newPuzzle(true); $("home-btn").onclick=goHome; $("new-btn").onclick=()=>newPuzzle(false); $("next-btn").onclick=()=>newPuzzle(false);
+$("start-btn").onclick=()=>newPuzzle(true); $("home-btn").onclick=goHome; $("skip-btn").onclick=()=>newPuzzle(false); $("next-btn").onclick=()=>newPuzzle(false);
 $("undo-btn").onclick=()=>{ if(phase!=='build'||!pile.length) return; pile.pop(); clearHint(); render(); };
 $("reset-btn").onclick=()=>{ if(phase!=='build'||!pile.length) return; pile=[]; clearHint(); render(); flash("Pile cleared — tap coins and notes to build the amount!", ''); };
 $("pay-btn").onclick=pay;
@@ -208,7 +206,7 @@ function newPuzzle(fromHome){
   const par=$("par-chip"); if(P.par){ par.classList.remove("hide"); par.textContent=`🎯 Fewest: ${P.optimal}`; } else par.classList.add("hide");
   $("build-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("serve-view").classList.remove("hide"); $("pay-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
-  $("new-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   renderGoal(); renderTray(); render(); setOwl('idle'); flash("Tap coins and notes to build the amount!", '');
 }
 function renderGoal(){
@@ -257,7 +255,7 @@ function pay(){
   $("stars").textContent="★".repeat(stars)+"☆".repeat(3-stars);
   $("rlabel").textContent=label;
   $("rsub").textContent=`You made ₹${P.target} with ${pile.length} ${pile.length===1?'piece':'pieces'}. Fewest possible: ${P.optimal}.`;
-  $("new-btn").classList.add("invisible");   // Next takes its place in the bottom slot; New amount keeps its slot so nothing shifts
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("pay-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   flash('', ''); setOwl(stars>=2?'win':'idle');
   if(!reduceMotion){ if(stars===3){ coinRain(); sound('win'); } else { miniConfetti(); sound('good'); } } else if(stars===3) sound('win');

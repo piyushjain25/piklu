@@ -12,20 +12,8 @@
   .app{max-width:600px;}
   .title{font-size:clamp(25px,5.2vw,40px);}
   .topbar{margin-bottom:18px;}
-  .stagewrap{display:flex; flex-direction:column; align-items:center; margin-bottom:4px;}
   svg.monster{width:min(200px,48vw); height:auto; display:block;}
-  svg.monster.mini{width:100%; height:auto; display:block;}
-  .monster .pupil{transition:transform .18s ease;}
-  .monster.sad .pupil{transform:translateY(-2px);}
-  .monster.chomp .pupil{transform:scale(1.12);}
-  .monster.chomp{animation:chompbounce .4s ease;}
-  .monster.sad{animation:sadwiggle .5s ease;}
-  @keyframes chompbounce{0%{transform:scale(1)}35%{transform:scale(1.14,.9)}70%{transform:scale(.94,1.08)}100%{transform:scale(1)}}
-  @keyframes sadwiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
-  .belly-fill{transition:transform .5s cubic-bezier(.2,1.1,.4,1);}
-  .monster-name{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:13px; margin-top:2px;}
-  .diff .mini-slot{display:block; width:58px; height:58px; margin:0 auto 6px;}
-  .diff .mini-slot svg{width:100%; height:100%; display:block;}
+  .diff .mini-slot{width:58px; height:58px;}
   .probbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:14px 16px; margin:6px 0 14px; text-align:center;}
   .prob{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,8vw,42px); color:var(--grape-dark); line-height:1;}
   .prob .op{color:var(--coral-dark);} .prob .q{color:var(--leaf-dark);}

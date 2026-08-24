@@ -34,7 +34,7 @@ window.GAMES = [
     tagline: "Build numbers with place-value blocks.",        skills: ["Place value"] },
 
   { slug: "race-to-100",        title: "Race to 100",         emoji: "🏁", accent: "leaf",   ageGroup: "7+",
-    tagline: "Use + − × ÷ to land exactly on 100.",           skills: ["Mental math"] },
+    tagline: "Use + − × ÷ to land exactly on the target.",    skills: ["Mental math"] },
 
   { slug: "robot-instructions", title: "Robot Instructions",  emoji: "🤖", accent: "sky",    ageGroup: "5+",
     tagline: "Program the robot to reach the treasure.",      skills: ["Coding", "Directions"] },

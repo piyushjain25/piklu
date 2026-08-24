@@ -88,7 +88,7 @@
           </div>
         </div>
         <div class="tb-right">
-          <button id="new-btn" class="tlink">⏭ Skip</button>
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
         </div>
       </div>
 
@@ -171,7 +171,7 @@ function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newR
 wireLevelMenu();
 
 $("start-btn").onclick=()=>{ newRound(true); }; $("home-btn").onclick=goHome;
-$("new-btn").onclick=()=>{ newRound(false); }; $("next-btn").onclick=()=>newRound(false);
+$("skip-btn").onclick=()=>{ newRound(false); }; $("next-btn").onclick=()=>newRound(false);
 $("hint-link").onclick=giveHint;
 
 const puzzleSig = p => p.kind+':'+p.items.join(',');
@@ -183,7 +183,7 @@ function newRound(fromHome){
   setLevel(level);
   $("play-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("serve-view").classList.remove("hide"); $("next-btn").classList.add("hide");
-  $("new-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   renderSeq(); renderOptions(); setOwl('idle'); flash("Look at the pattern — what comes next?", '');
 }
 function renderSeq(){
@@ -208,7 +208,7 @@ function choose(v, btn){
     $("play-view").classList.add("hide"); $("result-view").classList.remove("hide");
     $("serve-view").classList.add("hide");
     $("rlabel").textContent=`🎉 Yes — ${P.answer} comes next!`;
-    $("new-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
+    $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
     $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
     if(!reduceMotion) miniConfetti(); sound('win');
   } else {

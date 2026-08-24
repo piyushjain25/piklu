@@ -174,7 +174,7 @@
           </div>
         </div>
         <div class="tb-right">
-          <button id="skip-btn" class="tlink">🔄 New word</button>
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
         </div>
       </div>
 
@@ -527,7 +527,7 @@ function win(){
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("rlabel").textContent = "🌟 You found the word!";
   $("reveal-word").textContent = state.secret;
-  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; New word keeps its slot so nothing shifts
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("word-guess-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setMessage("", "");
   setOwl("win"); sound("win");
@@ -538,7 +538,7 @@ function lose(){
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("rlabel").textContent = "🦉 So close!";
   $("reveal-word").textContent = state.secret;
-  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; New word keeps its slot so nothing shifts
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("word-guess-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setMessage("", "");
   setOwl("worried"); sound("lose");

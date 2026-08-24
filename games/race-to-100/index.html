@@ -56,12 +56,6 @@
   .op.div{background:#EE8A3B; --sh:#c96f27;}
   .op.hintop{outline:3px solid var(--sun-dark); outline-offset:3px; animation:hp 1s ease-in-out infinite;}
   @keyframes hp{0%,100%{box-shadow:0 5px 0 var(--sh),0 0 0 0 rgba(230,168,0,.5)}50%{box-shadow:0 5px 0 var(--sh),0 0 0 7px rgba(230,168,0,0)}}
-  .hint-row{text-align:center; margin-top:12px; min-height:20px;}
-  .hint-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape);
-    text-decoration:underline; text-underline-offset:3px; cursor:pointer; opacity:.75;}
-  .hint-link:hover{opacity:1;}
-  .hint-link:focus-visible{outline:2px solid var(--grape); outline-offset:2px;}
-  .hint-link.off{opacity:.3; pointer-events:none;}
   .calcflash{height:52px; display:flex; align-items:center; justify-content:center; margin:6px 0 0;}
   .calcflash .bubble{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px);
     color:var(--ink); background:#FFF6DC; border:3px solid var(--sun); border-radius:14px; padding:6px 16px;
@@ -94,11 +88,19 @@
         </svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🎲 Roll, then choose + − × or ÷ to land on exactly 100.</p>
+      <p class="subtitle">🎲 Roll, then choose + − × or ÷ to land exactly on the target.</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">Race to 50</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">Race to 100</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">Race to 250</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">Race to 500</div></button>
+      </div>
 
       <div class="howto">
         🏁 <b>How to play:</b> You start at 0. Each turn, tap the die to roll, then choose to <b>add</b>, <b>subtract</b>,
-        <b>multiply</b>, or <b>divide</b> by it — you work out the answer in your head! (Divide rounds down.) Land on <b>exactly 100</b> to win.
+        <b>multiply</b>, or <b>divide</b> by it — you work out the answer in your head! (Divide rounds down.) Land on <b>exactly the target number</b> to win.
         Multiply to leap ahead, then add or subtract to land just right. Went over? Subtract or divide back down.
       </div>
 
@@ -119,17 +121,23 @@
             <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
           </svg>
-          <span class="chip" id="moves-chip">Moves: 0</span>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
         </div>
         <div class="tb-right">
-          <button id="restart-btn" class="tlink">🔄 New race</button>
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
         </div>
       </div>
 
-      <div class="goal-row"><span class="chip goal" id="goal-chip">🎯 Reach exactly 100</span></div>
+      <div class="stats-row"><span class="chip" id="moves-chip">Moves: 0</span></div>
+      <div class="goal-row"><span class="chip goal" id="goal-chip">🎯 Reach exactly 50</span></div>
 
       <div class="lane">
-        <div class="lane-head"><span>🧒 You</span><span class="gap" id="gap">100 to go</span></div>
+        <div class="lane-head"><span>🧒 You</span><span class="gap" id="gap">50 to go</span></div>
         <div class="track">
           <div class="grid" style="left:25%"></div><div class="grid" style="left:50%"></div><div class="grid" style="left:75%"></div>
           <div class="flag">🏁</div>
@@ -138,7 +146,7 @@
       </div>
 
       <div class="actionbar" id="actionbar"></div>
-      <div class="hint-row"><a id="hint-link" class="hint-link" role="button" tabindex="0">💡 Need a hint?</a></div>
+      <div class="actions"><button id="hint-link" class="tlink">💡 Hint</button></div>
       <div class="calcflash" id="calcflash" aria-live="polite"></div>
       <div class="feedback" id="feedback"></div>
       <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
@@ -167,47 +175,83 @@ const OPS=['add','sub','mul','div'];
 const OP_SYM={add:'+',sub:'−',mul:'×',div:'÷'};
 function opResult(c,op,d){ return op==='add'?c+d : op==='sub'?c-d : op==='mul'?c*d : Math.floor(c/d); }
 
-/* ===== expected-turns table (for hint + coaching), bounded to [0,TAB] ===== */
-const TAB=200;
-function resultsForE(v,d){ const r=[]; for(const op of OPS){ const x=opResult(v,op,d);
-  if(Number.isInteger(x) && x>=0 && x<=TAB) r.push(x); } return r; }
-function buildE(){
-  const E=new Array(TAB+1).fill(0);
-  for(let v=0;v<=TAB;v++) E[v]= v===100?0:120;
+/* ===== levels: the target to reach grows with difficulty ===== */
+const LEVELS = {
+  EASY:   { target:50,  label:"🌱 Easy" },
+  MEDIUM: { target:100, label:"⭐ Medium" },
+  HARD:   { target:250, label:"🔥 Hard" },
+  EXPERT: { target:500, label:"🏆 Expert" },
+};
+
+/* ===== expected-turns table (for hint + coaching), bounded to [0,TAB] =====
+   TAB scales with the target so there's always generous headroom above it
+   for overshoot moves; rebuilt only when the target actually changes. */
+let TAB=0, E=null, eTarget=null;
+function resultsForE(v,d,target,tab){ const r=[]; for(const op of OPS){ const x=opResult(v,op,d);
+  if(Number.isInteger(x) && x>=0 && x<=tab) r.push(x); } return r; }
+function buildE(target){
+  const tab=target*2;
+  const arr=new Array(tab+1).fill(0);
+  for(let v=0;v<=tab;v++) arr[v]= v===target?0:120;
   for(let it=0; it<3000; it++){ let md=0;
-    for(let v=0; v<=TAB; v++){ if(v===100) continue; let acc=0;
-      for(let d=1; d<=6; d++){ let b=Infinity; for(const x of resultsForE(v,d)) if(E[x]<b) b=E[x]; if(b===Infinity) b=120; acc+=b; }
-      const nv=1+acc/6; md=Math.max(md,Math.abs(nv-E[v])); E[v]=nv; }
+    for(let v=0; v<=tab; v++){ if(v===target) continue; let acc=0;
+      for(let d=1; d<=6; d++){ let b=Infinity; for(const x of resultsForE(v,d,target,tab)) if(arr[x]<b) b=arr[x]; if(b===Infinity) b=120; acc+=b; }
+      const nv=1+acc/6; md=Math.max(md,Math.abs(nv-arr[v])); arr[v]=nv; }
     if(md<1e-10) break;
   }
-  return E;
+  return { tab, arr };
 }
-const E=buildE();
-const Elook = v => (v>=0 && v<=TAB) ? E[v] : 1e6;
-function bestMove(c,d){
+function ensureE(target){
+  if(eTarget===target) return;
+  const built=buildE(target); TAB=built.tab; E=built.arr; eTarget=target;
+}
+const Elook = v => (E && v>=0 && v<=TAB) ? E[v] : 1e6;
+function bestMove(c,d,target){
+  ensureE(target);
   let best=null,bE=Infinity,bRes=Infinity;
   for(const op of OPS){ const res=opResult(c,op,d), e=Elook(res);
-    if(e<bE-1e-9 || (Math.abs(e-bE)<=1e-9 && res<=100 && bRes>100)){ best=op; bE=e; bRes=res; } }
+    if(e<bE-1e-9 || (Math.abs(e-bE)<=1e-9 && res<=target && bRes>target)){ best=op; bE=e; bRes=res; } }
   return { op:best, result:bRes, E:bE };
 }
 
 /* ===== state (solo) ===== */
-let race=null;
+let level="EASY", race=null;
+
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+// level switcher (tap the chip at the top to change difficulty mid-game)
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); startRace(); }
+wireLevelMenu();
 
 $("start-btn").onclick   = startRace;
-$("restart-btn").onclick = startRace;
+$("skip-btn").onclick = startRace;
 $("next-btn").onclick     = startRace;
 $("home-btn").onclick     = goHome;
 $("hint-link").onclick     = giveHint;
-$("hint-link").addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); giveHint(); } });
 
 function startRace(){
-  race={ you:0, moves:0, phase:'roll', die:0, winner:false, hintOp:null };
+  const target=LEVELS[level].target;
+  race={ you:0, target, moves:0, phase:'roll', die:0, winner:false, hintOp:null };
+  ensureE(target);
   $("screen-home").classList.add("hide");
   $("screen-game").classList.remove("hide");
+  setLevel(level);
+  $("goal-chip").textContent=`🎯 Reach exactly ${target}`;
   $("result-view").classList.add("hide");
   $("next-btn").classList.add("hide");
-  $("restart-btn").classList.remove("invisible");
+  $("skip-btn").classList.remove("invisible");
   $("hint-link").classList.remove("off");
   clearFlash(); clearCoach();
   setOwl('idle');
@@ -216,8 +260,8 @@ function startRace(){
 }
 
 /* ===== render ===== */
-function pct(v){ return Math.max(0, Math.min(100, v)); }
-function gapText(v){ if(v===100) return "at 100! 🎉"; const g=100-v; return g>0 ? `${g} to go` : `${-g} over`; }
+function pct(v,target){ return Math.max(0, Math.min(100, (v/target)*100)); }
+function gapText(v,target){ if(v===target) return `at ${target}! 🎉`; const g=target-v; return g>0 ? `${g} to go` : `${-g} over`; }
 function dieHTML(v){
   const P={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
   const on=new Set(v?P[v]:[]); let cells='';
@@ -225,9 +269,9 @@ function dieHTML(v){
   return `<div class="die" id="die">${cells}</div>`;
 }
 function render(){
-  const over=race.you>100 || race.you<0;
-  const tok=$("token"); tok.textContent=race.you; tok.style.left=pct(race.you)+'%'; tok.className='token'+(over?' over':'');
-  const gap=$("gap"); gap.textContent=gapText(race.you); gap.className='gap'+(over?' over':'');
+  const over=race.you>race.target || race.you<0;
+  const tok=$("token"); tok.textContent=race.you; tok.style.left=pct(race.you,race.target)+'%'; tok.className='token'+(over?' over':'');
+  const gap=$("gap"); gap.textContent=gapText(race.you,race.target); gap.className='gap'+(over?' over':'');
   $("moves-chip").textContent=`Moves: ${race.moves}`;
 
   const bar=$("actionbar");
@@ -279,8 +323,8 @@ function clearCoach(){ const el=$("coach"); clearTimeout(coachTimer); el.classLi
 
 function playerChoose(op){
   if(race.winner || race.phase!=='choose') return;
-  const c=race.you, result=opResult(c, op, race.die);
-  const bm=bestMove(c, race.die);
+  const c=race.you, result=opResult(c, op, race.die), target=race.target;
+  const bm=bestMove(c, race.die, target);
   const noChange=(result===c);
   const regret=Elook(result)-bm.E;
   const better=(bm.op && opResult(c,bm.op,race.die)!==result && (noChange || regret>0.75)) ? bm.op : null;
@@ -290,11 +334,11 @@ function playerChoose(op){
   if(better) showCoach(`${OP_SYM[better]}${race.die} would have been better!`);  // note at the bottom, fades with it
   else clearCoach();
 
-  if(race.you===100) return endRace();
+  if(race.you===target) return endRace();
 
   race.phase='roll';
   let msg, kind;
-  if(race.you>100){ msg="Over 100 — subtract or divide back down."; kind='bad'; setOwl('worried'); }
+  if(race.you>target){ msg=`Over ${target} — subtract or divide back down.`; kind='bad'; setOwl('worried'); }
   else if(race.you<0){ msg="Below 0 — add to climb back up."; kind='bad'; setOwl('worried'); }
   else { msg="Tap the die to roll again."; kind=''; setOwl(better?'think':'idle'); }
   flash(msg, kind); render();
@@ -305,8 +349,8 @@ function endRace(){
   $("hint-link").classList.add("off");
   flash('', '');
   $("result-view").classList.remove("hide");
-  $("rlabel").textContent = `🎉 You reached exactly 100 in ${race.moves} moves!`;
-  $("restart-btn").classList.add("invisible");   // Play again takes its place in the bottom slot; New race keeps its slot so nothing shifts
+  $("rlabel").textContent = `🎉 You reached exactly ${race.target} in ${race.moves} moves!`;
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setOwl('win'); sound('win'); if(!reduceMotion) miniConfetti();
   render();
@@ -315,14 +359,15 @@ function endRace(){
 function giveHint(){
   if(!race || race.winner) return;
   if(race.phase!=='choose'){ flash("Tap the die to roll first, then I'll suggest a move.", 'hint'); return; }
-  const bm=bestMove(race.you, race.die);
+  const target=race.target;
+  const bm=bestMove(race.you, race.die, target);
   race.hintOp=bm.op;
   let msg;
-  if(bm.result===100) msg=`This move lands you on exactly 100 — go for it!`;
-  else if(bm.op==='mul') msg=`Multiplying leaps you closest to 100 — try it.`;
-  else if(bm.op==='div') msg=`Dividing shrinks you back toward 100.`;
-  else if(bm.op==='sub') msg=`Subtracting brings you closer to 100.`;
-  else msg=`Adding gets you closest to 100.`;
+  if(bm.result===target) msg=`This move lands you on exactly ${target} — go for it!`;
+  else if(bm.op==='mul') msg=`Multiplying leaps you closest to ${target} — try it.`;
+  else if(bm.op==='div') msg=`Dividing shrinks you back toward ${target}.`;
+  else if(bm.op==='sub') msg=`Subtracting brings you closer to ${target}.`;
+  else msg=`Adding gets you closest to ${target}.`;
   flash(`💡 ${msg} (you work out the number!)`, 'hint'); setOwl('think'); render();
 }
 
@@ -337,8 +382,9 @@ function goHome(){
 
 // keyboard: Space/Enter roll or play-again; 1-4 pick op; H hint
 document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide") || !race) return;
-  if(e.target && e.target.id==='hint-link') return;   // handled by its own listener
+  if(e.target && e.target.id==='hint-link') return;   // let the button's own click handling take it
   if((e.key==="Enter"||e.key===" ")){
     if(race.winner && !$("next-btn").classList.contains("hide")){ e.preventDefault(); startRace(); return; }
     if(!race.winner && race.phase==='roll'){ e.preventDefault(); playerRoll(); return; }
@@ -368,6 +414,7 @@ function miniConfetti(){
 }
 
 initBouncyTitle("Race to 100");
+setLevel("EASY");
 </script>
 </body>
 </html>

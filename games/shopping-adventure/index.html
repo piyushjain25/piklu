@@ -122,7 +122,7 @@
           </div>
         </div>
         <div class="tb-right">
-          <button id="new-btn" class="tlink">🔄 New shop</button>
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
         </div>
       </div>
 
@@ -247,7 +247,7 @@ wireLevelMenu();
 
 $("start-btn").onclick = ()=>{ newShop(true); };
 $("home-btn").onclick  = goHome;
-$("new-btn").onclick    = ()=>newShop(false);
+$("skip-btn").onclick    = ()=>newShop(false);
 $("next-btn").onclick    = ()=>newShop(false);
 $("checkout-btn").onclick= checkout;
 $("reset-btn").onclick   = resetShop;
@@ -270,7 +270,7 @@ function newShop(fromHome){
   $("shop-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("serve-view").classList.remove("hide");
   $("checkout-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
-  $("new-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   setOwl('idle'); flash("Tap things to fill your cart 🛒", '');
   renderShelf(); renderBasket(); renderMeter(false);
 }
@@ -352,7 +352,7 @@ function checkout(){
   $("rsub").textContent = `You spent ₹${spent()} of ₹${shop.budget} — ₹${leftover} left.`;
   const sv=savings(); const svEl=$("save");
   if(sv>0){ svEl.classList.remove("hide"); svEl.textContent=`💸 You saved ₹${sv} with deals!`; } else svEl.classList.add("hide");
-  $("new-btn").classList.add("invisible");   // Shop again takes its place in the bottom slot; New shop keeps its slot so nothing shifts
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("checkout-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   flash('', '');
   setOwl(stars>=2?'win':'idle');

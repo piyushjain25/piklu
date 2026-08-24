@@ -12,8 +12,6 @@
   .app{max-width:640px;}
   .title{font-size:clamp(24px,4.9vw,38px);}
   .topbar{margin-bottom:14px;}
-  .chip.par{background:var(--sun); color:var(--ink);}
-  .stats-row{display:flex; gap:8px; justify-content:center; align-items:center; margin-bottom:14px; flex-wrap:wrap;}
   .gridwrap{--wrapw:min(360px,84vw); position:relative; width:var(--wrapw); aspect-ratio:1; margin:0 auto;}
   .grid{position:absolute; inset:0; z-index:1; display:grid; gap:5px;}
   .cell{background:#EEF6FF; border-radius:9px; display:flex; align-items:center; justify-content:center;
@@ -108,7 +106,7 @@
           </div>
         </div>
         <div class="tb-right">
-          <button id="new-btn" class="tlink">🔄 New puzzle</button>
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
         </div>
       </div>
 
@@ -227,7 +225,7 @@ wireLevelMenu();
 
 $("start-btn").onclick = ()=>{ newPuzzle(true); };
 $("home-btn").onclick  = goHome;
-$("new-btn").onclick    = ()=>newPuzzle(false);
+$("skip-btn").onclick    = ()=>newPuzzle(false);
 $("next-btn").onclick    = ()=>newPuzzle(false);
 $("reset-btn").onclick   = resetPuzzle;
 $("run-btn").onclick     = runProgram;
@@ -248,7 +246,7 @@ function newPuzzle(fromHome){
   if(P.par){ parChip.classList.remove("hide"); parChip.textContent=`🎯 Best: ${P.optimal}`; } else parChip.classList.add("hide");
   applyModeUI();
   $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
-  $("next-btn").classList.add("hide"); $("new-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   setPadDisabled(false); $("run-btn").disabled=true; $("undo-btn").classList.toggle("off", true);
   $("moves-chip").textContent="Moves: 0";
   setOwl('idle'); flash(promptText(), '');
@@ -366,7 +364,7 @@ function finishRun(){
 function winGame(moveCount){
   solved=true; setPadDisabled(true);
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
-  $("new-btn").classList.add("invisible");   // Next takes its place in the bottom slot; New puzzle keeps its slot so nothing shifts
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("run-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   const perfect = moveCount===P.optimal;
   let msg;
