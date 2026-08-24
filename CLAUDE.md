@@ -22,14 +22,16 @@ online toy store later. Read the rules below before changing anything.
    the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
    two places and lets it silently drift out of sync. If the fetch fails, the game is
    simply not playable (`word-guess`, `guess-the-capital`); that's expected, not a bug.
-4. **Each game is one self-contained folder.** The game's code is a single
-   `games/<slug>/index.html` with its CSS and JS **inline** — don't split code into extra
-   files. A game **may** keep **data** in sibling files in the same folder (e.g.
-   `words.json`, `capitals.json`) that `index.html` loads at runtime with a **relative**
-   `fetch()` (e.g. `fetch('words.json')`) — keep the data next to that game's
-   `index.html` and reference it by relative path so the game stays portable. The only
-   allowed external network calls are Google Fonts and (for a couple of games)
-   `cdnjs.cloudflare.com`.
+4. **Each game is one file plus two shared assets.** The game's own CSS and JS are
+   **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
+   into extra files. Every game also links two things from `/assets/` that must never be
+   copy-pasted into a game's own `<style>`: `assets/site.css` (the shared design system —
+   see "Standard layout & controls") and the Google Fonts stylesheet. A game **may** keep
+   **data** in sibling files in the same folder (e.g. `words.json`, `capitals.json`) that
+   `index.html` loads at runtime with a **relative** `fetch()` (e.g. `fetch('words.json')`)
+   — keep the data next to that game's `index.html` and reference it by relative path so
+   the game stays portable. The only allowed external network calls are Google Fonts and
+   (for a couple of games) `cdnjs.cloudflare.com`.
 5. **Keep it kid-safe and ad-free.** Age-appropriate content and friendly tone only.
    No ads, no analytics/tracking, no third-party trackers, no data collection.
 
@@ -38,9 +40,10 @@ online toy store later. Read the rules below before changing anything.
 ```
 /                       root — redirects to /games/ (future store home)
 /games.js               THE CATALOG — single source of truth for the game list
-/assets/site.css        shared styles for the hub
+/assets/site.css        shared styles — hub layout AND the shared game-page design
+                        system (colours, owl, buttons, topbar/tlink/level-switch, etc.)
 /games/index.html       the hub — auto-builds the grid from /games.js
-/games/<slug>/index.html   one self-contained game per folder
+/games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
 /CLAUDE.md              this file
 ```
@@ -51,9 +54,15 @@ Two steps — never edit the hub's HTML or CSS to add a game:
 
 1. Create the game at `games/<slug>/index.html` (code inline, following the
    conventions below). `<slug>` is lowercase words joined by hyphens, e.g. `shape-sorter`.
-   If the game needs a data set (word list, capitals, etc.), put the JSON in the **same
-   folder** and load it with a relative `fetch()` (see rules 3–4 — such a game must be
-   viewed on the hosted site or a local server, not via `file://`).
+   In `<head>`, link the Google Fonts stylesheet **and** `<link rel="stylesheet"
+   href="../../assets/site.css" />`, and give `<body>` the class `game`
+   (`<body class="game">`) — that's what pulls in the shared design system and control
+   scheme. Only put a rule in the game's own `<style>` if it's genuinely unique to that
+   game (colors, a `.app{max-width}` / `.title{font-size}` override, one-off components);
+   never re-declare something `site.css` already defines. If the game needs a data set
+   (word list, capitals, etc.), put the JSON in the **same folder** and load it with a
+   relative `fetch()` (see rules 3–4 — such a game must be viewed on the hosted site or a
+   local server, not via `file://`).
 2. Add **one entry** to the `GAMES` array in `games.js`:
 
    ```js
@@ -76,6 +85,9 @@ The card, its link, and the search filter appear automatically.
   Palette: grape `#6C4AB6`, coral `#FF6B7A`, leaf `#2FB37D`, sun `#FFCF43` /
   `#e6a800`, sky `#3FA7E0`, ink `#33236B`; sky→green background with floating clouds.
   Reuse the **owl mascot** SVG with mood states (idle / happy / worried / win / think).
+  All of this — colours as CSS vars, the owl mood CSS, `.btn`/`.card`/`.chip`/`.diff`
+  etc. — is defined once in `assets/site.css` and shared by every game via `<link>`; a
+  game only adds its own extra CSS vars (theme colors like `--paper`) and components.
 - **Four difficulty levels** — `EASY`, `MEDIUM`, `HARD`, `EXPERT` — each meaningfully
   different. Exception: `guess-the-capital` has no difficulty levels — it's purely a
   choice of game (Indian States vs World Countries), so it has no level chip at all (see
@@ -98,7 +110,9 @@ The card, its link, and the search filter appear automatically.
 ## Standard layout & controls (REQUIRED — match `games/pizza-party/index.html`)
 
 `games/pizza-party/index.html` is the reference implementation. Every game must use this
-exact control scheme:
+exact control scheme. The CSS for it (`.topbar`, `.tlink`, `.actions`, `.serve-row`,
+`.invisible`, `.level-switch` and friends) lives once in `assets/site.css`, not inline —
+don't redefine these classes in a game's own `<style>`.
 
 - **Top bar** (a single flex row): **Home** on the left, the owl mascot + a **level
   chip** in the centre, and **Skip** on the right.
