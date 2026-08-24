@@ -106,7 +106,7 @@ body::before{width:90px;height:34px;top:6%;left:6%;} body::after{width:70px;heig
   color:#fff; border-radius:16px; padding:13px 22px; position:relative;
   transition:transform .06s ease, filter .15s ease; box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;}
 .btn:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);}
-.btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+.btn:focus-visible{outline:none; box-shadow:0 5px 0 var(--btn-shadow,#0003), 0 0 0 3px #fff, 0 0 0 6px var(--ink);}
 .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
 .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
 .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);}
@@ -167,6 +167,8 @@ body::before{width:90px;height:34px;top:6%;left:6%;} body::after{width:70px;heig
 /* win/result banner + feedback line under the game */
 .result{text-align:center; padding:8px 4px 16px;}
 .result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px); color:var(--leaf-dark);}
+.result .stars{font-size:44px; letter-spacing:6px; margin:6px 0;}
+.result .rsub{font-weight:700; color:var(--ink-soft); margin-top:6px; font-size:16px;}
 .feedback{min-height:22px; text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; margin:14px 0 12px;
   display:flex; align-items:center; justify-content:center;}
 .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
