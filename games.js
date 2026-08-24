@@ -65,4 +65,7 @@ window.GAMES = [
 
   { slug: "shape-sorter",  title: "Shape Sorter",             emoji: "🔷", accent: "sky",    ageGroup: "4+",
     tagline: "Find and tap the matching shapes.",             skills: ["Shapes"],                                 badge:"New"},
+
+  { slug: "color-match",   title: "Color Match",              emoji: "🎨", accent: "coral",  ageGroup: "4+",
+    tagline: "Tap the colours that match.",                   skills: ["Colours"],                                badge:"New"},
 ];
