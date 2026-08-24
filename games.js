@@ -25,7 +25,7 @@ window.GAMES = [
     tagline: "Move one matchstick to make the sum true.",     skills: ["Arithmetic", "Logic"] },
 
   { slug: "guess-the-capital",   title: "Guess the Capital",  emoji: "📌", accent: "sun",    ageGroup: "7+",
-    tagline: "Pick the right capital city.",                  skills: ["Geography"],                       badge:"New"},
+    tagline: "Pick the right capital city.",                  skills: ["Geography"] },
 
   { slug: "number-detective",   title: "Number Detective",    emoji: "🕵️", accent: "grape",  ageGroup: "6+",
     tagline: "Crack the secret number from the clues.",       skills: ["Number sense", "Logic"] },
@@ -40,13 +40,13 @@ window.GAMES = [
     tagline: "Program the robot to reach the treasure.",      skills: ["Coding", "Directions"] },
 
   { slug: "shopping-adventure", title: "Shopping Adventure",  emoji: "🛒", accent: "leaf",   ageGroup: "6+",
-    tagline: "Fill your cart as close to the budget as you can.", skills: ["Money", "Addition"] },
+    tagline: "Fill your cart as close to the budget as you can.", skills: ["Money", "Arithmetic"] },
 
   { slug: "coin-counter",       title: "Coin Counter",        emoji: "🪙", accent: "sun",    ageGroup: "6+",
     tagline: "Make the amount with the fewest coins.",        skills: ["Money"] },
 
   { slug: "times-table-pop",    title: "Times Table Pop",     emoji: "🎈", accent: "sky",    ageGroup: "7+",
-    tagline: "Pop the balloons that equal the product.",      skills: ["Multiplication"] },
+    tagline: "Pop the balloons that equal the product.",      skills: ["Arithmetic"] },
 
   { slug: "pizza-party",        title: "Pizza Party",         emoji: "🍕", accent: "coral",  ageGroup: "6+",
     tagline: "Serve the right fraction of pizza.",            skills: ["Fractions"] },
@@ -58,5 +58,11 @@ window.GAMES = [
     tagline: "Spot the pattern and finish it.",               skills: ["Patterns"] },
 
   { slug: "word-guess",   title: "Guess the Word",            emoji: "💭", accent: "sky",    ageGroup: "6+",
-    tagline: "Guess the hidden word, one letter at a time.",  skills: ["Spelling", "Vocabulary"],                       badge:"New"},
+    tagline: "Guess the hidden word, one letter at a time.",  skills: ["Spelling", "Vocabulary"] },
+
+  { slug: "math-monsters", title: "Math Monsters",            emoji: "👾", accent: "leaf",   ageGroup: "5+",
+    tagline: "Feed the monster the right answer!",            skills: ["Arithmetic"],                             badge:"New"},
+
+  { slug: "shape-sorter",  title: "Shape Sorter",             emoji: "🔷", accent: "sky",    ageGroup: "4+",
+    tagline: "Find and tap the matching shapes.",             skills: ["Shapes"],                                 badge:"New"},
 ];

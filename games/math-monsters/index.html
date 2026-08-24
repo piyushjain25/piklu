@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Math Monsters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:600px;}
+  .title{font-size:clamp(25px,5.2vw,40px);}
+  .topbar{margin-bottom:18px;}
+  .stagewrap{display:flex; flex-direction:column; align-items:center; margin-bottom:4px;}
+  svg.monster{width:min(200px,48vw); height:auto; display:block;}
+  svg.monster.mini{width:100%; height:auto; display:block;}
+  .monster .pupil{transition:transform .18s ease;}
+  .monster.sad .pupil{transform:translateY(-2px);}
+  .monster.chomp .pupil{transform:scale(1.12);}
+  .monster.chomp{animation:chompbounce .4s ease;}
+  .monster.sad{animation:sadwiggle .5s ease;}
+  @keyframes chompbounce{0%{transform:scale(1)}35%{transform:scale(1.14,.9)}70%{transform:scale(.94,1.08)}100%{transform:scale(1)}}
+  @keyframes sadwiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+  .belly-fill{transition:transform .5s cubic-bezier(.2,1.1,.4,1);}
+  .monster-name{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:13px; margin-top:2px;}
+  .diff .mini-slot{display:block; width:58px; height:58px; margin:0 auto 6px;}
+  .diff .mini-slot svg{width:100%; height:100%; display:block;}
+  .probbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:14px 16px; margin:6px 0 14px; text-align:center;}
+  .prob{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,8vw,42px); color:var(--grape-dark); line-height:1;}
+  .prob .op{color:var(--coral-dark);} .prob .q{color:var(--leaf-dark);}
+  .options{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; max-width:360px; margin:0 auto 6px;}
+  .opt{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(22px,6vw,28px); color:var(--ink);
+    background:#fff; border:3px solid var(--key-line); border-radius:18px; padding:16px 8px; cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .06s ease;}
+  .opt:hover{border-color:var(--grape);}
+  .opt:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+  .opt.correct{background:var(--leaf); color:#fff; border-color:var(--leaf-dark);}
+  .opt.wrong-flash{animation:shakeopt .35s ease;}
+  .opt.dim{opacity:.35; pointer-events:none;}
+  @keyframes shakeopt{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">👾 Feed the hungry monster the right answer!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><span class="mini-slot"></span><div class="d-name">🌱 Easy</div><div class="d-range">addition to 20</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><span class="mini-slot"></span><div class="d-name">⭐ Medium</div><div class="d-range">subtraction</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><span class="mini-slot"></span><div class="d-name">🔥 Hard</div><div class="d-range">× tables 2–9</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><span class="mini-slot"></span><div class="d-name">🏆 Expert</div><div class="d-range">÷ tables 2–9</div></button>
+      </div>
+      <div class="howto">
+        👾 <b>How to play:</b> A hungry monster shows up with a problem! Tap the answer you think is right.
+        Get it right and the monster gobbles it up happily. Pick a wrong one and it'll pull a sad face —
+        just try one of the others!
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="stagewrap">
+        <div class="monster-host" id="monster-host"></div>
+        <div class="monster-name" id="monster-name"></div>
+      </div>
+
+      <div class="probbox">
+        <div class="prob" id="prob"></div>
+      </div>
+
+      <div class="options" id="options" role="group" aria-label="Choose the answer"></div>
+
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+      <div class="feedback" id="feedback"></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+"use strict";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+/* ===== engine (verified offline — see math-monsters.test.js) ===== */
+const LEVELS={
+  EASY:  { op:'+', label:"🌱 Easy" },
+  MEDIUM:{ op:'-', label:"⭐ Medium" },
+  HARD:  { op:'×', label:"🔥 Hard" },
+  EXPERT:{ op:'÷', label:"🏆 Expert" },
+};
+function genOptions(answer){
+  const deltas=shuffle([1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,7,-7,8,-8,9,-9,10,-10,11,-11,12,-12]);
+  const set=new Set();
+  for(const d of deltas){ const v=answer+d; if(v>=0 && v!==answer){ set.add(v); if(set.size>=3) break; } }
+  let extra=13; while(set.size<3){ const v=answer+extra; if(v!==answer && !set.has(v)) set.add(v); extra++; }
+  return shuffle([{value:answer,correct:true}, ...[...set].map(v=>({value:v,correct:false}))]);
+}
+function genProblem(level){
+  const op=LEVELS[level].op; let a,b,answer;
+  if(op==='+'){ a=1+rnd(18); b=1+rnd(Math.max(1,20-a)); answer=a+b; }
+  else if(op==='-'){ a=2+rnd(19); b=1+rnd(a-1); answer=a-b; }
+  else if(op==='×'){ a=2+rnd(8); b=2+rnd(8); answer=a*b; }
+  else { b=2+rnd(8); const q=2+rnd(8); a=b*q; answer=q; }
+  return { level, op, a, b, answer, options:genOptions(answer) };
+}
+if(typeof module!=="undefined") module.exports={ genOptions, genProblem };
+
+/* ===== monster art (one character per level) ===== */
+const MONSTERS={
+  EASY:  { name:"Munchie", color:"#ff9a5b", deep:"#e2703a", soft:"#ffe3cd", belly:"#ffd36e", horn:"antenna", eyes:2 },
+  MEDIUM:{ name:"Grumble", color:"#a98be0", deep:"#7d5cc4", soft:"#e7dcff", belly:"#c4a9ff", horn:"spikes",  eyes:3 },
+  HARD:  { name:"Zappa",   color:"#4fc3a1", deep:"#2f9c7d", soft:"#d3f4e9", belly:"#8fe3c8", horn:"ears",    eyes:2 },
+  EXPERT:{ name:"Pip",     color:"#ff7fb0", deep:"#e2568e", soft:"#ffdcec", belly:"#ffb3d1", horn:"crown",   eyes:3 },
+};
+let monsterSeq=0;
+function monsterSVG(cfg, withBelly){
+  const uid='m'+(monsterSeq++);
+  const c=cfg.color, deep=cfg.deep, soft=cfg.soft, belly=cfg.belly;
+  const eyePositions = cfg.eyes===2 ? [[95,108],[145,108]] : [[80,110],[120,100],[160,110]];
+  let eyeMarkup="";
+  eyePositions.forEach(p=>{
+    eyeMarkup += `<g class="eye"><ellipse cx="${p[0]}" cy="${p[1]}" rx="19" ry="22" fill="#fff"/><circle class="pupil" cx="${p[0]}" cy="${p[1]+3}" r="9" fill="#3a2b4a"/><circle cx="${p[0]-3}" cy="${p[1]-2}" r="3.2" fill="#fff"/></g>`;
+  });
+  let top;
+  if(cfg.horn==='antenna'){
+    top = `<line x1="90" y1="55" x2="74" y2="18" stroke="${deep}" stroke-width="7" stroke-linecap="round"/><circle cx="72" cy="14" r="10" fill="${belly}"/><line x1="150" y1="55" x2="166" y2="18" stroke="${deep}" stroke-width="7" stroke-linecap="round"/><circle cx="168" cy="14" r="10" fill="${belly}"/>`;
+  } else if(cfg.horn==='spikes'){
+    top = `<path d="M78,55 L64,14 L100,46 Z" fill="${deep}"/><path d="M120,50 L120,6 L142,44 Z" fill="${deep}"/><path d="M162,55 L176,14 L140,46 Z" fill="${deep}"/>`;
+  } else if(cfg.horn==='ears'){
+    top = `<ellipse cx="66" cy="46" rx="22" ry="30" fill="${c}"/><ellipse cx="66" cy="46" rx="10" ry="16" fill="${soft}"/><ellipse cx="174" cy="46" rx="22" ry="30" fill="${c}"/><ellipse cx="174" cy="46" rx="10" ry="16" fill="${soft}"/>`;
+  } else {
+    top = `<circle cx="88" cy="40" r="12" fill="${c}"/><circle cx="120" cy="32" r="14" fill="${c}"/><circle cx="152" cy="40" r="12" fill="${c}"/>`;
+  }
+  let bellyMarkup;
+  if(withBelly){
+    bellyMarkup = `<clipPath id="bc_${uid}"><ellipse cx="120" cy="176" rx="58" ry="52"/></clipPath>
+      <ellipse cx="120" cy="176" rx="58" ry="52" fill="${soft}"/>
+      <g clip-path="url(#bc_${uid})"><rect class="belly-fill" x="60" y="124" width="120" height="104" fill="${belly}" transform="translate(0,104)"/></g>
+      <ellipse cx="120" cy="176" rx="58" ry="52" fill="none" stroke="${deep}" stroke-width="4" opacity=".25"/>`;
+  } else {
+    bellyMarkup = `<ellipse cx="120" cy="176" rx="52" ry="46" fill="${soft}"/>`;
+  }
+  return `<svg class="monster${withBelly?'':' mini'}" viewBox="0 0 240 270" aria-hidden="true">
+    ${top}
+    <ellipse cx="88" cy="242" rx="26" ry="18" fill="${deep}"/>
+    <ellipse cx="152" cy="242" rx="26" ry="18" fill="${deep}"/>
+    <path d="M120,52 C60,52 40,110 44,158 C48,214 78,244 120,244 C162,244 192,214 196,158 C200,110 180,52 120,52 Z" fill="${c}"/>
+    <ellipse cx="46" cy="168" rx="16" ry="26" fill="${c}" transform="rotate(-18 46 168)"/>
+    <ellipse cx="194" cy="168" rx="16" ry="26" fill="${c}" transform="rotate(18 194 168)"/>
+    ${bellyMarkup}
+    <circle cx="74" cy="140" r="12" fill="${deep}" opacity=".18"/>
+    <circle cx="166" cy="140" r="12" fill="${deep}" opacity=".18"/>
+    ${eyeMarkup}
+    <path class="mouth-smile" d="M96,132 Q120,152 144,132" stroke="#3a2b4a" stroke-width="6" fill="none" stroke-linecap="round" style="opacity:1"/>
+    <ellipse class="mouth-open" cx="120" cy="140" rx="26" ry="18" fill="#5a2a3a" style="opacity:0"/>
+    <ellipse class="tongue" cx="120" cy="150" rx="15" ry="9" fill="#ff8fa3" style="opacity:0"/>
+  </svg>`;
+}
+function renderMonster(){
+  $("monster-host").innerHTML = monsterSVG(MONSTERS[level], true);
+  $("monster-name").textContent = MONSTERS[level].name;
+}
+
+/* ===== state ===== */
+let level="EASY", muted=false, P=null, phase='play', hintUsed=false, sadTimer=null, prevSig=null;
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=>{
+  b.onclick=()=>setLevel(b.dataset.diff);
+  const slot=b.querySelector(".mini-slot"); if(slot) slot.innerHTML=monsterSVG(MONSTERS[b.dataset.diff], false);
+});
+
+// level switcher (tap the chip at the top to change difficulty mid-game)
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function toggleLevelMenu(){ const m=$("level-menu"); const open=m.classList.toggle("open"); $("q-level").setAttribute("aria-expanded", open); }
+function closeLevelMenu(){ $("level-menu").classList.remove("open"); $("q-level").setAttribute("aria-expanded","false"); }
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newProblem(false); }
+$("q-level").onclick=(e)=>{ e.stopPropagation(); toggleLevelMenu(); };
+document.addEventListener("click", e=>{ if(!e.target.closest(".level-switch")) closeLevelMenu(); });
+$("start-btn").onclick=()=>newProblem(true); $("home-btn").onclick=goHome;
+$("skip-btn").onclick=()=>newProblem(false); $("next-btn").onclick=()=>newProblem(false);
+$("hint-link").onclick=giveHint;
+
+const sig = p => `${p.op}:${p.a}:${p.b}`;
+function newProblem(fromHome){
+  clearTimeout(sadTimer);
+  let p; for(let a=0;a<40;a++){ p=genProblem(level); if(!prevSig || sig(p)!==prevSig) break; }
+  P=p; prevSig=sig(P); phase='play'; hintUsed=false;
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  setLevel(level);
+  renderMonster();
+  $("prob").innerHTML=`${P.a} <span class="op">${P.op}</span> ${P.b} <span>=</span> <span class="q">?</span>`;
+  renderOptions();
+  $("result-view").classList.add("hide"); $("options").classList.remove("hide");
+  $("serve-view").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  flash("Tap the answer to feed the monster!", '');
+}
+function renderOptions(){
+  const el=$("options"); el.innerHTML="";
+  P.options.forEach(opt=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=opt.value;
+    b.dataset.correct=opt.correct; b.setAttribute('aria-label', String(opt.value));
+    b.onclick=()=>pick(opt,b);
+    el.appendChild(b);
+  });
+}
+function pick(opt,btn){
+  if(phase!=='play') return;
+  if(opt.correct){
+    phase='done'; clearTimeout(sadTimer);
+    document.querySelectorAll('#options .opt').forEach(b=>{ b.onclick=null; if(b!==btn) b.classList.add('dim'); });
+    btn.classList.add('correct');
+    setMonster('chomp'); sound('win'); if(!reduceMotion) miniConfetti();
+    $("rlabel").textContent=`🎉 Yum! ${P.a} ${P.op} ${P.b} = ${P.answer}`;
+    $("result-view").classList.remove("hide"); flash('', '');
+    $("skip-btn").classList.add("invisible"); $("hint-link").classList.add("off");
+    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  } else {
+    btn.classList.remove('wrong-flash'); void btn.offsetWidth; btn.classList.add('wrong-flash');
+    setMonster('sad'); sound('bad');
+    flash("Not quite — try another one!", 'bad');
+    clearTimeout(sadTimer); sadTimer=setTimeout(()=>{ if(phase==='play') setMonster('idle'); }, 900);
+  }
+}
+function giveHint(){
+  if(phase!=='play' || hintUsed) return;
+  hintUsed=true;
+  const wrongBtns=[...$("options").querySelectorAll('.opt')].filter(b=>b.dataset.correct==='false');
+  shuffle(wrongBtns).slice(0,2).forEach(b=>b.classList.add('dim'));
+  flash("💡 Two wrong answers are dimmed — good luck with the rest!", 'hint');
+}
+let chompTimer=null;
+function setMonster(mood){
+  const m=$("monster-host").querySelector('.monster'); if(!m) return;
+  m.classList.remove('sad','chomp'); clearTimeout(chompTimer);
+  const smile=m.querySelector('.mouth-smile'), open=m.querySelector('.mouth-open'), tongue=m.querySelector('.tongue'), belly=m.querySelector('.belly-fill');
+  if(mood==='chomp'){
+    m.classList.add('chomp');
+    if(smile) smile.style.opacity='0'; if(open) open.style.opacity='1'; if(tongue) tongue.style.opacity='1';
+    if(belly) belly.setAttribute('transform','translate(0,0)');
+    chompTimer=setTimeout(()=>{ if(smile) smile.style.opacity='1'; if(open) open.style.opacity='0'; if(tongue) tongue.style.opacity='0'; }, 380);
+  } else if(mood==='sad'){
+    m.classList.add('sad');
+  } else {
+    if(smile) smile.style.opacity='1'; if(open) open.style.opacity='0'; if(tongue) tongue.style.opacity='0';
+  }
+}
+function flash(msg,kind){ const f=$("feedback"); f.textContent=msg; f.className="feedback "+(kind||''); }
+function goHome(){ clearTimeout(sadTimer); clearTimeout(chompTimer); stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); }
+
+document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !P) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if(e.key==='Enter' && phase==='done'){ e.preventDefault(); newProblem(false); }
+  if(e.key.toLowerCase()==='h' && phase==='play') giveHint();
+});
+
+/* ===== sound / confetti / title (shared) ===== */
+let audioCtx=null;
+function beep(freq,dur,type="sine",when=0,gain=0.12){ if(muted) return;
+  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur); }catch(e){} }
+function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+let confettiRAF=null;
+function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A","#4CC38A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
+function stopConfetti(){ if(confettiRAF) cancelAnimationFrame(confettiRAF); const cv=$("confetti"); if(cv){ cv.getContext("2d").clearRect(0,0,cv.width,cv.height); cv.style.display="none"; } }
+
+(function(){ const word="Math Monsters"; const cls=["c1","c2","c3","c4"]; const el=$("title"); let ci=0;
+  for(const ch of word){ if(ch===" "){ el.appendChild(document.createTextNode(" ")); continue; }
+    const s=document.createElement("span"); s.textContent=ch; s.className=cls[ci++%cls.length];
+    if(!reduceMotion) s.style.animation=`bobm 2.4s ease-in-out ${(ci*0.05).toFixed(2)}s infinite`; el.appendChild(s); }
+  if(!reduceMotion){ const st=document.createElement("style"); st.textContent="@keyframes bobm{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"; document.head.appendChild(st); }
+})();
+setLevel("EASY");
+</script>
+</body>
+</html>
