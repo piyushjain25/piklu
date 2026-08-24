@@ -68,4 +68,7 @@ window.GAMES = [
 
   { slug: "color-match",   title: "Color Match",              emoji: "🎨", accent: "coral",  ageGroup: "4+",
     tagline: "Tap the colours that match.",                   skills: ["Colours"],                                badge:"New"},
+
+  { slug: "calendar-quest", title: "Calendar Quest",          emoji: "📅", accent: "grape",    ageGroup: "7+",
+    tagline: "Answer riddles about days, weeks, and months.", skills: ["Calendar", "Reasoning"],                  badge:"New"},
 ];

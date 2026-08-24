@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calendar Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:640px;}
+  .title{font-size:clamp(26px,5.2vw,40px);}
+  .topbar{margin-bottom:22px;}
+  .qbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:18px 18px; margin-bottom:16px; text-align:center;}
+  .qcat{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape); font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;}
+  .qline{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink); font-size:clamp(16px,4vw,19px); line-height:1.55;}
+  .qline:last-child{color:var(--grape-dark); font-weight:700; font-size:clamp(17px,4.4vw,21px); margin-top:2px;}
+  .options{display:grid; grid-template-columns:1fr; gap:12px; margin:0 0 6px;}
+  @media(min-width:520px){.options{grid-template-columns:1fr 1fr;}}
+  .opt{border:3px solid var(--key-line); background:#fff; border-radius:16px; cursor:pointer; padding:14px 14px;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:var(--ink);
+    text-align:left; display:flex; align-items:center; gap:12px; transition:all .12s ease;}
+  .opt:hover:not(:disabled){border-color:var(--grape); transform:translateY(-1px);}
+  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .opt .num{font-family:'Fredoka',sans-serif; font-weight:600; background:#F1EDFA; color:var(--grape);
+    width:28px; height:28px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:14px; flex:0 0 auto;}
+  .opt .otxt{flex:1; line-height:1.3;}
+  .opt.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
+  .opt.correct .num{background:rgba(255,255,255,.3); color:#fff;}
+  .opt.wrong-flash{animation:shakeopt .35s ease;}
+  .opt.gone{background:#F2EEF9; border-color:#E0D8F0; color:#b7abd6; cursor:not-allowed; text-decoration:line-through;}
+  .opt.gone .num{background:#E0D8F0; color:#b7abd6;}
+  .opt:disabled{cursor:default;}
+  @keyframes shakeopt{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">📅 Answer calendar riddles about days, weeks, and months!</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">days &amp; months</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">counting forward</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">birthdays &amp; weeks</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">tricky riddles</div></button>
+      </div>
+
+      <div class="howto">
+        🗓️ <b>How to play:</b> Read the calendar question, then tap the answer you think is right. Wrong picks get
+        crossed out so you can try again — tap <b>💡 Hint</b> if you'd like two wrong answers ruled out for you,
+        leaving a 50/50 guess.
+      </div>
+
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="qbox">
+        <div class="qcat" id="qcat">What Comes Next?</div>
+        <div id="qlines"></div>
+      </div>
+
+      <div class="options" id="options" role="group" aria-label="Choose the answer"></div>
+
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+      <div class="feedback" id="feedback"></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+const rnd = n => Math.floor(Math.random()*n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+/* ============================================================
+   ENGINE (verified offline — see calendar-quest.test.js style check:
+   thousands of generated questions per level checked for exactly
+   one correct option, four distinct options, and independently
+   re-derived correctness of the answer)
+   ============================================================ */
+const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+const dowAdd = (i,n) => ((i+n)%7+7)%7;
+const monthAdd = (i,n) => ((i+n)%12+12)%12;
+function ordinal(n){
+  const j=n%10, k=n%100;
+  if(j===1 && k!==11) return n+"st";
+  if(j===2 && k!==12) return n+"nd";
+  if(j===3 && k!==13) return n+"rd";
+  return n+"th";
+}
+function distinctPositiveNear(correct,count){
+  const set=new Set(); let spread=1;
+  while(set.size<count && spread<1000){
+    for(const sign of [1,-1]){
+      const v=correct+sign*spread;
+      if(v>0 && v!==correct) set.add(v);
+    }
+    spread++;
+  }
+  return shuffle([...set]).slice(0,count);
+}
+
+function genDowNext(){
+  const s=rnd(7);
+  const seq=[0,1,2].map(k=>DOW[dowAdd(s,k)]);
+  const answer=DOW[dowAdd(s,3)];
+  const shown=new Set([...seq,answer]);
+  const pool=DOW.filter(d=>!shown.has(d));
+  const options=shuffle([answer,...pool]);
+  return { category:"What Comes Next?", lines:[`${seq.join(' → ')} → ?`], answer, options };
+}
+function genDowBefore(){
+  const x=rnd(7);
+  const after=Math.random()<0.5;
+  const answer=DOW[dowAdd(x, after?1:-1)];
+  const prompt = after ? `What day comes right after ${DOW[x]}?` : `What day comes right before ${DOW[x]}?`;
+  const shown=new Set([DOW[x],answer]);
+  const pool=shuffle(DOW.filter(d=>!shown.has(d)));
+  const options=shuffle([answer,...pool.slice(0,3)]);
+  return { category:"Before & After", lines:[prompt], answer, options };
+}
+function genMonthNext(){
+  const s=rnd(12);
+  const seq=[0,1,2].map(k=>MONTHS[monthAdd(s,k)]);
+  const answer=MONTHS[monthAdd(s,3)];
+  const shown=new Set([...seq,answer]);
+  const pool=shuffle(MONTHS.filter(m=>!shown.has(m)));
+  const options=shuffle([answer,...pool.slice(0,3)]);
+  return { category:"What Comes Next?", lines:[`${seq.join(' → ')} → ?`], answer, options };
+}
+function genDowCountForward(level){
+  const x=rnd(7);
+  const maxN = level==='HARD' ? 13 : 6;
+  let n; do{ n=1+rnd(maxN); }while(n%7===0);
+  const answer=DOW[dowAdd(x,n)];
+  const shown=new Set([DOW[x],answer]);
+  const pool=shuffle(DOW.filter(d=>!shown.has(d)));
+  const options=shuffle([answer,...pool.slice(0,3)]);
+  return { category:"Count the Days", lines:[`Today is ${DOW[x]}.`,`What day will it be ${n} days later?`], answer, options };
+}
+function genMonthHasDays(){
+  const dc=pick([28,30,31]);
+  const matching=MONTHS.filter((_,i)=>MONTH_DAYS[i]===dc);
+  const nonMatching=shuffle(MONTHS.filter((_,i)=>MONTH_DAYS[i]!==dc));
+  const answer=pick(matching);
+  const options=shuffle([answer,...nonMatching.slice(0,3)]);
+  return { category:"How Many Days?", lines:[`Which of these months has ${dc} days?`], answer, options };
+}
+function genWeekFact(){
+  const templates=[
+    { lines:["How many days are in a week?"], answer:"7", wrong:["5","6","8"] },
+    { lines:["How many months are in a year?"], answer:"12", wrong:["10","11","13"] },
+    { lines:["Which two days are usually the weekend?"], answer:"Saturday and Sunday", wrong:["Friday and Saturday","Sunday and Monday","Tuesday and Wednesday"] },
+  ];
+  const t=pick(templates);
+  const options=shuffle([t.answer,...t.wrong]);
+  return { category:"Calendar Facts", lines:t.lines, answer:t.answer, options };
+}
+function genBirthdayCountdown(level){
+  const m=rnd(12);
+  const days=MONTH_DAYS[m];
+  const maxGap = level==='EXPERT' ? 15 : 10;
+  const gap=1+rnd(Math.min(maxGap, days-1));
+  const d1=1+rnd(days-gap);
+  const d2=d1+gap;
+  const answer=`${gap} day${gap===1?'':'s'}`;
+  const wrongNums=distinctPositiveNear(gap,3);
+  const options=shuffle([answer,...wrongNums.map(n=>`${n} day${n===1?'':'s'}`)]);
+  return { category:"Birthday Countdown", lines:[`Riya's birthday is on ${ordinal(d2)} ${MONTHS[m]}.`,`Today is ${ordinal(d1)} ${MONTHS[m]}.`,`How many days are left?`], answer, options };
+}
+function genSameWeekdayOffset(level){
+  const weeks = level==='EXPERT' ? 2+rnd(2) : 1;
+  const offset=weeks*7;
+  const m=rnd(12);
+  const days=MONTH_DAYS[m];
+  const maxStart=days-offset; // >=1 always: min days 28, max offset 21
+  const d1=1+rnd(maxStart);
+  const d2=d1+offset;
+  const dow=rnd(7);
+  const answer=DOW[dow];
+  const near=[dowAdd(dow,-1),dowAdd(dow,1)].map(i=>DOW[i]);
+  const pool=shuffle(DOW.filter(d=>d!==answer && !near.includes(d)));
+  const wrongExtra=pool.slice(0, Math.max(0,3-near.length));
+  const options=shuffle([answer,...near,...wrongExtra].slice(0,4));
+  return { category:"Calendar Counting", lines:[`If the ${ordinal(d1)} of ${MONTHS[m]} is ${DOW[dow]}, what day is the ${ordinal(d2)} of ${MONTHS[m]}?`], answer, options };
+}
+function genMonthOrder(level){
+  const count = level==='EXPERT' ? 5 : 4;
+  const idxs=shuffle(Array.from({length:12},(_,i)=>i)).slice(0,count).sort((a,b)=>a-b);
+  const monthsChosen=idxs.map(i=>MONTHS[i]);
+  const correctOrder=monthsChosen.join(' → ');
+  let shownOrder=shuffle(monthsChosen), guard=0;
+  while(shownOrder.join(' → ')===correctOrder && guard++<50){ shownOrder=shuffle(monthsChosen); }
+  const seen=new Set([correctOrder]);
+  const optionStrs=[correctOrder];
+  const reverseOrder=monthsChosen.slice().reverse().join(' → ');
+  if(!seen.has(reverseOrder)){ optionStrs.push(reverseOrder); seen.add(reverseOrder); }
+  let guard2=0;
+  while(optionStrs.length<4 && guard2++<500){
+    const perm=shuffle(monthsChosen).join(' → ');
+    if(!seen.has(perm)){ optionStrs.push(perm); seen.add(perm); }
+  }
+  const options=shuffle(optionStrs);
+  return { category:"Month Order", lines:[`Put these months in the correct order:`, shownOrder.join(' → ')], answer:correctOrder, options };
+}
+function genMonthRiddle(){
+  const m=1+rnd(10);
+  const before=MONTHS[m-1], after=MONTHS[m+1];
+  const answer=MONTHS[m];
+  const days=MONTH_DAYS[m];
+  const shown=new Set([answer,before,after]);
+  const pool=shuffle(MONTHS.filter(x=>!shown.has(x)));
+  const options=shuffle([answer,before,after,pool[0]]);
+  return { category:"Month Mystery", lines:[`I am a month:`,`I come after ${before}.`,`I come before ${after}.`,`I have ${days} days.`,`Who am I?`], answer, options };
+}
+function genBirthdayCountdownCrossMonth(){
+  const m=rnd(11);
+  const days=MONTH_DAYS[m];
+  const d1=days-rnd(5);
+  const d2=1+rnd(5);
+  const gap=(days-d1)+d2;
+  const answer=`${gap} day${gap===1?'':'s'}`;
+  const wrongNums=distinctPositiveNear(gap,3);
+  const options=shuffle([answer,...wrongNums.map(n=>`${n} day${n===1?'':'s'}`)]);
+  return { category:"Birthday Countdown", lines:[`Riya's birthday is on ${ordinal(d2)} ${MONTHS[m+1]}.`,`Today is ${ordinal(d1)} ${MONTHS[m]}.`,`How many days are left?`], answer, options };
+}
+
+const LEVELS = {
+  EASY:   { kinds:['dowNext','dowBefore','monthNext'], label:"🌱 Easy" },
+  MEDIUM: { kinds:['dowNext','dowCountForward','monthHasDays','weekFact'], label:"⭐ Medium" },
+  HARD:   { kinds:['dowCountForward','birthdayCountdown','sameWeekdayOffset','monthOrder'], label:"🔥 Hard" },
+  EXPERT: { kinds:['birthdayCountdownCrossMonth','monthRiddle','monthOrder','sameWeekdayOffset'], label:"🏆 Expert" },
+};
+function genQuestion(level){
+  const kind=pick(LEVELS[level].kinds);
+  if(kind==='dowNext') return genDowNext();
+  if(kind==='dowBefore') return genDowBefore();
+  if(kind==='monthNext') return genMonthNext();
+  if(kind==='dowCountForward') return genDowCountForward(level);
+  if(kind==='monthHasDays') return genMonthHasDays();
+  if(kind==='weekFact') return genWeekFact();
+  if(kind==='birthdayCountdown') return genBirthdayCountdown(level);
+  if(kind==='sameWeekdayOffset') return genSameWeekdayOffset(level);
+  if(kind==='monthOrder') return genMonthOrder(level);
+  if(kind==='monthRiddle') return genMonthRiddle();
+  if(kind==='birthdayCountdownCrossMonth') return genBirthdayCountdownCrossMonth();
+}
+if(typeof module!=="undefined") module.exports={ DOW, MONTHS, MONTH_DAYS, dowAdd, monthAdd, ordinal, LEVELS, genQuestion,
+  genDowNext, genDowBefore, genMonthNext, genDowCountForward, genMonthHasDays, genWeekFact,
+  genBirthdayCountdown, genSameWeekdayOffset, genMonthOrder, genMonthRiddle, genBirthdayCountdownCrossMonth };
+
+/* ===== state ===== */
+let level="EASY", Q=null, phase='play', hintUsed=false, prevSig=null;
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+// level switcher (tap the chip at the top to change difficulty mid-game)
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newQuestion(false); }
+wireLevelMenu();
+
+$("start-btn").onclick = ()=>newQuestion(true);
+$("home-btn").onclick  = goHome;
+$("skip-btn").onclick  = ()=>{ if(phase!=='play') return; newQuestion(false); };
+$("next-btn").onclick  = ()=>newQuestion(false);
+$("hint-link").onclick = giveHint;
+
+const qSig = q => q.category+'|'+q.lines.join('|');
+function newQuestion(fromHome){
+  // fresh question, different from the one just shown (Skip/Next never repeat the current puzzle)
+  let q; for(let a=0;a<15;a++){ q=genQuestion(level); if(!prevSig || qSig(q)!==prevSig) break; }
+  Q={ ...q, correctIdx:q.options.indexOf(q.answer) };
+  prevSig=qSig(Q); phase='play'; hintUsed=false;
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  setLevel(level);
+  renderQuestion();
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  setOwl('idle'); flash("Pick the answer you think is right!", '');
+}
+function renderQuestion(){
+  $("qcat").textContent=Q.category;
+  $("qlines").innerHTML=Q.lines.map(l=>`<div class="qline">${l}</div>`).join('');
+  const box=$("options"); box.innerHTML="";
+  Q.options.forEach((opt,idx)=>{
+    const b=document.createElement("button");
+    b.className="opt"; b.dataset.idx=idx; b.dataset.correct=String(idx===Q.correctIdx);
+    b.innerHTML=`<span class="num">${idx+1}</span><span class="otxt">${opt}</span>`;
+    b.onclick=()=>choose(idx,b);
+    box.appendChild(b);
+  });
+}
+function choose(idx, btn){
+  if(phase!=='play' || btn.disabled) return;
+  if(idx===Q.correctIdx){
+    phase='done';
+    btn.classList.add("correct"); btn.disabled=true;
+    document.querySelectorAll(".opt").forEach(b=>{ b.disabled=true; if(!b.classList.contains("correct")) b.classList.add("gone"); });
+    flash('', '');
+    $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+    $("rlabel").textContent = pickPraise();
+    $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
+    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+    setOwl('win'); sound('win'); if(!reduceMotion) miniConfetti();
+  } else {
+    btn.classList.remove("wrong-flash"); void btn.offsetWidth; btn.classList.add("wrong-flash");
+    setTimeout(()=>{ btn.classList.remove("wrong-flash"); btn.classList.add("gone"); btn.disabled=true; }, 300);
+    flash("Not quite — try again!", 'bad'); setOwl('worried'); sound('bad');
+  }
+}
+function giveHint(){
+  if(phase!=='play' || hintUsed) return;
+  hintUsed=true; $("hint-link").classList.add("off");
+  const wrongBtns=[...document.querySelectorAll(".opt")].filter(b=>b.dataset.correct==='false' && !b.classList.contains("gone"));
+  shuffle(wrongBtns).slice(0, Math.max(0, wrongBtns.length-1)).forEach(b=>{ b.classList.add("gone"); b.disabled=true; });
+  flash("💡 Two wrong answers are ruled out — down to a 50/50!", 'hint'); setOwl('think'); sound('tick');
+}
+function pickPraise(){
+  const p=["🎉 Correct!","🌟 Yes! Well done!","👏 That's right!","✨ Brilliant!","🙌 You got it!"];
+  return p[rnd(p.length)];
+}
+function goHome(){
+  stopConfetti(); Q=null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl('idle');
+}
+
+// keyboard: 1-4 pick an option, H hint, Enter/Space -> next when solved, Escape closes the level menu
+document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !Q) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if((e.key==="Enter"||e.key===" ") && phase==='done'){ e.preventDefault(); newQuestion(false); return; }
+  if(e.key.toLowerCase()==="h" && phase==='play'){ giveHint(); return; }
+  const n=parseInt(e.key,10);
+  if(!isNaN(n) && n>=1 && n<=Q.options.length && phase==='play'){
+    const btn=document.querySelectorAll(".opt")[n-1];
+    if(btn && !btn.disabled) btn.click();
+  }
+});
+
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
+function sound(kind){
+  if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
+  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
+}
+function miniConfetti(){
+  const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
+}
+
+initBouncyTitle("Calendar Quest");
+setLevel("EASY");
+</script>
+</body>
+</html>
