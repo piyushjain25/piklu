@@ -32,6 +32,7 @@
       <input class="search" id="search" type="search" placeholder="Search games or skills…" aria-label="Search games" autocomplete="off" />
       <span class="count" id="count"></span>
     </div>
+    <div class="age-filter" id="ageFilter" role="group" aria-label="Filter by age"></div>
 
     <main class="grid" id="grid" aria-live="polite"></main>
     <p class="empty hide" id="empty" style="display:none;">No games match that — try another word. 🔍</p>
@@ -57,7 +58,8 @@
 
     const GAMES = Array.isArray(window.GAMES) ? window.GAMES : [];
     const grid=document.getElementById("grid"), countEl=document.getElementById("count"),
-          emptyEl=document.getElementById("empty"), search=document.getElementById("search");
+          emptyEl=document.getElementById("empty"), search=document.getElementById("search"),
+          ageFilterEl=document.getElementById("ageFilter");
 
     function cardHTML(g){
       const skills=(g.skills||[]).map(s=>`<span class="skill">${s}</span>`).join("");
@@ -81,16 +83,35 @@
       emptyEl.style.display = showing? "none":"block";
     }
 
+    let ageFilter="all";
     function matches(g,q){
+      if(ageFilter!=="all" && g.ageGroup!==ageFilter) return false;
       if(!q) return true;
       const hay=[g.title,g.tagline,...(g.skills||[])].join(" ").toLowerCase();
       return hay.includes(q);
     }
 
-    search.addEventListener("input", ()=>{
+    function applyFilters(){
       const q=search.value.trim().toLowerCase();
       render(GAMES.filter(g=>matches(g,q)));
-    });
+    }
+
+    (function buildAgeFilter(){
+      const ages=Array.from(new Set(GAMES.map(g=>g.ageGroup).filter(Boolean)))
+        .sort((a,b)=>parseInt(a,10)-parseInt(b,10));
+      const opts=["all",...ages];
+      ageFilterEl.innerHTML=opts.map(a=>
+        `<button class="age-chip" data-age="${a}" aria-pressed="${a==='all'}">${a==='all'?'All ages':a}</button>`).join("");
+      ageFilterEl.querySelectorAll(".age-chip").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          ageFilter=btn.dataset.age;
+          ageFilterEl.querySelectorAll(".age-chip").forEach(b=>b.setAttribute("aria-pressed", b===btn));
+          applyFilters();
+        });
+      });
+    })();
+
+    search.addEventListener("input", applyFilters);
 
     render(GAMES);
   </script>
