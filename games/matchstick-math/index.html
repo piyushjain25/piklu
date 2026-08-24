@@ -634,13 +634,13 @@ function goHome(){
   setOwl('idle');
 }
 
-// keyboard: R reset, H hint, Enter/Space -> next (when solved), Escape closes the level menu
+// keyboard: Escape reset, H hint, Enter/Space -> next (when solved), Escape also closes the level menu
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide")) return;
   if(!game) return;
   if((e.key==="Enter"||e.key===" ") && solvedFlag){ e.preventDefault(); newPuzzle(); }
-  else if(e.key.toLowerCase()==="r" && !solvedFlag){ $("reset-btn").click(); }
+  else if(e.key==="Escape" && !solvedFlag){ e.preventDefault(); $("reset-btn").click(); }
   else if(e.key.toLowerCase()==="h" && !solvedFlag){ $("hint-btn").click(); }
 });
 

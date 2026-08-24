@@ -393,7 +393,7 @@ document.addEventListener("keydown", e=>{
     if(phase==='result'){ e.preventDefault(); newShop(false); }
     else if(phase==='shop' && cart.length){ e.preventDefault(); checkout(); }
   }
-  if(e.key.toLowerCase()==='r' && phase==='shop'){ resetShop(); }
+  if(e.key==='Escape' && phase==='shop'){ e.preventDefault(); resetShop(); return; }
   if(e.key.toLowerCase()==='h' && phase==='shop'){ giveHint(); }
 });
 

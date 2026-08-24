@@ -494,8 +494,8 @@ document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
   if(!state || state.status!=="playing") return;
   if($("screen-game").classList.contains("hide")) return;  // only when game visible
+  if(e.key==='Escape'){ resetWord(); return; }
   if(document.activeElement===$("word-guess")) return;   // don't hijack word input
-  if(e.key.toLowerCase()==="r"){ resetWord(); return; }
   if(e.key.toLowerCase()==="h"){ giveHint(); return; }
   if(/^[a-zA-Z]$/.test(e.key)) guessLetter(e.key);
 });

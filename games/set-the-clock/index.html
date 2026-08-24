@@ -284,7 +284,7 @@ document.addEventListener("keydown", e=>{
     else if(e.key==='ArrowRight'){ e.preventDefault(); setM=(setM+step)%60; render(); }
     else if(e.key==='ArrowLeft'){ e.preventDefault(); setM=(setM-step+60)%60; render(); }
     else if(e.key==='Enter'){ e.preventDefault(); check(); }
-    else if(e.key.toLowerCase()==='r'){ resetHands(); }
+    else if(e.key==='Escape'){ e.preventDefault(); resetHands(); }
     else if(e.key.toLowerCase()==='h'){ giveHint(); }
   } else if(e.key==='Enter'){ e.preventDefault(); newTime(false); }
 });

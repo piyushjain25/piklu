@@ -287,7 +287,7 @@ document.addEventListener("keydown", e=>{
   if(e.target && e.target.id==='hint-link') return;
   if(e.key==='Backspace' && phase==='build'){ e.preventDefault(); if(pile.length){ pile.pop(); clearHint(); render(); } return; }
   if(e.key==='Enter'){ if(phase==='result'){ e.preventDefault(); newPuzzle(false); } else if(total()===P.target){ e.preventDefault(); pay(); } return; }
-  if(e.key.toLowerCase()==='r' && phase==='build'){ $("reset-btn").click(); }
+  if(e.key==='Escape' && phase==='build'){ e.preventDefault(); $("reset-btn").click(); return; }
   if(e.key.toLowerCase()==='h' && phase==='build') giveHint();
 });
 

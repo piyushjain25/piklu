@@ -523,7 +523,7 @@ function goHome(){
   setOwl('idle');
 }
 
-// keyboard: type digits to place, Backspace to undo, Esc/R reset, U undo, H hint, Enter next when solved
+// keyboard: type digits to place, Backspace to undo, Esc reset, U undo, H hint, Enter next when solved
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide") || !game) return;
@@ -531,8 +531,7 @@ document.addEventListener("keydown", e=>{
   if(e.key==="Escape" && !solved){ e.preventDefault(); resetBuild(); return; }
   if(/^[0-9]$/.test(e.key)){ typeDigit(e.key); return; }
   if(e.key==="Backspace" && !solved){ e.preventDefault(); undoMove(); return; }
-  if(e.key.toLowerCase()==="r" && !solved){ resetBuild(); }
-  else if(e.key.toLowerCase()==="u" && !solved){ undoMove(); }
+  if(e.key.toLowerCase()==="u" && !solved){ undoMove(); }
   else if(e.key.toLowerCase()==="h" && !solved){ giveHint(); }
 });
 
