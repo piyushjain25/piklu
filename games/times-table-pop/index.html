@@ -20,7 +20,8 @@
   .dot{width:clamp(7px,2.4vw,12px); height:clamp(7px,2.4vw,12px); border-radius:50%; background:var(--grape); opacity:.85;}
   .arrayhint{font-weight:700; color:var(--ink-soft); font-size:12.5px; margin-top:6px;}
   .prompt{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:15px; margin-bottom:8px;}
-  .play{display:flex; flex-wrap:wrap; gap:12px 14px; justify-content:center; align-items:center; min-height:180px; padding:6px;}
+  .play{background:linear-gradient(180deg,#EAF7FF 0%,#F8FCFF 100%); border:3px solid #D6EEFB; border-radius:18px;
+    display:flex; flex-wrap:wrap; gap:12px 14px; justify-content:center; align-items:center; min-height:180px; padding:16px 12px;}
   .balloon{position:relative; width:clamp(58px,17vw,74px); height:clamp(66px,19vw,84px); border:none; cursor:pointer; color:#fff;
     font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5.5vw,26px); border-radius:50% 50% 48% 48%/54% 54% 46% 46%;
     display:flex; align-items:center; justify-content:center; box-shadow:inset -6px -6px 0 rgba(0,0,0,.08); animation:bob 3s ease-in-out infinite;}
@@ -57,7 +58,7 @@
         </svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🎈 Pop the balloons that equal the answer!</p>
+      <p class="subtitle">🎈 Pop the balloon with the correct answer!</p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">2, 5, 10</div></button>
@@ -66,7 +67,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">up to 12</div></button>
       </div>
       <div class="howto">
-        ✖️ <b>How to play:</b> A times-table fact appears with a dot picture to help you — work out the answer, then <b>pop every balloon</b>
+        ✖️ <b>How to play:</b> A times-table fact appears with a dot picture to help you — work out the answer, then <b>pop the balloon</b>
         showing that number! Watch out for the tricky close ones.
       </div>
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
@@ -103,7 +104,7 @@
         <div class="arrayhint" id="arrayhint"></div>
       </div>
 
-      <div class="prompt" id="prompt">Pop every balloon that shows the answer!</div>
+      <div class="prompt" id="prompt">Pop the balloon that shows the answer!</div>
       <div class="play" id="play"></div>
       <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
 
@@ -130,23 +131,25 @@ if(typeof window.NEXT_DELAY==="undefined") window.NEXT_DELAY=1500;
 
 /* ===== engine (verified offline) ===== */
 const LEVELS={
-  EASY:  { tables:[2,5,10],                  bubbles:5, kMax:2, label:"🌱 Easy" },
-  MEDIUM:{ tables:[2,3,4,5],                 bubbles:6, kMax:2, label:"⭐ Medium" },
-  HARD:  { tables:[2,3,4,5,6,7,8,9],         bubbles:7, kMax:3, label:"🔥 Hard" },
-  EXPERT:{ tables:[2,3,4,5,6,7,8,9,10,11,12],bubbles:8, kMax:3, label:"🏆 Expert" },
+  EASY:  { tables:[2,5,10],                  bubbles:5, bMax:6,  label:"🌱 Easy" },
+  MEDIUM:{ tables:[2,3,4,5],                 bubbles:6, bMax:8,  label:"⭐ Medium" },
+  HARD:  { tables:[2,3,4,5,6,7,8,9],         bubbles:7, bMax:10, label:"🔥 Hard" },
+  EXPERT:{ tables:[2,3,4,5,6,7,8,9,10,11,12],bubbles:8, bMax:12, label:"🏆 Expert" },
 };
+// exactly one balloon ever carries the correct answer; every other value is
+// unique and never equal to the product (the Set + v!==product filter below).
 function genRound(level){
-  const cfg=LEVELS[level]; const a=cfg.tables[rnd(cfg.tables.length)]; const b=2+rnd(9); const product=a*b; const k=1+rnd(cfg.kMax);
+  const cfg=LEVELS[level]; const a=cfg.tables[rnd(cfg.tables.length)]; const b=2+rnd(cfg.bMax-1); const product=a*b;
   const pool=[product-a,product+a,product-b,product+b,product-1,product+1,product-2,product+2,a*(b+1),a*(b-1),(a+1)*b,(a-1)*b,product+10,product-10].filter(v=>v>0&&v!==product);
-  const distract=new Set(); const need=cfg.bubbles-k; let guard=0;
+  const distract=new Set(); const need=cfg.bubbles-1; let guard=0;
   while(distract.size<need && guard++<500){ let v=pool.length&&Math.random()<0.85?pool[rnd(pool.length)]:(1+rnd(product+12)); if(v>0&&v!==product) distract.add(v); }
-  const bubbles=shuffle([...Array.from({length:k},()=>({value:product,correct:true})), ...[...distract].map(v=>({value:v,correct:false}))]);
+  const bubbles=shuffle([{value:product,correct:true}, ...[...distract].map(v=>({value:v,correct:false}))]);
   bubbles.forEach((x,i)=>x.id=i);
-  return { level, a, b, product, k, bubbles };
+  return { level, a, b, product, bubbles };
 }
 
 /* ===== state ===== */
-let level="EASY", R=null, correctLeft=0, cleanRound=true, phase='play', nextTimer=null, prevSig=null;
+let level="EASY", R=null, cleanRound=true, phase='play', nextTimer=null, prevSig=null;
 function setLevel(l){
   level=l;
   document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
@@ -174,7 +177,7 @@ function newRound(fromHome){
   clearTimeout(nextTimer);
   let r; for(let a=0;a<15;a++){ r=genRound(level); if(!prevSig || roundSig(r)!==prevSig) break; }
   R=r; prevSig=roundSig(R);
-  correctLeft=R.k; cleanRound=true; phase='play';
+  cleanRound=true; phase='play';
   if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
   setLevel(level);
   $("fact").innerHTML=`${R.a} <span style="color:var(--ink)">×</span> ${R.b} <span style="color:var(--ink)">=</span> <span class="q" id="qmark">?</span>`;
@@ -182,7 +185,7 @@ function newRound(fromHome){
   $("result-view").classList.add("hide"); $("play").classList.remove("hide"); $("prompt").classList.remove("hide");
   $("serve-view").classList.remove("hide"); $("next-btn").classList.add("hide");
   $("new-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
-  setOwl('idle'); flash("Pop every balloon that equals the answer!", '');
+  setOwl('idle'); flash("Pop the balloon that equals the answer!", '');
 }
 function renderArray(){
   const el=$("array"); el.style.gridTemplateColumns=`repeat(${R.a},1fr)`; el.innerHTML="";
@@ -204,9 +207,8 @@ function popBalloon(bub, el){
   if(bub.correct){
     el.classList.add('pop'); el.style.pointerEvents='none'; sound('pop');
     setTimeout(()=>el.remove(), reduceMotion?0:260);
-    correctLeft--; flashPulse();
-    if(correctLeft<=0) roundComplete();
-    else { flash(`Yes! ${R.bubbles.filter(x=>x.correct).length-correctLeft} of ${R.k} popped 🎈`, 'good'); setOwl('idle'); }
+    flashPulse();
+    roundComplete();
   } else {
     el.classList.remove('wrong'); void el.offsetWidth; el.classList.add('wrong'); sound('bad');
     cleanRound=false;
