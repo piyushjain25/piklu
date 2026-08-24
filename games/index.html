@@ -62,11 +62,12 @@
     function cardHTML(g){
       const skills=(g.skills||[]).map(s=>`<span class="skill">${s}</span>`).join("");
       const badge=g.badge?`<span class="badge">${g.badge}</span>`:"";
+      const age=g.ageGroup?`<span class="age-badge">Age: ${g.ageGroup}</span>`:"";
       // URL is always /games/<slug>/ — relative link keeps it stable now and inside a future store.
       return `<a class="game-card acc-${g.accent||'grape'}" href="${g.slug}/" aria-label="${g.title}">
-        ${badge}
+        ${age}
         <div class="game-emoji">${g.emoji||"🎮"}</div>
-        <div class="game-title">${g.title}</div>
+        <div class="game-title">${g.title}${badge}</div>
         <div class="game-tag">${g.tagline||""}</div>
         <div class="skills">${skills}</div>
         <span class="play">Play ▶</span>

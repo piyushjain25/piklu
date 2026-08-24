@@ -66,7 +66,7 @@ Two steps — never edit the hub's HTML or CSS to add a game:
 2. Add **one entry** to the `GAMES` array in `games.js`:
 
    ```js
-   { slug: "shape-sorter", title: "Shape Sorter", emoji: "🔷", accent: "sky",
+   { slug: "shape-sorter", title: "Shape Sorter", emoji: "🔷", accent: "sky", ageGroup: "5+",
      tagline: "Sort the shapes into the right bins.", skills: ["Shapes"], badge: "New" },
    ```
 
@@ -74,6 +74,8 @@ Two steps — never edit the hub's HTML or CSS to add a game:
    - `slug` (required) — folder name; becomes the URL `/games/<slug>/`. Must be unique.
    - `title`, `tagline`, `emoji` (required) — shown on the card.
    - `accent` (required) — one of `grape | coral | leaf | sun | sky`.
+   - `ageGroup` (required) — recommended starting age, shown on the card as `Age: X+` (e.g. `"6+"`).
+     This is a **hub-only** label — never shown inside the game itself.
    - `skills` (optional) — tags shown on the card and used by the hub's search.
    - `badge` (optional) — small ribbon like `"New"`; omit for none.
 
