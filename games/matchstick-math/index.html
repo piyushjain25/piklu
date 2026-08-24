@@ -21,7 +21,7 @@
   .instruct{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft);
     font-size:15px; margin:0 0 14px;}
   .board-wrap{background:var(--wood-bg); border:3px solid var(--wood-line); border-radius:20px;
-    padding:20px 14px; margin:0 auto 18px; text-align:center;
+    padding:20px 14px; margin:0 auto 18px; text-align:center; overflow-x:auto; -webkit-overflow-scrolling:touch;
     box-shadow:inset 0 3px 14px rgba(140,100,40,.12);}
   .board{width:100%; height:auto; max-width:560px; touch-action:manipulation; display:block; margin:0 auto;}
   .hit{cursor:pointer;}
@@ -143,12 +143,14 @@ const rnd = n => Math.floor(Math.random()*n);
    MATCHSTICK GEOMETRY  (all sticks are length ~60, in viewBox units)
    Seven-segment digits + operator/equals cells.
    ============================================================ */
-const CELL_W = 100, GAP = 26, VH = 170, INSET = 7;
+const CELL_W = 76, GAP = 16, VH = 170, INSET = 7;
+const HIT_W = 30;        // invisible line width (viewBox units) — just mouse-hover affordance now
+const CAPTURE_PX = 26;   // real on-screen pixel radius a tap must land within a stick's centreline to select it
 
-// digit segment endpoints (local to a 100-wide cell)
+// digit segment endpoints (local to a 76-wide cell)
 const DIGIT_SEGS = {
-  a:[20,25,80,25], b:[80,25,80,85], c:[80,85,80,145],
-  d:[20,145,80,145], e:[20,85,20,145], f:[20,25,20,85], g:[20,85,80,85]
+  a:[8,25,68,25], b:[68,25,68,85], c:[68,85,68,145],
+  d:[8,145,68,145], e:[8,85,8,145], f:[8,25,8,85], g:[8,85,68,85]
 };
 // which segments are lit for each digit
 const DIGIT_ON = {
@@ -159,9 +161,9 @@ const DIGIT_ON = {
 const SEG2DIGIT = {};
 for(const d in DIGIT_ON){ SEG2DIGIT[DIGIT_ON[d].split('').sort().join('')] = d; }
 
-const OP_SEGS  = { h:[20,85,80,85], v:[50,55,50,115] };       // + = h & v ; - = h only
-const OPX_SEGS = { p:[28.8,63.8,71.2,106.2], q:[28.8,106.2,71.2,63.8] }; // fixed X
-const EQ_SEGS  = { t:[20,65,80,65], b:[20,105,80,105] };      // fixed =
+const OP_SEGS  = { h:[8,85,68,85], v:[38,55,38,115] };        // + = h & v ; - = h only
+const OPX_SEGS = { p:[16.8,63.8,59.2,106.2], q:[16.8,106.2,59.2,63.8] }; // fixed X
+const EQ_SEGS  = { t:[8,65,68,65], b:[8,105,68,105] };        // fixed =
 
 /* ============================================================
    BOARD MODEL
@@ -356,6 +358,11 @@ function lineEl(cls, coords, extra){
   const [x1,y1,x2,y2]=coords;
   return `<line class="${cls}" x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" ${extra||''}/>`;
 }
+// the little coloured "match head" bead at one end of a drawn stick, so it reads as a matchstick and not a plain rod
+function headEl(coords){
+  const [,,x2,y2]=coords;
+  return `<circle class="matchhead" cx="${x2.toFixed(2)}" cy="${y2.toFixed(2)}" r="8" fill="url(#matchhead)" stroke="#7a231b" stroke-width="1.2"/>`;
+}
 // a quiet, engraved-looking groove for "you could place a stick here" slots —
 // a dark offset stroke plus a light offset stroke, so it reads as sunken rather than a bright overlay
 function sunkenTargetGhost(coords){
@@ -371,11 +378,13 @@ let held = null;        // slot id currently "in hand" (its origin), or null
 let moved = null;       // {from,to} once a stick has been relocated, or null
 let solvedFlag = false;
 let hintMove = null;    // {from,to} to highlight
+let hitCandidates = []; // [{id,act,pts}] mirrors the invisible hit lines, for distance-based tap resolution
 
 function render(){
   const svg=$("board");
   svg.setAttribute("viewBox", `0 0 ${boardW} ${VH}`);
   const wood=[], ghost=[], hits=[];
+  hitCandidates = [];
 
   for(const s of slots){
     const on = filled.has(s.id);
@@ -385,22 +394,32 @@ function render(){
 
     // ---- decide visual + action ----
     if(s.fixed){
-      wood.push(lineEl('stick fixed', insetPts(s.x1,s.y1,s.x2,s.y2,INSET), 'stroke="url(#woodFixed)" stroke-width="12" stroke-linecap="round"'));
-      hits.push(lineEl('hit locked', insetPts(s.x1,s.y1,s.x2,s.y2,2), `stroke="transparent" stroke-width="30" data-act="fixed"`));
+      const pts=insetPts(s.x1,s.y1,s.x2,s.y2,INSET);
+      wood.push(lineEl('stick fixed', pts, 'stroke="url(#woodFixed)" stroke-width="12" stroke-linecap="round"'));
+      wood.push(headEl(pts));
+      { const hp=insetPts(s.x1,s.y1,s.x2,s.y2,2);
+        hits.push(lineEl('hit locked', hp, `stroke="transparent" stroke-width="${HIT_W}" data-act="fixed"`));
+        hitCandidates.push({id:s.id, act:'fixed', pts:hp}); }
       continue;
     }
     if(isHeldOrigin){
       // the empty hole where the in-hand stick came from (tap to cancel)
       ghost.push(lineEl('slotghost origin', insetPts(s.x1,s.y1,s.x2,s.y2,INSET), 'stroke="var(--grape)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 12" opacity="0.55"'));
-      hits.push(lineEl('hit', insetPts(s.x1,s.y1,s.x2,s.y2,2), `stroke="transparent" stroke-width="30" data-act="cancel" data-id="${s.id}"`));
+      { const hp=insetPts(s.x1,s.y1,s.x2,s.y2,2);
+        hits.push(lineEl('hit', hp, `stroke="transparent" stroke-width="${HIT_W}" data-act="cancel" data-id="${s.id}"`));
+        hitCandidates.push({id:s.id, act:'cancel', pts:hp}); }
       continue;
     }
     if(on){
       let cls='stick', act='lift', locked=false;
       if(moved && held===null && s.id!==moved.to){ act='blocked'; locked=true; } // only the moved stick may be re-lifted
       if(isHintFrom) cls+=' hint-from';
-      wood.push(lineEl(cls, insetPts(s.x1,s.y1,s.x2,s.y2,INSET), 'stroke="url(#wood)" stroke-width="12" stroke-linecap="round"'));
-      hits.push(lineEl('hit'+(locked?' locked':''), insetPts(s.x1,s.y1,s.x2,s.y2,2), `stroke="transparent" stroke-width="30" data-act="${act}" data-id="${s.id}"`));
+      const pts=insetPts(s.x1,s.y1,s.x2,s.y2,INSET);
+      wood.push(lineEl(cls, pts, 'stroke="url(#wood)" stroke-width="12" stroke-linecap="round"'));
+      wood.push(headEl(pts));
+      { const hp=insetPts(s.x1,s.y1,s.x2,s.y2,2);
+        hits.push(lineEl('hit'+(locked?' locked':''), hp, `stroke="transparent" stroke-width="${HIT_W}" data-act="${act}" data-id="${s.id}"`));
+        hitCandidates.push({id:s.id, act, pts:hp}); }
       continue;
     }
     // empty non-fixed slot
@@ -410,7 +429,9 @@ function render(){
       } else {
         ghost.push(sunkenTargetGhost(insetPts(s.x1,s.y1,s.x2,s.y2,INSET)));
       }
-      hits.push(lineEl('hit', insetPts(s.x1,s.y1,s.x2,s.y2,2), `stroke="transparent" stroke-width="30" data-act="place" data-id="${s.id}"`));
+      { const hp=insetPts(s.x1,s.y1,s.x2,s.y2,2);
+        hits.push(lineEl('hit', hp, `stroke="transparent" stroke-width="${HIT_W}" data-act="place" data-id="${s.id}"`));
+        hitCandidates.push({id:s.id, act:'place', pts:hp}); }
     } else if(isHintTo){
       ghost.push(lineEl('slotghost hint-to', insetPts(s.x1,s.y1,s.x2,s.y2,INSET), 'stroke="var(--sun-dark)" stroke-width="11" stroke-linecap="round"'));
     }
@@ -424,6 +445,11 @@ function render(){
       <linearGradient id="woodFixed" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${VH}">
         <stop offset="0" stop-color="#C9B79B"/><stop offset="1" stop-color="#9C8968"/>
       </linearGradient>
+      <radialGradient id="matchhead" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#FF7A6E"/>
+        <stop offset="55%" stop-color="#E1493C"/>
+        <stop offset="100%" stop-color="#9c2a20"/>
+      </radialGradient>
       <filter id="ds" x="-20%" y="-20%" width="140%" height="140%">
         <feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#7a4a10" flood-opacity="0.28"/>
       </filter>
@@ -437,11 +463,34 @@ function render(){
 /* ============================================================
    INTERACTION
    ============================================================ */
+// maps a click/tap to SVG viewBox coordinates, plus the current px-per-unit scale
+function svgPoint(e){
+  const svg=$("board");
+  const rect=svg.getBoundingClientRect();
+  const scale = rect.width ? boardW/rect.width : 1; // viewBox units per CSS px
+  const src = (e.changedTouches && e.changedTouches[0]) || e;
+  return { x:(src.clientX-rect.left)*scale, y:(src.clientY-rect.top)*scale, scale };
+}
+function distToSeg(px,py,x1,y1,x2,y2){
+  const dx=x2-x1, dy=y2-y1, len2=dx*dx+dy*dy;
+  let t = len2 ? ((px-x1)*dx+(py-y1)*dy)/len2 : 0;
+  t = Math.max(0, Math.min(1,t));
+  return Math.hypot(px-(x1+t*dx), py-(y1+t*dy));
+}
 function onBoardClick(e){
-  const t = e.target.closest('.hit'); if(!t) return;
   if(solvedFlag) return;
-  const act = t.getAttribute('data-act');
-  const id  = t.getAttribute('data-id');
+  const p = svgPoint(e);
+  // pick whichever stick's centreline the tap actually landed closest to — not whichever
+  // invisible hit-band happens to be on top, since crossing sticks (the "+" sign) overlap heavily
+  let best=null, bestDist=Infinity;
+  for(const c of hitCandidates){
+    const [x1,y1,x2,y2]=c.pts;
+    const d=distToSeg(p.x,p.y,x1,y1,x2,y2);
+    if(d<bestDist){ bestDist=d; best=c; }
+  }
+  if(!best || bestDist > CAPTURE_PX*p.scale) return;
+  const act = best.act;
+  const id  = best.id;
   hintMove = null; // any interaction clears hint highlight
 
   if(act==='fixed'){ flash("That sign is glued down — it can't move!", 'hint'); setOwl('think'); return; }
