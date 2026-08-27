@@ -248,7 +248,7 @@ function newPuzzle(fromHome){
   $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   setPadDisabled(false); $("run-btn").disabled=true; $("undo-btn").classList.toggle("off", true);
-  $("moves-chip").textContent="Moves: 0";
+  $("moves-chip").textContent=`Moves: 0 / ${P.R*P.C}`;
   setOwl('idle'); flash(promptText(), '');
   renderGrid(); renderRobot(); renderTrail(); renderProg();
 }
@@ -270,7 +270,7 @@ function resetPuzzle(){
   delete document.body.dataset.running;
   trail=[[P.start[0],P.start[1]]];
   setPadDisabled(false); $("run-btn").disabled=true; $("undo-btn").classList.toggle("off", true);
-  $("moves-chip").textContent="Moves: 0";
+  $("moves-chip").textContent=`Moves: 0 / ${P.R*P.C}`;
   setOwl('idle'); flash(promptText(), '');
   renderGrid(); renderRobot(); renderTrail(); renderProg();
 }
@@ -279,19 +279,28 @@ function resetPuzzle(){
 function onArrow(dir){ if(!P || solved || running) return; if(P.direct) liveMove(dir); else addMove(dir); }
 
 function liveMove(dir){
+  const maxMoves=P.R*P.C;
+  if(program.length>=maxMoves){ flash(`🛑 That's ${maxMoves} moves — the max for this grid. Tap Reset to try again.`, 'bad'); setOwl('worried'); return; }
   const [dr,dc]=DIRS[dir]; const nr=robotPos[0]+dr, nc=robotPos[1]+dc;
   if(!inB(P,nr,nc) || isWall(P,nr,nc)){ bonk(); flash("Bump! 🤖 can't go there — try another way.", 'bad'); setOwl('worried'); return; }
   robotPos=[nr,nc]; program.push(dir); pushTrail(robotPos);
   renderRobot(); renderTrail(); sound('tick');
-  $("moves-chip").textContent=`Moves: ${program.length}`;
+  $("moves-chip").textContent=`Moves: ${program.length} / ${maxMoves}`;
   if(robotPos[0]===P.treasure[0] && robotPos[1]===P.treasure[1]) winGame(program.length);
+  else if(program.length>=maxMoves){ setPadDisabled(true); flash(`🛑 That's ${maxMoves} moves — the max for this grid. Tap Reset to try again.`, 'bad'); setOwl('worried'); }
   else { setOwl('idle'); if($("feedback").classList.contains('bad')) flash(promptText(),''); }
 }
-function addMove(dir){ program.push(dir); afterEdit(); }
+function addMove(dir){
+  const maxMoves=P.R*P.C;
+  if(program.length>=maxMoves){ flash(`🛑 That's ${maxMoves} moves — the max for this grid. Undo or Reset to fix your program.`, 'bad'); setOwl('worried'); return; }
+  program.push(dir); afterEdit();
+}
 function afterEdit(){
+  const maxMoves=P.R*P.C;
   robotPos=[P.start[0],P.start[1]]; trail=[[P.start[0],P.start[1]]];
   $("run-btn").disabled = program.length===0; $("undo-btn").classList.toggle("off", program.length===0);
-  $("moves-chip").textContent=`Moves: ${program.length}`;
+  $("moves-chip").textContent=`Moves: ${program.length} / ${maxMoves}`;
+  setPadDisabled(program.length>=maxMoves);
   renderRobot(); renderTrail(); renderProg();
 }
 
@@ -308,13 +317,20 @@ function renderGrid(){
   }
   applyBread();
 }
+function cellCenterPct(r,c){
+  const wrapRect=$("gridwrap").getBoundingClientRect();
+  const cellRect=$("grid").children[r*P.C+c].getBoundingClientRect();
+  return [(cellRect.left+cellRect.width/2-wrapRect.left)/wrapRect.width*100,
+    (cellRect.top+cellRect.height/2-wrapRect.top)/wrapRect.height*100];
+}
 function renderRobot(){ const tok=$("robot");
-  tok.style.left=((robotPos[1]+0.5)/P.C*100)+'%'; tok.style.top=((robotPos[0]+0.5)/P.R*100)+'%'; }
+  const [x,y]=cellCenterPct(robotPos[0],robotPos[1]);
+  tok.style.left=x+'%'; tok.style.top=y+'%'; }
 function pushTrail(pos){ const last=trail[trail.length-1]; if(!last||last[0]!==pos[0]||last[1]!==pos[1]) trail.push([pos[0],pos[1]]); }
 function renderTrail(){
   const line=$("trailline"), dots=$("traildots");
   if(!P || trail.length===0){ line.setAttribute('points',''); dots.innerHTML=''; return; }
-  const pts=trail.map(([r,c])=>[(c+0.5)/P.C*100,(r+0.5)/P.R*100]);
+  const pts=trail.map(([r,c])=>cellCenterPct(r,c));
   line.setAttribute('points', pts.map(p=>p[0].toFixed(2)+','+p[1].toFixed(2)).join(' '));
   dots.innerHTML = pts.map(p=>`<circle cx="${p[0].toFixed(2)}" cy="${p[1].toFixed(2)}" r="1.7"/>`).join('');
 }
@@ -345,10 +361,18 @@ function runProgram(){
     if(i>=trace.length){ finishRun(); return; }
     const chip=$("prog").querySelector(`.step[data-i="${i}"]`); if(chip) chip.classList.add('active');
     const s=trace[i]; robotPos=[s.r,s.c]; renderRobot();
-    if(s.bonk){ const tok=$("robot"); tok.classList.remove('bonk'); void tok.offsetWidth; tok.classList.add('bonk'); sound('bad'); }
-    else { pushTrail(robotPos); renderTrail(); sound('tick'); }
+    if(s.bonk){
+      const tok=$("robot"); tok.classList.remove('bonk'); void tok.offsetWidth; tok.classList.add('bonk'); sound('bad');
+      setTimeout(stopRunOnBonk, stepDelay); return;
+    }
+    pushTrail(robotPos); renderTrail(); sound('tick');
     i++; setTimeout(step, stepDelay);
   })();
+}
+function stopRunOnBonk(){
+  running=false; delete document.body.dataset.running;
+  setPadDisabled(program.length>=P.R*P.C); $("run-btn").disabled=false; $("undo-btn").classList.toggle("off", program.length===0);
+  flash("💥 Bonk! That move hits a wall — fix it (the highlighted step) and Run again.", 'bad'); setOwl('worried');
 }
 function finishRun(){
   running=false; delete document.body.dataset.running;
@@ -356,7 +380,7 @@ function finishRun(){
   const win = robotPos[0]===P.treasure[0] && robotPos[1]===P.treasure[1];
   if(win){ winGame(program.length); }
   else {
-    setPadDisabled(false); $("run-btn").disabled=false; $("undo-btn").classList.toggle("off", program.length===0);
+    setPadDisabled(program.length>=P.R*P.C); $("run-btn").disabled=false; $("undo-btn").classList.toggle("off", program.length===0);
     flash("The robot didn't reach 💎 — tweak your moves and run again!", 'bad'); setOwl('worried');
   }
 }
