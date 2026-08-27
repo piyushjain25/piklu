@@ -7,6 +7,24 @@
 const $ = id => document.getElementById(id);
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* ---------- game data loader ----------
+   Every data-driven game (word-guess/words.json, guess-the-capital/capitals.json,
+   spell-a-bee/words.json) keeps its data in a plain JSON file in its own folder —
+   no other format is supported (see CLAUDE.md) — and loads it with this at the
+   top of its own script:
+     let WORDS = [];
+     loadGameData("words.json").then(d => { if (d) WORDS = d; });
+   Returns the parsed JSON, or null on any failure (offline, or opened via file://,
+   which blocks fetch() — that's expected, not a bug; the game just stays unplayable
+   until it's served). Callers validate the shape themselves before using it. */
+async function loadGameData(path) {
+  try {
+    const res = await fetch(path, { cache: "no-store" });
+    if (res.ok) return await res.json();
+  } catch (e) { /* file:// or offline */ }
+  return null;
+}
+
 function flash(msg, kind) {
   const f = $("feedback");
   if (!f) return;

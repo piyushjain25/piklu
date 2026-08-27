@@ -21,18 +21,21 @@ online toy store later. Read the rules below before changing anything.
    static server, not by double-clicking the file. **Don't add an embedded/inline copy of
    the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
    two places and lets it silently drift out of sync. If the fetch fails, the game is
-   simply not playable (`word-guess`, `guess-the-capital`); that's expected, not a bug.
+   simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`); that's expected,
+   not a bug.
 4. **Each game is one file plus three shared assets.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
    into extra files. Every game also links three things from `/assets/` that must never be
    copy-pasted into a game's own `<style>`/`<script>`: `assets/site.css` (the shared design
    system — see "Standard layout & controls"), `assets/site.js` (the shared JS helpers —
    see "Shared JS helpers"), and the Google Fonts stylesheet. A game **may** keep
-   **data** in sibling files in the same folder (e.g. `words.json`, `capitals.json`) that
-   `index.html` loads at runtime with a **relative** `fetch()` (e.g. `fetch('words.json')`)
-   — keep the data next to that game's `index.html` and reference it by relative path so
-   the game stays portable. The only allowed external network calls are Google Fonts and
-   (for a couple of games) `cdnjs.cloudflare.com`.
+   **data** in a sibling file in the same folder (e.g. `words.json`, `capitals.json`).
+   **That file must be plain JSON — no other format is supported** (no `.js` data file
+   assigning a `window.X = {...}` global, no embedding the data inline in `index.html`).
+   Load it with the shared `loadGameData(path)` helper from `assets/site.js` (see "Shared
+   JS helpers") using a **relative** path (e.g. `loadGameData('words.json')`) — keep the
+   data next to that game's `index.html` so the game stays portable. The only allowed
+   external network calls are Google Fonts and (for a couple of games) `cdnjs.cloudflare.com`.
 5. **Keep it kid-safe and ad-free.** Age-appropriate content and friendly tone only.
    No ads, no analytics/tracking, no third-party trackers, no data collection.
 
@@ -44,7 +47,8 @@ online toy store later. Read the rules below before changing anything.
 /assets/site.css        shared styles — hub layout AND the shared game-page design
                         system (colours, owl, buttons, topbar/tlink/level-switch, etc.)
 /assets/site.js         shared JS helpers every game links before its own inline script
-                        ($, reduceMotion, flash, setOwl, level-menu, beep, confetti, title)
+                        ($, reduceMotion, flash, setOwl, level-menu, beep, confetti, title,
+                        loadGameData for JSON data files)
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
@@ -178,6 +182,12 @@ globals the game calls directly:
   (don't redeclare it with `let`).
 - `initBouncyTitle(text)` — builds the animated per-letter `<h1 id="title">` and injects
   its keyframes (a no-op past text into the bouncing title, respecting `reduceMotion`).
+- `loadGameData(path)` — `async`; `fetch`es a relative **JSON** path (`cache: "no-store"`)
+  and returns the parsed data, or `null` on any failure (offline, or opened via `file://`,
+  which blocks `fetch()` — see rule 4). Every data-driven game calls this once at the top
+  of its own script and assigns into its own `let` variable, e.g.
+  `loadGameData("words.json").then(d => { if (d) WORDS = d; })` — then validates the
+  shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
 
 A game's own script must not redeclare any of these names (that throws a `SyntaxError`
 at load) — if a game needs different behavior for one of them (e.g. `word-guess`'s
@@ -205,11 +215,13 @@ Nothing deploys until they push.
 matchstick-math · number-detective · number-builder · race-to-100 ·
 robot-instructions · shopping-adventure · coin-counter · times-table-pop ·
 pizza-party · set-the-clock · what-comes-next ·
-word-guess · guess-the-capital · math-monsters · shape-sorter · color-match
+word-guess · guess-the-capital · math-monsters · shape-sorter · color-match ·
+calendar-quest · sentence-doctor · spell-a-bee
 
-`word-guess` and `guess-the-capital` are the two **data-driven** originals: each
-loads its data from a JSON file in its own folder (`word-guess/words.json`,
-`guess-the-capital/capitals.json`).
+`word-guess`, `guess-the-capital`, and `spell-a-bee` are the **data-driven** games:
+each loads its data from a JSON file in its own folder (`word-guess/words.json`,
+`guess-the-capital/capitals.json`, `spell-a-bee/words.json`) via the shared
+`loadGameData()` helper.
 
 ## When the store is added later
 

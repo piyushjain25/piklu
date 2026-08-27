@@ -74,4 +74,7 @@ window.GAMES = [
 
   { slug: "sentence-doctor", title: "Sentence Doctor",        emoji: "🩺", accent: "coral",  ageGroup: "7+",
     tagline: "Heal the sick sentence!",                       skills: ["Grammar", "Punctuation"],                 badge:"New"},
+
+  { slug: "spell-a-bee",    title: "Spell-a-Bee",             emoji: "🐝", accent: "sun",    ageGroup: "6+",
+    tagline: "Listen to the word and spell it, letter by letter.", skills: ["Spelling", "Listening"],             badge:"New"},
 ];

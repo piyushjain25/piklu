@@ -228,17 +228,11 @@ const MAX_WORD_WRONG = 3;
 // fallback word list, by design: see CLAUDE.md.
 let WORDS = [];
 
-(async function loadWords(){
-  try{
-    const res = await fetch("words.json", {cache:"no-store"});
-    if(res.ok){
-      const data = await res.json();
-      if(Array.isArray(data) && data.length){
-        WORDS = data.filter(w => /^[A-Za-z]+$/.test(w)).map(w => w.toUpperCase());
-      }
-    }
-  }catch(e){ /* file:// or offline — WORDS stays empty and the game can't be played */ }
-})();
+loadGameData("words.json").then(data => {
+  if(Array.isArray(data) && data.length){
+    WORDS = data.filter(w => /^[A-Za-z]+$/.test(w)).map(w => w.toUpperCase());
+  }
+});
 
 // ---------- state ----------
 let state = null;

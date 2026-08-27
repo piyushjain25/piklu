@@ -150,12 +150,9 @@
 // fallback data, by design: see CLAUDE.md.
 let DATA = {india:[],world:[]};
 
-(async function(){
-  try{
-    const res = await fetch("capitals.json",{cache:"no-store"});
-    if(res.ok){ const d=await res.json(); if(d&&d.india&&d.world) DATA=d; }
-  }catch(e){ /* file:// or offline — DATA stays empty and the game can't be played */ }
-})();
+loadGameData("capitals.json").then(d => {
+  if(d && d.india && d.world) DATA = d;
+});
 
 const rnd = n => Math.floor(Math.random()*n);
 

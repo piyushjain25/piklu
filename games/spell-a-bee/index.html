@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spell-a-Bee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:640px;}
+  .title{font-size:clamp(26px,5.2vw,42px);}
+  .topbar{margin-bottom:14px;}
+  .diff.my{grid-column:1 / -1;}
+
+  /* ---- bee mascot (this game's own centerpiece character; the shared owl
+     still appears in the topbar/home brand per the site-wide identity) ---- */
+  .bee-wrap{display:flex; justify-content:center; margin:2px 0 6px;}
+  svg.bee{width:92px; height:92px;}
+  .bee .wing{transform-origin:50px 34px;}
+  .bee .antenna{transform-origin:top center;}
+  .bee .pupil{transition:transform .2s ease;}
+  .bee.think .pupil{transform:translateY(2px);}
+  .bee.worried .wing-l{transform:rotate(-32deg) translateY(4px);}
+  .bee.worried .wing-r{transform:rotate(32deg) translateY(4px);}
+  .bee.worried .mouth-happy{opacity:0;} .bee.worried .mouth-sad{opacity:1;}
+  .bee.happy .wing-l, .bee.win .wing-l{animation:flutterL .22s ease-in-out infinite alternate;}
+  .bee.happy .wing-r, .bee.win .wing-r{animation:flutterR .22s ease-in-out infinite alternate;}
+  .bee.win{animation:beehop .6s ease;}
+  .bee:not(.worried) .wing-l{animation:idleFlutterL 2.2s ease-in-out infinite;}
+  .bee:not(.worried) .wing-r{animation:idleFlutterR 2.2s ease-in-out infinite;}
+  .bee:not(.worried) .antenna-l{animation:wigL 2.6s ease-in-out infinite;}
+  .bee:not(.worried) .antenna-r{animation:wigR 2.6s ease-in-out infinite;}
+  @keyframes flutterL{0%{transform:rotate(-16deg)}100%{transform:rotate(-34deg)}}
+  @keyframes flutterR{0%{transform:rotate(16deg)}100%{transform:rotate(34deg)}}
+  @keyframes idleFlutterL{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(-22deg)}}
+  @keyframes idleFlutterR{0%,100%{transform:rotate(16deg)}50%{transform:rotate(22deg)}}
+  @keyframes wigL{0%,100%{transform:rotate(0)}50%{transform:rotate(7deg)}}
+  @keyframes wigR{0%,100%{transform:rotate(0)}50%{transform:rotate(-7deg)}}
+  @keyframes beehop{0%{transform:translateY(0)}30%{transform:translateY(-12px) rotate(-6deg)}60%{transform:translateY(0) rotate(4deg)}100%{transform:translateY(0)}}
+
+  .picture-card{width:110px; height:110px; border-radius:20px; background:var(--paper); border:3px solid var(--paper-line);
+    display:flex; align-items:center; justify-content:center; font-size:58px; margin:0 auto 12px;}
+  .hear-row{display:flex; justify-content:center; margin:2px 0 14px;}
+  .hear-btn{background:var(--sky); --btn-shadow:var(--sky-dark);}
+
+  .slots{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:6px 0 16px;}
+  .slot{
+    width:clamp(34px,8vw,50px); height:clamp(44px,10vw,60px);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,30px);
+    background:#FBF8FF; border:3px dashed var(--key-line); color:var(--ink); cursor:default;
+    transition:transform .1s ease, background .15s ease, border-color .15s ease;
+  }
+  .slot.filled{background:var(--sun); border:3px solid var(--sun-dark); border-style:solid; cursor:pointer;}
+  .slot.locked{background:var(--leaf); border-color:var(--leaf-dark); color:#fff; cursor:default;}
+  .slot.shake{animation:shakeslot .35s ease;}
+  @keyframes shakeslot{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  .pool{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:14px 0 4px; min-height:clamp(44px,10vw,60px);}
+  .tile{
+    width:clamp(34px,8vw,50px); height:clamp(44px,10vw,60px);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,30px);
+    background:#fff; border:3px solid var(--key-line); color:var(--ink);
+    cursor:pointer; box-shadow:0 4px 0 var(--key-line); transition:transform .05s ease;
+  }
+  .tile:active{transform:translateY(3px); box-shadow:0 1px 0 var(--key-line);}
+  .pool-empty{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:14px; text-align:center; padding:8px 0;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <!-- ===================== HOME ===================== -->
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <ellipse cx="32" cy="58" rx="16" ry="3" fill="#00000012"/>
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
+          <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
+          <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🐝 Listen closely and spell the word, letter by letter!</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">3-letter words</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">4-5 letters</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">blends &amp; digraphs</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">tricky &amp; long</div></button>
+        <button class="diff my hide" id="diff-my" data-diff="MY" aria-pressed="false"><div class="d-name">📝 My Words</div><div class="d-range">your own list</div></button>
+      </div>
+
+      <div class="howto">
+        🐝 <b>How to play:</b> Tap <b>🔊 Hear the Word</b> to listen (say it again anytime!). If there's a
+        picture, that's a clue too. Then tap the letter tiles in order to spell the word into the blanks —
+        tap a filled blank to take that tile back. Once every blank is full, hit <b>Check</b>! Stuck?
+        <b>💡 Hint</b> fills in the next letter for you.
+      </div>
+
+      <div class="row-btns mt">
+        <button id="start-btn" class="btn btn-go btn-lg">Start ▶</button>
+      </div>
+      <div class="hint err center hide" id="start-error">Couldn't load the word list. This game needs to be served over http(s), not opened as a local file.</div>
+    </section>
+
+    <!-- ===================== GAME ===================== -->
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
+            <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
+            <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="bee-wrap">
+        <svg class="bee" id="bee-game" viewBox="0 0 100 100" aria-hidden="true">
+          <ellipse cx="50" cy="72" rx="20" ry="4" fill="#00000012"/>
+          <ellipse class="wing wing-l" cx="34" cy="34" rx="16" ry="10" fill="#EAF6FF" opacity=".9" transform="rotate(-16 34 34)"/>
+          <ellipse class="wing wing-r" cx="66" cy="34" rx="16" ry="10" fill="#EAF6FF" opacity=".9" transform="rotate(16 66 34)"/>
+          <path class="antenna antenna-l" d="M42 20 Q36 8 30 6" stroke="#33236B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="30" cy="6" r="3" fill="#33236B"/>
+          <path class="antenna antenna-r" d="M58 20 Q64 8 70 6" stroke="#33236B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="70" cy="6" r="3" fill="#33236B"/>
+          <ellipse cx="50" cy="46" rx="26" ry="22" fill="#FFCF43"/>
+          <path d="M24.5 38 Q50 30 75.5 38" stroke="#33236B" stroke-width="7" fill="none"/>
+          <path d="M22 50 Q50 42 78 50" stroke="#33236B" stroke-width="7" fill="none"/>
+          <path d="M25 62 Q50 56 75 62" stroke="#33236B" stroke-width="6" fill="none"/>
+          <path d="M50 66 L46 74 L54 74 Z" fill="#33236B"/>
+          <g><circle cx="41" cy="42" r="7" fill="#fff"/><circle class="pupil" cx="41" cy="42" r="3.2" fill="#33236B"/></g>
+          <g><circle cx="59" cy="42" r="7" fill="#fff"/><circle class="pupil" cx="59" cy="42" r="3.2" fill="#33236B"/></g>
+          <path class="mouth mouth-happy" d="M44 53 Q50 58 56 53" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path class="mouth mouth-sad" d="M44 56 Q50 51 56 56" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0"/>
+        </svg>
+      </div>
+
+      <div class="picture-card hide" id="picture-card"></div>
+      <div class="hear-row">
+        <button id="hear-btn" class="btn hear-btn" type="button">🔊 Hear the Word</button>
+      </div>
+
+      <div class="slots" id="slots" aria-label="Spell the word here"></div>
+      <div class="message" id="message" style="text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; min-height:22px; color:var(--grape); margin:0 0 6px;">Tap 🔊 to hear the word!</div>
+
+      <div class="pool" id="pool" aria-label="Letter tiles"></div>
+
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div><div class="reveal-word" id="reveal-word" style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; letter-spacing:3px; color:var(--grape); margin-top:6px;"></div></div></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="reset-btn" class="tlink">↺ Reset</button>
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="check-btn" class="btn btn-go btn-lg" disabled>✔️ Check</button>
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+const LEVELS = {
+  EASY:   { label:"🌱 Easy" },
+  MEDIUM: { label:"⭐ Medium" },
+  HARD:   { label:"🔥 Hard" },
+  EXPERT: { label:"🏆 Expert" },
+};
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+// This game only works when served (fetch() is blocked under file://) — no embedded
+// fallback word list, by design: see CLAUDE.md.
+let BANK = {MY:[],EASY:[],MEDIUM:[],HARD:[],EXPERT:[]};
+
+loadGameData("words.json").then(data => {
+  if(!data) return;
+  BANK = data;
+  if(BANK.MY && BANK.MY.length) $("diff-my").classList.remove("hide");
+  buildLevelMenu();
+});
+
+// ---------- state ----------
+let level = "EASY";
+let state = null;
+const recent = []; // recently-served words per level, to avoid quick repeats
+const RECENT_MAX = 8;
+
+function poolFor(lvl){ return Array.isArray(BANK[lvl]) ? BANK[lvl] : []; }
+
+function pickWord(lvl){
+  const pool = poolFor(lvl);
+  if(!pool.length) return null;
+  const guardCount = Math.min(RECENT_MAX, Math.max(0, pool.length-1));
+  let w, guard=0;
+  do { w = pool[rnd(pool.length)]; guard++; }
+  while(guardCount>0 && recent.includes(w.w) && guard<20);
+  recent.push(w.w);
+  while(recent.length>guardCount) recent.shift();
+  return w;
+}
+
+// ---------- level select (home) ----------
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(btn=>{ btn.onclick = ()=>setLevel(btn.dataset.diff); });
+
+function buildLevelMenu(){
+  const menu=$("level-menu");
+  const entries = Object.entries(LEVELS);
+  if(BANK.MY && BANK.MY.length) entries.push(["MY", {label:"📝 My Words"}]);
+  menu.innerHTML = entries.map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevelInGame(b.dataset.diff));
+}
+function levelLabel(l){ return l==="MY" ? "📝 My Words" : LEVELS[l].label; }
+function pickLevelInGame(l){
+  closeLevelMenu();
+  if(l===level) return;
+  level=l;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+  startNext();
+}
+wireLevelMenu();
+
+$("start-btn").onclick = ()=>{
+  $("start-error").classList.add("hide");
+  const w = pickWord(level);
+  if(!w){ $("start-error").classList.remove("hide"); return; }
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  startGame(w);
+};
+
+// ---------- gameplay ----------
+function startGame(wordObj){
+  const secret = wordObj.w;
+  let order = shuffle([...secret].map((_,i)=>i));
+  if(secret.length>1){
+    let guard=0;
+    while(order.every((v,i)=>v===i) && guard++<8) order = shuffle(order);
+  }
+  state = {
+    wordObj, secret, order,
+    slots: new Array(secret.length).fill(null),
+    locked: new Set(),
+    status: "playing",
+  };
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===level));
+  $("q-level-label").textContent = levelLabel(level);
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("check-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  const pic = $("picture-card");
+  if(wordObj.e){ pic.textContent = wordObj.e; pic.classList.remove("hide"); }
+  else { pic.textContent=""; pic.classList.add("hide"); }
+  setMessage("Tap 🔊 to hear the word!", "");
+  renderSlots(); renderPool(); updateCheckBtn();
+  setMood("idle");
+  speakWord();
+}
+
+function renderSlots(){
+  const box=$("slots"); box.innerHTML="";
+  const over = state.status !== "playing";
+  state.slots.forEach((poolIdx, i)=>{
+    const s=document.createElement("button");
+    s.type="button"; s.className="slot";
+    s.setAttribute("aria-label", `Letter ${i+1}`);
+    if(poolIdx!==null){
+      s.textContent = state.secret[poolIdx];
+      s.classList.add("filled");
+      if(state.locked.has(i)) s.classList.add("locked");
+    } else if(over){
+      s.textContent = state.secret[i];
+    }
+    s.disabled = over || poolIdx===null || state.locked.has(i);
+    s.onclick = ()=> removeFromSlot(i);
+    box.appendChild(s);
+  });
+}
+function renderPool(){
+  const box=$("pool"); box.innerHTML="";
+  const over = state.status !== "playing";
+  const placed = new Set(state.slots.filter(v=>v!==null));
+  const remaining = state.order.filter(idx=>!placed.has(idx));
+  if(over){ box.innerHTML=""; return; }
+  if(!remaining.length){
+    const p=document.createElement("div"); p.className="pool-empty"; p.textContent="Every tile is placed — hit Check!";
+    box.appendChild(p); return;
+  }
+  remaining.forEach(idx=>{
+    const t=document.createElement("button");
+    t.type="button"; t.className="tile"; t.textContent=state.secret[idx];
+    t.setAttribute("aria-label", `Place letter ${state.secret[idx]}`);
+    t.onclick = ()=> placeTile(idx);
+    box.appendChild(t);
+  });
+}
+function updateCheckBtn(){
+  const filled = state && state.slots.every(v=>v!==null);
+  $("check-btn").disabled = !filled;
+}
+function setMessage(txt, kind){
+  const m=$("message"); m.textContent=txt;
+  m.className="message"+(kind?(" "+kind):"");
+}
+function setMood(mood){ setOwl(mood); setBee(mood); }
+function setBee(mood){
+  const b=$("bee-game"); if(!b) return;
+  b.classList.remove("happy","worried","win","think");
+  if(mood!=="idle") b.classList.add(mood);
+}
+
+function placeTile(poolIdx){
+  if(!state || state.status!=="playing") return;
+  const emptyPos = state.slots.indexOf(null);
+  if(emptyPos===-1) return;
+  state.slots[emptyPos] = poolIdx;
+  renderSlots(); renderPool(); updateCheckBtn();
+}
+function removeFromSlot(pos){
+  if(!state || state.status!=="playing") return;
+  if(state.locked.has(pos)) return;
+  if(state.slots[pos]===null) return;
+  state.slots[pos] = null;
+  renderSlots(); renderPool(); updateCheckBtn();
+}
+
+function speakWord(){
+  if(!state || !("speechSynthesis" in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(state.secret);
+    u.rate = 0.82; u.lang = "en-US";
+    speechSynthesis.speak(u);
+  }catch(e){ /* speech unsupported — game still fully playable via picture/hint */ }
+}
+$("hear-btn").onclick = speakWord;
+
+function checkAnswer(){
+  if(!state || state.status!=="playing") return;
+  if(!state.slots.every(v=>v!==null)) return;
+  const guess = state.slots.map(idx=>state.secret[idx]).join("");
+  if(guess===state.secret){ win(); }
+  else{
+    const box=$("slots");
+    box.classList.add("shake");
+    setTimeout(()=>box.classList.remove("shake"), 400);
+    setMessage("Not quite! Tap a tile to swap it around and try again.", "bad");
+    setMood("worried"); sound("bad");
+  }
+}
+$("check-btn").onclick = checkAnswer;
+
+function giveHint(){
+  if(!state || state.status!=="playing") return;
+  let target = state.slots.indexOf(null);
+  if(target===-1){ setMessage("Every blank is filled — tap Check! If it's wrong, tap a tile to take it back.", "hint"); return; }
+  const needChar = state.secret[target];
+  const placed = new Set(state.slots.filter(v=>v!==null));
+  let sourceIdx = state.order.find(idx=>!placed.has(idx) && state.secret[idx]===needChar);
+  if(sourceIdx===undefined){
+    // every instance of this letter is already placed (in the wrong spot) — reclaim one
+    for(let p=0;p<state.slots.length;p++){
+      const idx = state.slots[p];
+      if(idx!==null && !state.locked.has(p) && state.secret[idx]===needChar){
+        state.slots[p] = null; sourceIdx = idx; break;
+      }
+    }
+  }
+  if(sourceIdx===undefined) return; // shouldn't happen — tile counts always match the word
+  state.slots[target] = sourceIdx;
+  state.locked.add(target);
+  renderSlots(); renderPool(); updateCheckBtn();
+  const clue = state.wordObj.h ? `${state.wordObj.h}. ` : "";
+  setMessage(`💡 ${clue}The next letter is "${needChar.toUpperCase()}"!`, "hint");
+  setMood("think");
+}
+$("hint-link").onclick = giveHint;
+
+function resetPuzzle(){
+  if(!state || state.status!=="playing") return;
+  state.slots = new Array(state.secret.length).fill(null);
+  state.locked = new Set();
+  renderSlots(); renderPool(); updateCheckBtn();
+  setMessage("Board cleared — spell it out again!", ""); setMood("idle");
+}
+$("reset-btn").onclick = resetPuzzle;
+
+function win(){
+  state.status="won";
+  renderSlots(); renderPool();
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("rlabel").textContent = "🌟 Buzz-tastic! You spelled it!";
+  $("reveal-word").textContent = state.secret;
+  $("skip-btn").classList.add("invisible");
+  $("check-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  setMessage("", "");
+  setMood("win"); sound("win");
+  if(!reduceMotion) launchConfetti();
+}
+
+$("skip-btn").onclick = ()=>{ if(!state || state.status!=="playing") return; startNext(); };
+$("home-btn").onclick = goHome;
+$("next-btn").onclick = startNext;
+
+function startNext(){
+  const w = pickWord(level);
+  if(!w){ goHome(); return; }
+  startGame(w);
+}
+function goHome(){
+  stopConfetti();
+  try{ speechSynthesis.cancel(); }catch(e){}
+  state=null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setMood("idle");
+}
+
+// physical keyboard support
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){ closeLevelMenu(); return; }
+  if(!state || $("screen-game").classList.contains("hide")) return;
+  if(state.status!=="playing"){
+    if(e.key==="Enter"){ e.preventDefault(); startNext(); }
+    return;
+  }
+  if(e.key==="Enter"){ e.preventDefault(); checkAnswer(); return; }
+  if(e.key==="Backspace"){
+    e.preventDefault();
+    for(let p=state.slots.length-1;p>=0;p--){
+      if(state.slots[p]!==null && !state.locked.has(p)){ removeFromSlot(p); break; }
+    }
+    return;
+  }
+  if(e.key.toLowerCase()==="h" && !e.metaKey && !e.ctrlKey){ giveHint(); return; }
+  const ch = e.key.toLowerCase();
+  if(/^[a-z]$/.test(ch)){
+    const placed = new Set(state.slots.filter(v=>v!==null));
+    const idx = state.order.find(i=>!placed.has(i) && state.secret[i]===ch);
+    if(idx!==undefined) placeTile(idx);
+  }
+});
+
+// ---------- sound (beep/setOwl/stopConfetti shared in site.js) ----------
+function sound(kind){
+  if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
+  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.11)); }
+}
+
+function launchConfetti(){
+  const cv=$("confetti"); cv.style.display="block";
+  const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#FFCF43","#33236B","#3FA7E0","#2FB37D","#FF6B7A"];
+  const parts=Array.from({length:120},()=>({
+    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
+    r:5+Math.random()*7, c:colors[Math.floor(Math.random()*colors.length)],
+    vy:2+Math.random()*3, vx:-1.5+Math.random()*3, rot:Math.random()*6, vr:-.2+Math.random()*.4
+  }));
+  let frames=0;
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore();
+    });
+    frames++;
+    if(frames<220){ confettiRAF=requestAnimationFrame(draw); } else { stopConfetti(); }
+  })();
+}
+
+initBouncyTitle("Spell-a-Bee");
+setLevel("EASY");
+</script>
+</body>
+</html>
+</content>

@@ -1,0 +1,9254 @@
+{
+ "MY": [],
+ "EASY": [
+  {
+   "w": "add",
+   "h": "put numbers together to get a bigger number"
+  },
+  {
+   "w": "age",
+   "h": "how many years old you are"
+  },
+  {
+   "w": "air",
+   "h": "invisible stuff all around you that you breathe"
+  },
+  {
+   "w": "and",
+   "h": "a word that joins two things together"
+  },
+  {
+   "w": "are",
+   "h": "a small word used with you, we, or they"
+  },
+  {
+   "w": "awe",
+   "h": "a feeling of great wonder"
+  },
+  {
+   "w": "bar",
+   "h": "a long straight piece of metal or wood"
+  },
+  {
+   "w": "bib",
+   "h": "a baby wears this to catch food"
+  },
+  {
+   "w": "bit",
+   "h": "a tiny piece of something"
+  },
+  {
+   "w": "bow",
+   "e": "🎀",
+   "h": "a ribbon tied in a pretty loop"
+  },
+  {
+   "w": "buy",
+   "h": "to get something with money"
+  },
+  {
+   "w": "cap",
+   "e": "🧢",
+   "h": "a soft hat with a brim"
+  },
+  {
+   "w": "caw",
+   "h": "the sound a crow makes"
+  },
+  {
+   "w": "cot",
+   "h": "a small bed for a baby"
+  },
+  {
+   "w": "cue",
+   "h": "a signal telling you when to start"
+  },
+  {
+   "w": "dab",
+   "h": "to touch something lightly"
+  },
+  {
+   "w": "dam",
+   "h": "a wall built to hold back water"
+  },
+  {
+   "w": "dim",
+   "h": "not very bright"
+  },
+  {
+   "w": "dye",
+   "h": "a color used to change something's color"
+  },
+  {
+   "w": "far",
+   "h": "a long distance away"
+  },
+  {
+   "w": "fed",
+   "h": "gave food to someone or something"
+  },
+  {
+   "w": "fin",
+   "h": "helps a fish swim"
+  },
+  {
+   "w": "fit",
+   "h": "the right size, or healthy and strong"
+  },
+  {
+   "w": "fry",
+   "h": "to cook in hot oil"
+  },
+  {
+   "w": "fur",
+   "h": "the soft hair covering many animals"
+  },
+  {
+   "w": "gap",
+   "h": "a space or opening between two things"
+  },
+  {
+   "w": "gas",
+   "h": "an invisible substance used for fuel"
+  },
+  {
+   "w": "gel",
+   "h": "a soft, jelly-like substance"
+  },
+  {
+   "w": "get",
+   "h": "to obtain or receive something"
+  },
+  {
+   "w": "hay",
+   "e": "🌾",
+   "h": "dried grass fed to farm animals"
+  },
+  {
+   "w": "hue",
+   "h": "another word for a color"
+  },
+  {
+   "w": "hut",
+   "h": "a small simple house"
+  },
+  {
+   "w": "ivy",
+   "e": "🌿",
+   "h": "a climbing green plant"
+  },
+  {
+   "w": "jig",
+   "h": "a lively, bouncy dance"
+  },
+  {
+   "w": "job",
+   "h": "the work a person does"
+  },
+  {
+   "w": "kin",
+   "h": "your family members"
+  },
+  {
+   "w": "lab",
+   "h": "a room used for science experiments"
+  },
+  {
+   "w": "lap",
+   "h": "the flat part of you when you sit down"
+  },
+  {
+   "w": "mow",
+   "h": "to cut grass short"
+  },
+  {
+   "w": "now",
+   "h": "at this very moment"
+  },
+  {
+   "w": "oar",
+   "h": "a pole used to row a boat"
+  },
+  {
+   "w": "odd",
+   "h": "strange, or not able to split evenly in two"
+  },
+  {
+   "w": "oil",
+   "h": "a slippery liquid used for cooking or engines"
+  },
+  {
+   "w": "orb",
+   "h": "a round ball or sphere"
+  },
+  {
+   "w": "pad",
+   "h": "a soft cushion, or paper to write on"
+  },
+  {
+   "w": "paw",
+   "e": "🐾",
+   "h": "an animal's foot"
+  },
+  {
+   "w": "pay",
+   "h": "to give money for something"
+  },
+  {
+   "w": "pit",
+   "h": "a hole dug in the ground"
+  },
+  {
+   "w": "pod",
+   "h": "a case that holds seeds, like peas"
+  },
+  {
+   "w": "pop",
+   "h": "a quick burst of sound, or a fizzy drink"
+  },
+  {
+   "w": "pun",
+   "h": "a silly joke that plays with words"
+  },
+  {
+   "w": "rag",
+   "h": "an old piece of cloth"
+  },
+  {
+   "w": "raw",
+   "h": "not cooked"
+  },
+  {
+   "w": "rim",
+   "h": "the edge around something round"
+  },
+  {
+   "w": "rye",
+   "h": "a grain used to make bread"
+  },
+  {
+   "w": "sad",
+   "h": "feeling unhappy"
+  },
+  {
+   "w": "sap",
+   "h": "the sticky liquid inside a tree"
+  },
+  {
+   "w": "son",
+   "h": "a parent's boy child"
+  },
+  {
+   "w": "sow",
+   "h": "to plant seeds"
+  },
+  {
+   "w": "soy",
+   "h": "beans used to make tofu and milk"
+  },
+  {
+   "w": "spy",
+   "e": "🕵️",
+   "h": "someone who secretly watches or gathers clues"
+  },
+  {
+   "w": "sub",
+   "h": "a long sandwich"
+  },
+  {
+   "w": "sum",
+   "h": "the answer when you add numbers"
+  },
+  {
+   "w": "tag",
+   "h": "a game where you chase and touch others"
+  },
+  {
+   "w": "tie",
+   "e": "👔",
+   "h": "worn around the neck, or to knot something"
+  },
+  {
+   "w": "tip",
+   "h": "a helpful piece of advice, or a pointy end"
+  },
+  {
+   "w": "tow",
+   "h": "to pull something along behind"
+  },
+  {
+   "w": "try",
+   "h": "to attempt to do something"
+  },
+  {
+   "w": "wax",
+   "h": "the soft material candles are made from"
+  },
+  {
+   "w": "wig",
+   "h": "fake hair you can wear"
+  },
+  {
+   "w": "won",
+   "h": "came in first place"
+  },
+  {
+   "w": "zap",
+   "h": "to hit with a quick burst of energy"
+  },
+  {
+   "w": "zip",
+   "h": "to close up quickly, like a jacket"
+  },
+  {
+   "w": "cat",
+   "e": "🐱",
+   "h": "a furry pet that says meow"
+  },
+  {
+   "w": "dog",
+   "e": "🐶",
+   "h": "a furry pet that says woof"
+  },
+  {
+   "w": "pig",
+   "e": "🐷",
+   "h": "a pink farm animal that oinks"
+  },
+  {
+   "w": "cow",
+   "e": "🐮",
+   "h": "a farm animal that gives milk"
+  },
+  {
+   "w": "hen",
+   "e": "🐔",
+   "h": "a mother chicken"
+  },
+  {
+   "w": "owl",
+   "e": "🦉",
+   "h": "a bird that hoots at night"
+  },
+  {
+   "w": "bee",
+   "e": "🐝",
+   "h": "a buzzing bug that makes honey"
+  },
+  {
+   "w": "ant",
+   "e": "🐜",
+   "h": "a tiny bug that lives in a hill"
+  },
+  {
+   "w": "bat",
+   "e": "🦇",
+   "h": "a flying animal that sleeps upside down"
+  },
+  {
+   "w": "fox",
+   "e": "🦊",
+   "h": "a clever red forest animal"
+  },
+  {
+   "w": "cub",
+   "h": "a baby bear or lion"
+  },
+  {
+   "w": "ram",
+   "h": "a male sheep with curly horns"
+  },
+  {
+   "w": "doe",
+   "h": "a girl deer"
+  },
+  {
+   "w": "elk",
+   "h": "a big animal with large antlers"
+  },
+  {
+   "w": "bug",
+   "e": "🐛",
+   "h": "a tiny crawling creature"
+  },
+  {
+   "w": "fly",
+   "e": "🪰",
+   "h": "a buzzing bug with wings"
+  },
+  {
+   "w": "cod",
+   "h": "a kind of fish"
+  },
+  {
+   "w": "eel",
+   "h": "a long thin fish"
+  },
+  {
+   "w": "jay",
+   "e": "🐦",
+   "h": "a bright blue bird"
+  },
+  {
+   "w": "hog",
+   "e": "🐖",
+   "h": "another word for a pig"
+  },
+  {
+   "w": "ape",
+   "e": "🦍",
+   "h": "a big animal like a gorilla"
+  },
+  {
+   "w": "ewe",
+   "h": "a girl sheep"
+  },
+  {
+   "w": "fawn",
+   "h": "a baby deer"
+  },
+  {
+   "w": "lion",
+   "e": "🦁",
+   "h": "the king of the jungle"
+  },
+  {
+   "w": "carp",
+   "h": "a big fish that lives in ponds"
+  },
+  {
+   "w": "fowl",
+   "h": "a bird like a chicken or duck"
+  },
+  {
+   "w": "mare",
+   "h": "a girl horse"
+  },
+  {
+   "w": "mink",
+   "h": "a small furry animal"
+  },
+  {
+   "w": "slug",
+   "e": "🐌",
+   "h": "a slow creature without a shell"
+  },
+  {
+   "w": "stag",
+   "h": "a male deer"
+  },
+  {
+   "w": "yak",
+   "h": "a big shaggy mountain animal"
+  },
+  {
+   "w": "pup",
+   "e": "🐶",
+   "h": "a baby dog"
+  },
+  {
+   "w": "buck",
+   "h": "a male deer"
+  },
+  {
+   "w": "gull",
+   "h": "a bird that flies over the beach"
+  },
+  {
+   "w": "mice",
+   "e": "🐭",
+   "h": "more than one mouse"
+  },
+  {
+   "w": "gnat",
+   "h": "a tiny flying bug"
+  },
+  {
+   "w": "orca",
+   "e": "🐳",
+   "h": "a big black and white whale"
+  },
+  {
+   "w": "egg",
+   "e": "🥚",
+   "h": "it comes from a hen"
+  },
+  {
+   "w": "pie",
+   "e": "🥧",
+   "h": "a sweet baked treat with a crust"
+  },
+  {
+   "w": "jam",
+   "e": "🍓",
+   "h": "sweet fruit spread for toast"
+  },
+  {
+   "w": "ham",
+   "e": "🍖",
+   "h": "meat often eaten in a sandwich"
+  },
+  {
+   "w": "bun",
+   "e": "🍞",
+   "h": "a soft round bread roll"
+  },
+  {
+   "w": "nut",
+   "e": "🥜",
+   "h": "a hard shelled snack from a tree"
+  },
+  {
+   "w": "oat",
+   "h": "a grain used to make porridge"
+  },
+  {
+   "w": "pea",
+   "e": "🟢",
+   "h": "a small round green vegetable"
+  },
+  {
+   "w": "fig",
+   "h": "a sweet soft fruit"
+  },
+  {
+   "w": "tea",
+   "e": "🍵",
+   "h": "a warm drink made from leaves"
+  },
+  {
+   "w": "bean",
+   "e": "🫘",
+   "h": "a small seed you can eat"
+  },
+  {
+   "w": "kiwi",
+   "e": "🥝",
+   "h": "a fuzzy green fruit"
+  },
+  {
+   "w": "lime",
+   "e": "🍋",
+   "h": "a small green sour fruit"
+  },
+  {
+   "w": "salt",
+   "e": "🧂",
+   "h": "a shaker adds it to food"
+  },
+  {
+   "w": "gum",
+   "e": "🍬",
+   "h": "a sweet you chew but do not eat"
+  },
+  {
+   "w": "date",
+   "h": "a sweet brown fruit"
+  },
+  {
+   "w": "yam",
+   "h": "a sweet orange vegetable"
+  },
+  {
+   "w": "pork",
+   "h": "meat that comes from a pig"
+  },
+  {
+   "w": "beef",
+   "h": "meat that comes from a cow"
+  },
+  {
+   "w": "tofu",
+   "h": "a soft food made from soy"
+  },
+  {
+   "w": "oats",
+   "h": "grains made into porridge"
+  },
+  {
+   "w": "peas",
+   "e": "🟢",
+   "h": "tiny round green vegetables"
+  },
+  {
+   "w": "buns",
+   "h": "soft round bread rolls"
+  },
+  {
+   "w": "figs",
+   "h": "sweet soft fruits"
+  },
+  {
+   "w": "food",
+   "e": "🍽️",
+   "h": "what you eat to grow strong"
+  },
+  {
+   "w": "meal",
+   "h": "the food you eat at breakfast or lunch"
+  },
+  {
+   "w": "kale",
+   "e": "🥬",
+   "h": "a leafy green vegetable"
+  },
+  {
+   "w": "arm",
+   "e": "💪",
+   "h": "it connects your hand to your shoulder"
+  },
+  {
+   "w": "leg",
+   "e": "🦵",
+   "h": "you stand and walk on these"
+  },
+  {
+   "w": "eye",
+   "e": "👁️",
+   "h": "you see with this"
+  },
+  {
+   "w": "ear",
+   "e": "👂",
+   "h": "you hear with this"
+  },
+  {
+   "w": "lip",
+   "e": "👄",
+   "h": "part of your mouth"
+  },
+  {
+   "w": "hip",
+   "h": "part of your body below your waist"
+  },
+  {
+   "w": "jaw",
+   "h": "the bone that moves when you chew"
+  },
+  {
+   "w": "rib",
+   "h": "a curved bone around your chest"
+  },
+  {
+   "w": "toe",
+   "e": "🦶",
+   "h": "you have ten of these on your feet"
+  },
+  {
+   "w": "knee",
+   "h": "it bends in the middle of your leg"
+  },
+  {
+   "w": "cup",
+   "e": "🥤",
+   "h": "you drink from this"
+  },
+  {
+   "w": "hat",
+   "e": "🎩",
+   "h": "you wear this on your head"
+  },
+  {
+   "w": "bag",
+   "e": "👜",
+   "h": "you carry things in it"
+  },
+  {
+   "w": "box",
+   "e": "📦",
+   "h": "a container with flat sides"
+  },
+  {
+   "w": "pen",
+   "e": "🖊️",
+   "h": "you write with this"
+  },
+  {
+   "w": "pot",
+   "e": "🍳",
+   "h": "you cook food in this"
+  },
+  {
+   "w": "jar",
+   "e": "🫙",
+   "h": "a glass container with a lid"
+  },
+  {
+   "w": "key",
+   "e": "🔑",
+   "h": "it opens a lock"
+  },
+  {
+   "w": "map",
+   "e": "🗺️",
+   "h": "it shows you where to go"
+  },
+  {
+   "w": "bed",
+   "e": "🛏️",
+   "h": "you sleep on this"
+  },
+  {
+   "w": "mat",
+   "h": "you wipe your feet on this"
+  },
+  {
+   "w": "rug",
+   "h": "a soft covering for the floor"
+  },
+  {
+   "w": "fan",
+   "e": "🌀",
+   "h": "it spins to cool you off"
+  },
+  {
+   "w": "coin",
+   "e": "🪙",
+   "h": "a small round piece of money"
+  },
+  {
+   "w": "comb",
+   "h": "you use it to fix your hair"
+  },
+  {
+   "w": "tub",
+   "e": "🛁",
+   "h": "you take a bath in this"
+  },
+  {
+   "w": "sock",
+   "e": "🧦",
+   "h": "you wear this on your foot"
+  },
+  {
+   "w": "cape",
+   "e": "🦸",
+   "h": "a hero wears this on their back"
+  },
+  {
+   "w": "wand",
+   "e": "🪄",
+   "h": "a magician waves this"
+  },
+  {
+   "w": "shed",
+   "h": "a small building for tools"
+  },
+  {
+   "w": "tent",
+   "e": "⛺",
+   "h": "you sleep in this when camping"
+  },
+  {
+   "w": "flag",
+   "e": "🚩",
+   "h": "a cloth that waves in the wind"
+  },
+  {
+   "w": "pipe",
+   "h": "a long tube that carries water"
+  },
+  {
+   "w": "wire",
+   "h": "a thin metal line for electricity"
+  },
+  {
+   "w": "nail",
+   "e": "🔨",
+   "h": "you hammer this into wood"
+  },
+  {
+   "w": "tool",
+   "e": "🔧",
+   "h": "you use this to fix things"
+  },
+  {
+   "w": "bus",
+   "e": "🚌",
+   "h": "a big vehicle that carries many people"
+  },
+  {
+   "w": "van",
+   "e": "🚐",
+   "h": "a boxy vehicle for carrying things"
+  },
+  {
+   "w": "taxi",
+   "e": "🚕",
+   "h": "a car you pay to ride in"
+  },
+  {
+   "w": "cab",
+   "h": "another word for taxi"
+  },
+  {
+   "w": "jet",
+   "e": "✈️",
+   "h": "a fast plane"
+  },
+  {
+   "w": "car",
+   "e": "🚗",
+   "h": "you ride in this on the road"
+  },
+  {
+   "w": "jug",
+   "h": "a container for pouring liquid"
+  },
+  {
+   "w": "mop",
+   "e": "🧹",
+   "h": "you use this to clean the floor"
+  },
+  {
+   "w": "bin",
+   "e": "🗑️",
+   "h": "you throw trash into this"
+  },
+  {
+   "w": "log",
+   "e": "🪵",
+   "h": "a thick piece of wood"
+  },
+  {
+   "w": "pin",
+   "e": "📌",
+   "h": "a small sharp fastener"
+  },
+  {
+   "w": "peg",
+   "h": "a small stick used to hold things"
+  },
+  {
+   "w": "net",
+   "e": "🥅",
+   "h": "woven rope used to catch things"
+  },
+  {
+   "w": "web",
+   "e": "🕸️",
+   "h": "a spider spins this"
+  },
+  {
+   "w": "gem",
+   "e": "💎",
+   "h": "a shiny precious stone"
+  },
+  {
+   "w": "rod",
+   "h": "a long thin bar or stick"
+  },
+  {
+   "w": "saw",
+   "e": "🪚",
+   "h": "a tool used to cut wood"
+  },
+  {
+   "w": "raft",
+   "h": "a flat floating boat"
+  },
+  {
+   "w": "vase",
+   "e": "🏺",
+   "h": "you put flowers in this"
+  },
+  {
+   "w": "rake",
+   "h": "a garden tool with long teeth"
+  },
+  {
+   "w": "note",
+   "e": "📝",
+   "h": "a short written message"
+  },
+  {
+   "w": "page",
+   "e": "📄",
+   "h": "one side of a sheet in a book"
+  },
+  {
+   "w": "tape",
+   "h": "a sticky roll used to fix things"
+  },
+  {
+   "w": "ink",
+   "h": "the liquid inside a pen"
+  },
+  {
+   "w": "dot",
+   "h": "a tiny round mark"
+  },
+  {
+   "w": "line",
+   "h": "a long thin mark"
+  },
+  {
+   "w": "plan",
+   "h": "an idea for what to do next"
+  },
+  {
+   "w": "harp",
+   "h": "a big musical instrument with strings"
+  },
+  {
+   "w": "gong",
+   "h": "a round metal disc you hit for a sound"
+  },
+  {
+   "w": "tuba",
+   "e": "🎺",
+   "h": "a big brass instrument"
+  },
+  {
+   "w": "cone",
+   "e": "🍦",
+   "h": "a shape like an ice cream holder"
+  },
+  {
+   "w": "opal",
+   "h": "a shiny colorful gemstone"
+  },
+  {
+   "w": "ruby",
+   "e": "💎",
+   "h": "a red gemstone"
+  },
+  {
+   "w": "pan",
+   "e": "🍳",
+   "h": "you fry food in this"
+  },
+  {
+   "w": "iron",
+   "h": "a tool that presses wrinkles from clothes"
+  },
+  {
+   "w": "can",
+   "e": "🥫",
+   "h": "a metal container for food"
+  },
+  {
+   "w": "tin",
+   "h": "a small metal container"
+  },
+  {
+   "w": "mug",
+   "e": "☕",
+   "h": "you drink a hot drink from this"
+  },
+  {
+   "w": "clip",
+   "e": "📎",
+   "h": "a small fastener for paper"
+  },
+  {
+   "w": "gift",
+   "e": "🎁",
+   "h": "a present you give someone"
+  },
+  {
+   "w": "toy",
+   "e": "🧸",
+   "h": "something fun you play with"
+  },
+  {
+   "w": "yoyo",
+   "h": "a toy on a string that goes up and down"
+  },
+  {
+   "w": "top",
+   "e": "🌀",
+   "h": "a toy that spins around"
+  },
+  {
+   "w": "sun",
+   "e": "☀️",
+   "h": "it shines in the sky in the day"
+  },
+  {
+   "w": "sky",
+   "e": "🌤️",
+   "h": "you see clouds up here"
+  },
+  {
+   "w": "sea",
+   "e": "🌊",
+   "h": "a big body of salty water"
+  },
+  {
+   "w": "ice",
+   "e": "🧊",
+   "h": "frozen water"
+  },
+  {
+   "w": "fog",
+   "e": "🌫️",
+   "h": "a thick cloud near the ground"
+  },
+  {
+   "w": "dew",
+   "h": "tiny drops of water on morning grass"
+  },
+  {
+   "w": "mud",
+   "e": "🟤",
+   "h": "wet sticky dirt"
+  },
+  {
+   "w": "dust",
+   "h": "tiny bits of dirt in the air"
+  },
+  {
+   "w": "dirt",
+   "h": "soil found on the ground"
+  },
+  {
+   "w": "rose",
+   "e": "🌹",
+   "h": "a flower with a sweet smell"
+  },
+  {
+   "w": "bush",
+   "h": "a small leafy plant"
+  },
+  {
+   "w": "weed",
+   "h": "a plant that grows where it is not wanted"
+  },
+  {
+   "w": "vine",
+   "h": "a plant that climbs and creeps"
+  },
+  {
+   "w": "twig",
+   "h": "a small thin branch"
+  },
+  {
+   "w": "pine",
+   "e": "🌲",
+   "h": "a tree with sharp green needles"
+  },
+  {
+   "w": "reef",
+   "h": "colorful rocks under the sea"
+  },
+  {
+   "w": "dune",
+   "h": "a hill made of sand"
+  },
+  {
+   "w": "peak",
+   "e": "🏔️",
+   "h": "the very top of a mountain"
+  },
+  {
+   "w": "moss",
+   "h": "soft green plants on rocks"
+  },
+  {
+   "w": "hail",
+   "h": "small balls of ice that fall like rain"
+  },
+  {
+   "w": "tide",
+   "e": "🌊",
+   "h": "the sea moving in and out"
+  },
+  {
+   "w": "bay",
+   "h": "part of the sea that curves into land"
+  },
+  {
+   "w": "bark",
+   "h": "the outside covering of a tree"
+  },
+  {
+   "w": "bud",
+   "e": "🌱",
+   "h": "a small growth that becomes a flower"
+  },
+  {
+   "w": "herb",
+   "e": "🌿",
+   "h": "a plant used to flavor food"
+  },
+  {
+   "w": "fire",
+   "e": "🔥",
+   "h": "it is hot and gives off light"
+  },
+  {
+   "w": "heat",
+   "h": "warmth that you can feel"
+  },
+  {
+   "w": "red",
+   "e": "🔴",
+   "h": "the color of an apple"
+  },
+  {
+   "w": "tan",
+   "h": "a light brown color"
+  },
+  {
+   "w": "navy",
+   "e": "🔵",
+   "h": "a dark shade of blue"
+  },
+  {
+   "w": "aqua",
+   "e": "🩵",
+   "h": "a blue-green color like water"
+  },
+  {
+   "w": "rust",
+   "e": "🟠",
+   "h": "an orange-brown color"
+  },
+  {
+   "w": "jade",
+   "e": "🟢",
+   "h": "a green color like the gem"
+  },
+  {
+   "w": "one",
+   "e": "1️⃣",
+   "h": "the number 1"
+  },
+  {
+   "w": "two",
+   "e": "2️⃣",
+   "h": "the number 2"
+  },
+  {
+   "w": "six",
+   "e": "6️⃣",
+   "h": "the number 6"
+  },
+  {
+   "w": "ten",
+   "e": "🔟",
+   "h": "the number 10"
+  },
+  {
+   "w": "many",
+   "h": "a big amount of something"
+  },
+  {
+   "w": "more",
+   "h": "a bigger amount than before"
+  },
+  {
+   "w": "some",
+   "h": "a small amount of something"
+  },
+  {
+   "w": "lots",
+   "h": "a large amount of something"
+  },
+  {
+   "w": "few",
+   "h": "a small number of something"
+  },
+  {
+   "w": "all",
+   "h": "every single one"
+  },
+  {
+   "w": "run",
+   "e": "🏃",
+   "h": "to move fast on your feet"
+  },
+  {
+   "w": "hop",
+   "e": "🐰",
+   "h": "to jump on one or both feet"
+  },
+  {
+   "w": "sit",
+   "e": "🪑",
+   "h": "to rest on a chair"
+  },
+  {
+   "w": "jog",
+   "h": "to run slowly and gently"
+  },
+  {
+   "w": "nap",
+   "e": "😴",
+   "h": "a short sleep"
+  },
+  {
+   "w": "cry",
+   "e": "😢",
+   "h": "when tears fall from your eyes"
+  },
+  {
+   "w": "hug",
+   "e": "🤗",
+   "h": "to wrap your arms around someone"
+  },
+  {
+   "w": "kiss",
+   "e": "😘",
+   "h": "a gentle touch to show love"
+  },
+  {
+   "w": "play",
+   "e": "🧸",
+   "h": "to have fun with toys or games"
+  },
+  {
+   "w": "rest",
+   "h": "to relax and be still"
+  },
+  {
+   "w": "wake",
+   "e": "⏰",
+   "h": "to stop sleeping"
+  },
+  {
+   "w": "pick",
+   "h": "to choose or lift something up"
+  },
+  {
+   "w": "kick",
+   "e": "⚽",
+   "h": "to hit something with your foot"
+  },
+  {
+   "w": "sew",
+   "h": "to join cloth with a needle and thread"
+  },
+  {
+   "w": "dig",
+   "e": "⛏️",
+   "h": "to make a hole in the ground"
+  },
+  {
+   "w": "dip",
+   "h": "to put something into liquid quickly"
+  },
+  {
+   "w": "tap",
+   "h": "to hit something lightly"
+  },
+  {
+   "w": "pat",
+   "h": "to touch gently with your hand"
+  },
+  {
+   "w": "rub",
+   "h": "to move your hand back and forth on something"
+  },
+  {
+   "w": "mix",
+   "e": "🥣",
+   "h": "to stir things together"
+  },
+  {
+   "w": "fix",
+   "e": "🔧",
+   "h": "to make something work again"
+  },
+  {
+   "w": "cut",
+   "e": "✂️",
+   "h": "to slice something with scissors"
+  },
+  {
+   "w": "hit",
+   "h": "to strike something"
+  },
+  {
+   "w": "lick",
+   "h": "to touch with your tongue"
+  },
+  {
+   "w": "bite",
+   "h": "to use your teeth on food"
+  },
+  {
+   "w": "chew",
+   "h": "to grind food with your teeth"
+  },
+  {
+   "w": "eat",
+   "e": "🍽️",
+   "h": "to put food in your mouth"
+  },
+  {
+   "w": "ate",
+   "h": "finished eating"
+  },
+  {
+   "w": "win",
+   "e": "🏆",
+   "h": "to come in first place"
+  },
+  {
+   "w": "nod",
+   "h": "to move your head up and down"
+  },
+  {
+   "w": "wag",
+   "h": "a dog does this with its tail"
+  },
+  {
+   "w": "yawn",
+   "e": "🥱",
+   "h": "your mouth opens wide when tired"
+  },
+  {
+   "w": "hum",
+   "e": "🎵",
+   "h": "to sing softly without words"
+  },
+  {
+   "w": "buzz",
+   "e": "🐝",
+   "h": "the sound a bee makes"
+  },
+  {
+   "w": "purr",
+   "e": "🐱",
+   "h": "the sound a happy cat makes"
+  },
+  {
+   "w": "oink",
+   "e": "🐷",
+   "h": "the sound a pig makes"
+  },
+  {
+   "w": "sail",
+   "e": "⛵",
+   "h": "to travel on water using wind"
+  },
+  {
+   "w": "row",
+   "e": "🚣",
+   "h": "to move a boat with paddles"
+  },
+  {
+   "w": "rise",
+   "e": "🌅",
+   "h": "to go up or get out of bed"
+  },
+  {
+   "w": "see",
+   "e": "👁️",
+   "h": "to notice with your eyes"
+  },
+  {
+   "w": "hear",
+   "e": "👂",
+   "h": "to notice a sound with your ears"
+  },
+  {
+   "w": "feel",
+   "e": "🤲",
+   "h": "to touch or sense something"
+  },
+  {
+   "w": "know",
+   "h": "to understand something"
+  },
+  {
+   "w": "show",
+   "h": "to let someone see something"
+  },
+  {
+   "w": "fall",
+   "h": "to drop down suddenly"
+  },
+  {
+   "w": "turn",
+   "h": "to change direction"
+  },
+  {
+   "w": "melt",
+   "e": "🍦",
+   "h": "to turn from solid to liquid with heat"
+  },
+  {
+   "w": "burn",
+   "e": "🔥",
+   "h": "to be hot and glow with fire"
+  },
+  {
+   "w": "grin",
+   "e": "😁",
+   "h": "to smile widely"
+  },
+  {
+   "w": "wink",
+   "e": "😉",
+   "h": "to close one eye playfully"
+  },
+  {
+   "w": "mom",
+   "e": "👩",
+   "h": "your mother"
+  },
+  {
+   "w": "dad",
+   "e": "👨",
+   "h": "your father"
+  },
+  {
+   "w": "boy",
+   "e": "👦",
+   "h": "a young male person"
+  },
+  {
+   "w": "kid",
+   "e": "🧒",
+   "h": "a young child"
+  },
+  {
+   "w": "pal",
+   "e": "🤝",
+   "h": "a good friend"
+  },
+  {
+   "w": "papa",
+   "e": "👨",
+   "h": "a name for father"
+  },
+  {
+   "w": "mama",
+   "e": "👩",
+   "h": "a name for mother"
+  },
+  {
+   "w": "chef",
+   "e": "👩‍🍳",
+   "h": "a person who cooks food"
+  },
+  {
+   "w": "king",
+   "e": "👑",
+   "h": "a royal ruler of a kingdom"
+  },
+  {
+   "w": "vet",
+   "e": "🐾",
+   "h": "a doctor for animals"
+  },
+  {
+   "w": "host",
+   "h": "a person who welcomes guests"
+  },
+  {
+   "w": "crew",
+   "h": "a group who work together on a job"
+  },
+  {
+   "w": "cop",
+   "e": "👮",
+   "h": "a person who keeps people safe"
+  },
+  {
+   "w": "hero",
+   "e": "🦸",
+   "h": "someone brave who helps others"
+  },
+  {
+   "w": "fun",
+   "e": "🎉",
+   "h": "something you enjoy doing"
+  },
+  {
+   "w": "joy",
+   "e": "😊",
+   "h": "a feeling of great happiness"
+  },
+  {
+   "w": "love",
+   "e": "❤️",
+   "h": "a warm feeling of caring"
+  },
+  {
+   "w": "luck",
+   "e": "🍀",
+   "h": "good things happening by chance"
+  },
+  {
+   "w": "hope",
+   "h": "wishing for something good"
+  },
+  {
+   "w": "cute",
+   "e": "🥰",
+   "h": "very sweet and pleasing"
+  },
+  {
+   "w": "wild",
+   "h": "living free in nature"
+  },
+  {
+   "w": "wet",
+   "e": "💧",
+   "h": "covered in water"
+  },
+  {
+   "w": "dry",
+   "h": "having no water at all"
+  },
+  {
+   "w": "big",
+   "e": "🐘",
+   "h": "very large in size"
+  },
+  {
+   "w": "tiny",
+   "e": "🐜",
+   "h": "very very small"
+  },
+  {
+   "w": "huge",
+   "h": "extremely big"
+  },
+  {
+   "w": "easy",
+   "h": "not hard to do"
+  },
+  {
+   "w": "nice",
+   "h": "pleasant and friendly"
+  },
+  {
+   "w": "safe",
+   "e": "🛡️",
+   "h": "not in danger"
+  },
+  {
+   "w": "true",
+   "h": "correct and honest"
+  },
+  {
+   "w": "free",
+   "h": "not costing anything, or not stuck"
+  },
+  {
+   "w": "fair",
+   "h": "treating everyone the same"
+  },
+  {
+   "w": "sure",
+   "h": "having no doubt"
+  },
+  {
+   "w": "wise",
+   "e": "🦉",
+   "h": "smart from learning many things"
+  },
+  {
+   "w": "pure",
+   "h": "clean and not mixed with anything"
+  },
+  {
+   "w": "rare",
+   "h": "not found very often"
+  },
+  {
+   "w": "wide",
+   "h": "far from side to side"
+  },
+  {
+   "w": "long",
+   "h": "stretching a great distance"
+  },
+  {
+   "w": "tall",
+   "e": "🦒",
+   "h": "reaching high up"
+  },
+  {
+   "w": "new",
+   "e": "✨",
+   "h": "just made or just bought"
+  },
+  {
+   "w": "old",
+   "h": "having lived or existed for a long time"
+  },
+  {
+   "w": "low",
+   "h": "not high up"
+  },
+  {
+   "w": "high",
+   "e": "⬆️",
+   "h": "far up above the ground"
+  },
+  {
+   "w": "down",
+   "e": "⬇️",
+   "h": "toward the ground"
+  },
+  {
+   "w": "left",
+   "e": "⬅️",
+   "h": "the opposite direction from right"
+  },
+  {
+   "w": "east",
+   "h": "the direction where the sun rises"
+  },
+  {
+   "w": "west",
+   "h": "the direction where the sun sets"
+  },
+  {
+   "w": "day",
+   "e": "☀️",
+   "h": "the time when it is light outside"
+  },
+  {
+   "w": "hour",
+   "e": "⏰",
+   "h": "sixty minutes"
+  },
+  {
+   "w": "time",
+   "e": "⏰",
+   "h": "what a clock tells you"
+  },
+  {
+   "w": "gym",
+   "e": "🏋️",
+   "h": "a place to exercise"
+  },
+  {
+   "w": "rook",
+   "h": "a big black bird, or a chess piece"
+  },
+  {
+   "w": "mite",
+   "h": "a very tiny bug you can barely see"
+  },
+  {
+   "w": "ray",
+   "e": "🐠",
+   "h": "a flat sea animal with wide fins"
+  },
+  {
+   "w": "kit",
+   "e": "🦊",
+   "h": "a baby fox or rabbit"
+  },
+  {
+   "w": "cob",
+   "e": "🌽",
+   "h": "the middle part of an ear of corn"
+  },
+  {
+   "w": "malt",
+   "h": "a sweet flavor used in milkshakes"
+  },
+  {
+   "w": "bran",
+   "h": "a healthy part of grain used in cereal"
+  },
+  {
+   "w": "coop",
+   "e": "🐔",
+   "h": "a small house for chickens"
+  },
+  {
+   "w": "cork",
+   "h": "it plugs the top of a bottle"
+  },
+  {
+   "w": "dish",
+   "e": "🍽️",
+   "h": "a plate you eat food from"
+  },
+  {
+   "w": "lid",
+   "h": "a cover for a pot or jar"
+  },
+  {
+   "w": "rack",
+   "h": "a frame for holding things"
+  },
+  {
+   "w": "hook",
+   "e": "🪝",
+   "h": "a curved piece of metal that holds things"
+  },
+  {
+   "w": "knob",
+   "h": "a round handle on a door"
+  },
+  {
+   "w": "veil",
+   "h": "a thin cloth worn over the face or head"
+  },
+  {
+   "w": "sash",
+   "h": "a cloth band worn around the waist"
+  },
+  {
+   "w": "dice",
+   "e": "🎲",
+   "h": "small cubes with dots you roll in games"
+  },
+  {
+   "w": "list",
+   "e": "📝",
+   "h": "words written one under another"
+  },
+  {
+   "w": "loop",
+   "h": "a shape that curves back to where it started"
+  },
+  {
+   "w": "coil",
+   "h": "a wire or rope wound around itself"
+  },
+  {
+   "w": "cord",
+   "h": "a thin rope or wire"
+  },
+  {
+   "w": "hose",
+   "e": "🚿",
+   "h": "a long tube for watering the garden"
+  },
+  {
+   "w": "pump",
+   "h": "a machine that moves air or water"
+  },
+  {
+   "w": "ramp",
+   "h": "a slanted path instead of stairs"
+  },
+  {
+   "w": "step",
+   "e": "🪜",
+   "h": "one stair, or a single move"
+  },
+  {
+   "w": "loft",
+   "h": "a room right under the roof"
+  },
+  {
+   "w": "oak",
+   "e": "🌳",
+   "h": "a strong tree that grows acorns"
+  },
+  {
+   "w": "elm",
+   "e": "🌳",
+   "h": "a tall shady tree"
+  },
+  {
+   "w": "reed",
+   "h": "a tall grass that grows near water"
+  },
+  {
+   "w": "clay",
+   "h": "soft brown earth used to make pots"
+  },
+  {
+   "w": "gust",
+   "e": "💨",
+   "h": "a sudden strong blast of wind"
+  },
+  {
+   "w": "cyan",
+   "e": "🩵",
+   "h": "a bright blue-green color"
+  },
+  {
+   "w": "each",
+   "h": "every single one, one at a time"
+  },
+  {
+   "w": "both",
+   "h": "the two of them together"
+  },
+  {
+   "w": "drop",
+   "h": "to let something fall"
+  },
+  {
+   "w": "grab",
+   "h": "to take hold of something quickly"
+  },
+  {
+   "w": "keep",
+   "h": "to have something and not let it go"
+  },
+  {
+   "w": "make",
+   "e": "🛠️",
+   "h": "to create something"
+  },
+  {
+   "w": "move",
+   "h": "to go from one place to another"
+  },
+  {
+   "w": "stay",
+   "h": "to not leave a place"
+  },
+  {
+   "w": "join",
+   "e": "🤝",
+   "h": "to come together with others"
+  },
+  {
+   "w": "meet",
+   "e": "🤝",
+   "h": "to come together with someone"
+  },
+  {
+   "w": "lend",
+   "h": "to let someone borrow something"
+  },
+  {
+   "w": "fill",
+   "h": "to make something full"
+  },
+  {
+   "w": "pack",
+   "e": "🎒",
+   "h": "to put things into a bag or box"
+  },
+  {
+   "w": "sort",
+   "h": "to put things into groups"
+  },
+  {
+   "w": "wrap",
+   "e": "🎁",
+   "h": "to cover something all around"
+  },
+  {
+   "w": "peel",
+   "e": "🍌",
+   "h": "to take the skin off a fruit"
+  },
+  {
+   "w": "wipe",
+   "h": "to clean by rubbing"
+  },
+  {
+   "w": "trim",
+   "e": "✂️",
+   "h": "to cut a small bit off something"
+  },
+  {
+   "w": "snip",
+   "e": "✂️",
+   "h": "to cut with scissors quickly"
+  },
+  {
+   "w": "poke",
+   "h": "to jab gently with a finger"
+  },
+  {
+   "w": "leap",
+   "e": "🐸",
+   "h": "to jump far"
+  },
+  {
+   "w": "trot",
+   "e": "🐴",
+   "h": "to move quickly like a little horse run"
+  },
+  {
+   "w": "gaze",
+   "e": "👀",
+   "h": "to look at something for a long time"
+  },
+  {
+   "w": "peer",
+   "h": "to look closely at something"
+  },
+  {
+   "w": "puff",
+   "e": "💨",
+   "h": "a quick burst of air or smoke"
+  },
+  {
+   "w": "gasp",
+   "h": "a quick breath of surprise"
+  },
+  {
+   "w": "fizz",
+   "e": "🥤",
+   "h": "the bubbly sound of a fizzy drink"
+  },
+  {
+   "w": "lane",
+   "h": "a narrow road or path"
+  },
+  {
+   "w": "zoo",
+   "e": "🦁",
+   "h": "a place to see wild animals"
+  },
+  {
+   "w": "cage",
+   "h": "a small pen that holds a pet safely"
+  },
+  {
+   "w": "den",
+   "h": "a wild animal's cozy home"
+  },
+  {
+   "w": "moat",
+   "h": "a deep ditch of water around a castle"
+  },
+  {
+   "w": "fort",
+   "e": "🏰",
+   "h": "a strong building, or a kids' hideout"
+  },
+  {
+   "w": "glee",
+   "e": "😄",
+   "h": "great joy and delight"
+  },
+  {
+   "w": "zest",
+   "h": "great enthusiasm and energy"
+  },
+  {
+   "w": "keen",
+   "h": "very eager and interested"
+  },
+  {
+   "w": "bob",
+   "h": "to move up and down"
+  },
+  {
+   "w": "boo",
+   "e": "👻",
+   "h": "a word to playfully scare someone"
+  },
+  {
+   "w": "wok",
+   "e": "🥘",
+   "h": "a round pan used for stir-frying"
+  },
+  {
+   "w": "wow",
+   "e": "😲",
+   "h": "what you say when amazed"
+  },
+  {
+   "w": "sax",
+   "e": "🎷",
+   "h": "a curvy brass musical instrument"
+  },
+  {
+   "w": "mum",
+   "e": "👩",
+   "h": "another word for mom"
+  },
+  {
+   "w": "lad",
+   "h": "a young boy"
+  },
+  {
+   "w": "sis",
+   "h": "a short word for sister"
+  },
+  {
+   "w": "tot",
+   "e": "👶",
+   "h": "a very young child"
+  },
+  {
+   "w": "sly",
+   "h": "sneaky and clever, like a fox"
+  },
+  {
+   "w": "sob",
+   "h": "to cry hard with gasping breaths"
+  },
+  {
+   "w": "yep",
+   "h": "an informal way to say yes"
+  },
+  {
+   "w": "who",
+   "h": "which person"
+  },
+  {
+   "w": "why",
+   "h": "for what reason"
+  },
+  {
+   "w": "how",
+   "h": "in what way"
+  },
+  {
+   "w": "ugh",
+   "h": "a sound you make when annoyed"
+  },
+  {
+   "w": "put",
+   "h": "to place something somewhere"
+  },
+  {
+   "w": "sip",
+   "h": "a small drink"
+  },
+  {
+   "w": "sir",
+   "h": "a polite way to speak to a man"
+  },
+  {
+   "w": "okay",
+   "h": "means alright"
+  },
+  {
+   "w": "once",
+   "h": "one single time"
+  },
+  {
+   "w": "away",
+   "h": "to or at a different place"
+  },
+  {
+   "w": "bald",
+   "h": "having no hair on the head"
+  },
+  {
+   "w": "bang",
+   "e": "💥",
+   "h": "a loud sudden noise"
+  },
+  {
+   "w": "bare",
+   "h": "not covered up; plain"
+  },
+  {
+   "w": "base",
+   "h": "the bottom part of something"
+  },
+  {
+   "w": "bass",
+   "e": "🐟",
+   "h": "a low deep sound, or a type of fish"
+  },
+  {
+   "w": "bath",
+   "e": "🛁",
+   "h": "washing yourself in a tub"
+  },
+  {
+   "w": "bead",
+   "h": "a small ball with a hole for stringing"
+  },
+  {
+   "w": "beak",
+   "e": "🦅",
+   "h": "a bird's hard pointy mouth"
+  },
+  {
+   "w": "beam",
+   "h": "a bright ray of light"
+  },
+  {
+   "w": "beep",
+   "h": "the sound a small machine makes"
+  },
+  {
+   "w": "best",
+   "h": "better than all the others"
+  },
+  {
+   "w": "bill",
+   "h": "a bird's beak, or paper money"
+  },
+  {
+   "w": "blow",
+   "h": "to push air out of your mouth"
+  },
+  {
+   "w": "blur",
+   "h": "something that looks fuzzy and unclear"
+  },
+  {
+   "w": "boar",
+   "e": "🐗",
+   "h": "a wild pig"
+  },
+  {
+   "w": "body",
+   "h": "your whole physical self"
+  },
+  {
+   "w": "boil",
+   "h": "to heat water until it bubbles"
+  },
+  {
+   "w": "bolt",
+   "e": "⚡",
+   "h": "a flash of lightning, or a metal pin"
+  },
+  {
+   "w": "boom",
+   "h": "a loud deep sound"
+  },
+  {
+   "w": "bore",
+   "h": "to make someone feel very uninterested"
+  },
+  {
+   "w": "born",
+   "h": "when a baby comes into the world"
+  },
+  {
+   "w": "boss",
+   "h": "a person in charge"
+  },
+  {
+   "w": "bump",
+   "h": "to knock into something"
+  },
+  {
+   "w": "bunk",
+   "h": "a bed, often stacked like a bunk bed"
+  },
+  {
+   "w": "burp",
+   "h": "a noisy little burst of air after eating"
+  },
+  {
+   "w": "busy",
+   "h": "having lots to do"
+  },
+  {
+   "w": "cane",
+   "e": "🍬",
+   "h": "a candy shaped like a hook"
+  },
+  {
+   "w": "card",
+   "e": "🃏",
+   "h": "a flat piece of paper for playing games"
+  },
+  {
+   "w": "care",
+   "h": "to look after someone"
+  },
+  {
+   "w": "cash",
+   "e": "💵",
+   "h": "paper money and coins"
+  },
+  {
+   "w": "cast",
+   "h": "a hard covering for a broken bone"
+  },
+  {
+   "w": "cent",
+   "e": "🪙",
+   "h": "a small coin"
+  },
+  {
+   "w": "chop",
+   "h": "to cut something into small pieces"
+  },
+  {
+   "w": "claw",
+   "h": "a sharp curved nail on an animal's paw"
+  },
+  {
+   "w": "clue",
+   "e": "🔍",
+   "h": "a hint that helps solve a mystery"
+  },
+  {
+   "w": "coal",
+   "e": "⚫",
+   "h": "a black rock burned for fuel"
+  },
+  {
+   "w": "code",
+   "h": "a set of secret symbols or signals"
+  },
+  {
+   "w": "copy",
+   "h": "to make the same as something else"
+  },
+  {
+   "w": "cove",
+   "h": "a small bay by the sea"
+  },
+  {
+   "w": "crib",
+   "e": "🛏️",
+   "h": "a bed for a baby"
+  },
+  {
+   "w": "curl",
+   "h": "a loop or twist, like in curly hair"
+  },
+  {
+   "w": "dart",
+   "h": "to move somewhere very quickly"
+  },
+  {
+   "w": "dash",
+   "h": "to run quickly, or a small amount"
+  },
+  {
+   "w": "deck",
+   "h": "a flat wooden platform outside a house"
+  },
+  {
+   "w": "dime",
+   "e": "🪙",
+   "h": "a small coin worth ten cents"
+  },
+  {
+   "w": "ding",
+   "h": "a short ringing sound"
+  },
+  {
+   "w": "dock",
+   "e": "⚓",
+   "h": "a place where boats are parked"
+  },
+  {
+   "w": "dome",
+   "h": "a rounded roof shaped like half a ball"
+  },
+  {
+   "w": "doze",
+   "h": "to sleep lightly for a short time"
+  },
+  {
+   "w": "drip",
+   "h": "a small drop of liquid falling"
+  },
+  {
+   "w": "dunk",
+   "h": "to dip something into a liquid"
+  },
+  {
+   "w": "earn",
+   "h": "to get something by working for it"
+  },
+  {
+   "w": "echo",
+   "h": "a sound that bounces back and repeats"
+  },
+  {
+   "w": "exit",
+   "e": "🚪",
+   "h": "a way out of a place"
+  },
+  {
+   "w": "fade",
+   "h": "to slowly become lighter or disappear"
+  },
+  {
+   "w": "fang",
+   "e": "🦷",
+   "h": "a long sharp tooth"
+  },
+  {
+   "w": "feed",
+   "h": "to give food to someone"
+  },
+  {
+   "w": "fern",
+   "e": "🌿",
+   "h": "a green leafy plant with no flowers"
+  },
+  {
+   "w": "fist",
+   "e": "✊",
+   "h": "a hand closed into a tight ball"
+  },
+  {
+   "w": "flap",
+   "h": "to move up and down quickly, like wings"
+  },
+  {
+   "w": "flip",
+   "h": "to turn something over quickly"
+  },
+  {
+   "w": "flop",
+   "h": "to fall down loosely and suddenly"
+  },
+  {
+   "w": "foal",
+   "e": "🐴",
+   "h": "a baby horse"
+  },
+  {
+   "w": "foam",
+   "e": "🫧",
+   "h": "tiny bubbles on top of a liquid"
+  },
+  {
+   "w": "fuel",
+   "e": "⛽",
+   "h": "something burned to make energy"
+  },
+  {
+   "w": "fuzz",
+   "h": "soft short fluffy hair"
+  },
+  {
+   "w": "gale",
+   "h": "a very strong wind"
+  },
+  {
+   "w": "gear",
+   "e": "⚙️",
+   "h": "equipment needed for an activity"
+  },
+  {
+   "w": "golf",
+   "e": "⛳",
+   "h": "a sport played with clubs and a small ball"
+  },
+  {
+   "w": "gulf",
+   "h": "a large area of sea partly surrounded by land"
+  },
+  {
+   "w": "gulp",
+   "h": "to swallow something quickly"
+  },
+  {
+   "w": "hall",
+   "h": "a long narrow passage in a building"
+  },
+  {
+   "w": "haul",
+   "h": "to pull or carry something heavy"
+  },
+  {
+   "w": "hazy",
+   "h": "a little foggy or unclear"
+  },
+  {
+   "w": "heap",
+   "h": "a messy pile of things"
+  },
+  {
+   "w": "herd",
+   "e": "🐄",
+   "h": "a large group of animals that stay together"
+  },
+  {
+   "w": "hint",
+   "e": "💡",
+   "h": "a small clue to help you"
+  },
+  {
+   "w": "hiss",
+   "e": "🐍",
+   "h": "the sound a snake makes"
+  },
+  {
+   "w": "hole",
+   "h": "an empty space or opening in something"
+  },
+  {
+   "w": "honk",
+   "e": "📯",
+   "h": "the sound a car horn makes"
+  },
+  {
+   "w": "hoof",
+   "e": "🐴",
+   "h": "the hard foot of a horse"
+  },
+  {
+   "w": "hoop",
+   "e": "🏀",
+   "h": "a round ring shape"
+  },
+  {
+   "w": "hoot",
+   "e": "🦉",
+   "h": "the sound an owl makes"
+  },
+  {
+   "w": "hunt",
+   "h": "to search for something"
+  },
+  {
+   "w": "hurl",
+   "h": "to throw something with force"
+  },
+  {
+   "w": "husk",
+   "e": "🌽",
+   "h": "the dry outer covering of corn"
+  },
+  {
+   "w": "idea",
+   "e": "💡",
+   "h": "a thought or plan"
+  },
+  {
+   "w": "iris",
+   "e": "🌸",
+   "h": "a colorful part of your eye, or a flower"
+  },
+  {
+   "w": "itch",
+   "h": "an itchy feeling on your skin"
+  },
+  {
+   "w": "jazz",
+   "e": "🎷",
+   "h": "a fun, lively style of music"
+  },
+  {
+   "w": "joke",
+   "e": "😂",
+   "h": "something funny that makes people laugh"
+  },
+  {
+   "w": "kelp",
+   "e": "🌿",
+   "h": "a large brown seaweed"
+  },
+  {
+   "w": "knit",
+   "e": "🧶",
+   "h": "to loop yarn together to make clothing"
+  }
+ ],
+ "MEDIUM": [
+  {
+   "w": "frog",
+   "e": "🐸",
+   "h": "hops and says ribbit"
+  },
+  {
+   "w": "bear",
+   "e": "🐻",
+   "h": "a big furry forest animal"
+  },
+  {
+   "w": "wolf",
+   "e": "🐺",
+   "h": "howls at the moon"
+  },
+  {
+   "w": "deer",
+   "e": "🦌",
+   "h": "has antlers and lives in the woods"
+  },
+  {
+   "w": "duck",
+   "e": "🦆",
+   "h": "a bird that says quack"
+  },
+  {
+   "w": "goat",
+   "e": "🐐",
+   "h": "a farm animal that loves to climb"
+  },
+  {
+   "w": "swan",
+   "e": "🦢",
+   "h": "a graceful white bird on the lake"
+  },
+  {
+   "w": "crab",
+   "e": "🦀",
+   "h": "walks sideways on the beach"
+  },
+  {
+   "w": "crow",
+   "h": "a shiny black bird"
+  },
+  {
+   "w": "worm",
+   "e": "🪱",
+   "h": "wiggles through the dirt"
+  },
+  {
+   "w": "bird",
+   "e": "🐦",
+   "h": "flies and sings in trees"
+  },
+  {
+   "w": "fish",
+   "e": "🐟",
+   "h": "swims in the water"
+  },
+  {
+   "w": "seal",
+   "e": "🦭",
+   "h": "claps its flippers"
+  },
+  {
+   "w": "hawk",
+   "h": "a bird that flies high and hunts"
+  },
+  {
+   "w": "bull",
+   "h": "a strong male cow"
+  },
+  {
+   "w": "calf"
+  },
+  {
+   "w": "lamb",
+   "h": "a baby sheep"
+  },
+  {
+   "w": "mole",
+   "h": "digs tunnels underground"
+  },
+  {
+   "w": "pony",
+   "h": "a small horse"
+  },
+  {
+   "w": "colt",
+   "h": "a baby horse"
+  },
+  {
+   "w": "puma",
+   "h": "a big wild cat"
+  },
+  {
+   "w": "lynx",
+   "h": "a wild cat with tufted ears"
+  },
+  {
+   "w": "toad",
+   "h": "looks like a bumpy frog"
+  },
+  {
+   "w": "newt",
+   "h": "a small lizard-like swimmer"
+  },
+  {
+   "w": "moth",
+   "h": "flies to the light at night"
+  },
+  {
+   "w": "wasp",
+   "h": "a flying bug with a sting"
+  },
+  {
+   "w": "flea",
+   "h": "a tiny hopping bug"
+  },
+  {
+   "w": "tick",
+   "h": "a tiny bug that hides in grass"
+  },
+  {
+   "w": "hare",
+   "h": "a fast hopping animal"
+  },
+  {
+   "w": "mule"
+  },
+  {
+   "w": "shrew"
+  },
+  {
+   "w": "vole"
+  },
+  {
+   "w": "lark",
+   "h": "a bird that sings at dawn"
+  },
+  {
+   "w": "wren",
+   "h": "a tiny songbird"
+  },
+  {
+   "w": "dove",
+   "h": "a gentle white bird"
+  },
+  {
+   "w": "joey",
+   "h": "a baby kangaroo"
+  },
+  {
+   "w": "horse",
+   "e": "🐴",
+   "h": "you can ride this animal"
+  },
+  {
+   "w": "sheep",
+   "e": "🐑",
+   "h": "gives us wool"
+  },
+  {
+   "w": "zebra",
+   "e": "🦓",
+   "h": "black and white stripes"
+  },
+  {
+   "w": "tiger",
+   "e": "🐯",
+   "h": "a big striped wild cat"
+  },
+  {
+   "w": "snake",
+   "e": "🐍",
+   "h": "has no legs and slithers"
+  },
+  {
+   "w": "mouse",
+   "e": "🐭",
+   "h": "a tiny animal that likes cheese"
+  },
+  {
+   "w": "camel",
+   "e": "🐫",
+   "h": "has humps and lives in the desert"
+  },
+  {
+   "w": "koala",
+   "e": "🐨",
+   "h": "cuddles trees in Australia"
+  },
+  {
+   "w": "whale",
+   "e": "🐳",
+   "h": "the biggest animal in the ocean"
+  },
+  {
+   "w": "shark",
+   "e": "🦈",
+   "h": "a big fish with sharp teeth"
+  },
+  {
+   "w": "eagle",
+   "e": "🦅",
+   "h": "a strong bird that flies very high"
+  },
+  {
+   "w": "robin",
+   "h": "a bird with a red chest"
+  },
+  {
+   "w": "goose",
+   "h": "a big honking bird"
+  },
+  {
+   "w": "otter",
+   "e": "🦦",
+   "h": "loves to play in the water"
+  },
+  {
+   "w": "moose",
+   "h": "a huge animal with big antlers"
+  },
+  {
+   "w": "skunk",
+   "e": "🦨",
+   "h": "makes a very stinky smell"
+  },
+  {
+   "w": "snail",
+   "e": "🐌",
+   "h": "carries its house on its back"
+  },
+  {
+   "w": "quail",
+   "h": "a small round bird"
+  },
+  {
+   "w": "finch",
+   "h": "a small seed-eating bird"
+  },
+  {
+   "w": "sloth",
+   "e": "🦥",
+   "h": "moves very very slowly"
+  },
+  {
+   "w": "llama",
+   "e": "🦙",
+   "h": "a fluffy animal that can spit"
+  },
+  {
+   "w": "hippo",
+   "e": "🦛",
+   "h": "a huge animal that loves mud"
+  },
+  {
+   "w": "rhino",
+   "e": "🦏",
+   "h": "has a big horn on its nose"
+  },
+  {
+   "w": "panda",
+   "e": "🐼",
+   "h": "black and white bear that eats bamboo"
+  },
+  {
+   "w": "drake",
+   "h": "a boy duck"
+  },
+  {
+   "w": "chick",
+   "e": "🐤",
+   "h": "a baby chicken"
+  },
+  {
+   "w": "puppy",
+   "e": "🐶",
+   "h": "a baby dog"
+  },
+  {
+   "w": "bunny",
+   "e": "🐰",
+   "h": "a soft hopping animal"
+  },
+  {
+   "w": "filly",
+   "h": "a young girl horse"
+  },
+  {
+   "w": "gecko",
+   "e": "🦎",
+   "h": "a little lizard that climbs walls"
+  },
+  {
+   "w": "perch",
+   "h": "a common pond fish"
+  },
+  {
+   "w": "trout",
+   "h": "a fish that swims in rivers"
+  },
+  {
+   "w": "squid",
+   "e": "🦑",
+   "h": "has eight arms and lives in the sea"
+  },
+  {
+   "w": "clam",
+   "h": "a sea animal in a shell"
+  },
+  {
+   "w": "crane",
+   "h": "a tall bird with long legs"
+  },
+  {
+   "w": "heron",
+   "h": "a tall bird that wades in water"
+  },
+  {
+   "w": "stork",
+   "h": "a tall bird with a long beak"
+  },
+  {
+   "w": "bread",
+   "e": "🍞",
+   "h": "sliced and used for sandwiches"
+  },
+  {
+   "w": "toast",
+   "h": "bread that got warm and crispy"
+  },
+  {
+   "w": "apple",
+   "e": "🍎",
+   "h": "a crunchy fruit that grows on trees"
+  },
+  {
+   "w": "grape",
+   "e": "🍇",
+   "h": "a small round juicy fruit"
+  },
+  {
+   "w": "lemon",
+   "e": "🍋",
+   "h": "a sour yellow fruit"
+  },
+  {
+   "w": "mango",
+   "e": "🥭",
+   "h": "a sweet orange tropical fruit"
+  },
+  {
+   "w": "melon",
+   "e": "🍈",
+   "h": "a big juicy fruit"
+  },
+  {
+   "w": "berry",
+   "h": "a small sweet fruit"
+  },
+  {
+   "w": "peach",
+   "e": "🍑",
+   "h": "a fuzzy sweet fruit"
+  },
+  {
+   "w": "plum",
+   "h": "a small purple fruit"
+  },
+  {
+   "w": "pear",
+   "e": "🍐",
+   "h": "a sweet fruit shaped like a bell"
+  },
+  {
+   "w": "corn",
+   "e": "🌽",
+   "h": "grows on a cob"
+  },
+  {
+   "w": "rice",
+   "e": "🍚",
+   "h": "tiny white grains you cook and eat"
+  },
+  {
+   "w": "soup",
+   "e": "🍲",
+   "h": "a warm meal you eat with a spoon"
+  },
+  {
+   "w": "cake",
+   "e": "🍰",
+   "h": "a sweet treat for birthdays"
+  },
+  {
+   "w": "milk",
+   "e": "🥛",
+   "h": "a white drink from a cow"
+  },
+  {
+   "w": "eggs",
+   "e": "🥚",
+   "h": "chickens lay these"
+  },
+  {
+   "w": "meat",
+   "e": "🍖",
+   "h": "food that comes from animals"
+  },
+  {
+   "w": "taco",
+   "e": "🌮",
+   "h": "a folded shell filled with tasty food"
+  },
+  {
+   "w": "pizza",
+   "e": "🍕",
+   "h": "a round cheesy slice"
+  },
+  {
+   "w": "candy",
+   "e": "🍬",
+   "h": "a sweet treat"
+  },
+  {
+   "w": "honey",
+   "e": "🍯",
+   "h": "a sweet syrup made by bees"
+  },
+  {
+   "w": "syrup",
+   "h": "a sweet sticky liquid"
+  },
+  {
+   "w": "sugar",
+   "h": "makes food sweet"
+  },
+  {
+   "w": "salad",
+   "e": "🥗",
+   "h": "a bowl of fresh veggies"
+  },
+  {
+   "w": "pasta",
+   "e": "🍝",
+   "h": "noodles you eat with sauce"
+  },
+  {
+   "w": "bacon",
+   "e": "🥓",
+   "h": "crispy strips at breakfast"
+  },
+  {
+   "w": "gravy",
+   "h": "a warm sauce for potatoes"
+  },
+  {
+   "w": "juice",
+   "e": "🧃",
+   "h": "a sweet fruity drink"
+  },
+  {
+   "w": "water",
+   "e": "💧",
+   "h": "you drink this to stay hydrated"
+  },
+  {
+   "w": "wheat",
+   "e": "🌾",
+   "h": "a grain used to make bread"
+  },
+  {
+   "w": "grain",
+   "h": "tiny seeds from plants like wheat"
+  },
+  {
+   "w": "fruit",
+   "h": "sweet food that grows on plants"
+  },
+  {
+   "w": "olive",
+   "h": "a small salty fruit"
+  },
+  {
+   "w": "onion",
+   "e": "🧅",
+   "h": "can make your eyes water"
+  },
+  {
+   "w": "spice",
+   "h": "adds flavor to food"
+  },
+  {
+   "w": "snack",
+   "h": "a small bite to eat"
+  },
+  {
+   "w": "treat",
+   "h": "a special yummy food"
+  },
+  {
+   "w": "donut",
+   "e": "🍩",
+   "h": "a sweet ring-shaped pastry"
+  },
+  {
+   "w": "bagel",
+   "e": "🥯",
+   "h": "a round chewy bread"
+  },
+  {
+   "w": "jelly",
+   "h": "a sweet fruity spread"
+  },
+  {
+   "w": "stew",
+   "h": "a warm meal cooked slowly"
+  },
+  {
+   "w": "broth",
+   "h": "a warm soupy liquid"
+  },
+  {
+   "w": "roll",
+   "h": "a small round piece of bread"
+  },
+  {
+   "w": "chip",
+   "h": "a thin crunchy snack"
+  },
+  {
+   "w": "chips",
+   "e": "🍟",
+   "h": "a crunchy salty snack"
+  },
+  {
+   "w": "fries",
+   "h": "crispy strips of potato"
+  },
+  {
+   "w": "steak",
+   "e": "🥩",
+   "h": "a slice of cooked meat"
+  },
+  {
+   "w": "curry",
+   "e": "🍛",
+   "h": "a spicy saucy meal"
+  },
+  {
+   "w": "sushi",
+   "e": "🍣",
+   "h": "rolled rice with fillings"
+  },
+  {
+   "w": "mint",
+   "h": "a cool fresh flavor"
+  },
+  {
+   "w": "basil",
+   "h": "a fragrant green herb"
+  },
+  {
+   "w": "crumb",
+   "h": "a tiny bit of bread"
+  },
+  {
+   "w": "cocoa",
+   "h": "used to make chocolate"
+  },
+  {
+   "w": "shake",
+   "h": "a thick creamy drink"
+  },
+  {
+   "w": "soda",
+   "h": "a fizzy sweet drink"
+  },
+  {
+   "w": "cider",
+   "h": "a drink made from apples"
+  },
+  {
+   "w": "punch",
+   "h": "a fruity party drink"
+  },
+  {
+   "w": "nuts",
+   "h": "a crunchy snack from trees"
+  },
+  {
+   "w": "seed",
+   "h": "a tiny plant just waiting to grow"
+  },
+  {
+   "w": "seeds",
+   "h": "tiny bits that grow into plants"
+  },
+  {
+   "w": "crust",
+   "h": "the outside edge of bread or pie"
+  },
+  {
+   "w": "roast",
+   "h": "food cooked slowly in the oven"
+  },
+  {
+   "w": "hand",
+   "e": "✋",
+   "h": "you use this to hold things"
+  },
+  {
+   "w": "foot",
+   "e": "🦶",
+   "h": "you stand on these"
+  },
+  {
+   "w": "feet",
+   "h": "you have two of these to walk on"
+  },
+  {
+   "w": "head",
+   "h": "the top part of your body"
+  },
+  {
+   "w": "face",
+   "h": "the front of your head"
+  },
+  {
+   "w": "nose",
+   "e": "👃",
+   "h": "you smell with this"
+  },
+  {
+   "w": "ears",
+   "e": "👂",
+   "h": "you hear with these"
+  },
+  {
+   "w": "eyes",
+   "e": "👀",
+   "h": "you see with these"
+  },
+  {
+   "w": "lips",
+   "e": "👄",
+   "h": "the edges of your mouth"
+  },
+  {
+   "w": "chin",
+   "h": "below your mouth"
+  },
+  {
+   "w": "neck",
+   "h": "connects your head to your body"
+  },
+  {
+   "w": "back",
+   "h": "the part behind you"
+  },
+  {
+   "w": "chest",
+   "h": "the front of your upper body"
+  },
+  {
+   "w": "belly",
+   "h": "your tummy"
+  },
+  {
+   "w": "tummy",
+   "h": "your belly"
+  },
+  {
+   "w": "waist",
+   "h": "the middle of your body"
+  },
+  {
+   "w": "elbow",
+   "h": "the bendy part of your arm"
+  },
+  {
+   "w": "palm",
+   "h": "the inside of your hand"
+  },
+  {
+   "w": "shin",
+   "h": "the front of your lower leg"
+  },
+  {
+   "w": "ankle",
+   "h": "where your foot meets your leg"
+  },
+  {
+   "w": "heel",
+   "h": "the back of your foot"
+  },
+  {
+   "w": "toes",
+   "h": "the little parts at the end of your feet"
+  },
+  {
+   "w": "hair",
+   "h": "grows on your head"
+  },
+  {
+   "w": "teeth",
+   "e": "🦷",
+   "h": "you use these to chew"
+  },
+  {
+   "w": "tooth",
+   "h": "one of the white things you chew with"
+  },
+  {
+   "w": "brow",
+   "h": "above your eye"
+  },
+  {
+   "w": "cheek",
+   "h": "the side of your face"
+  },
+  {
+   "w": "skin",
+   "h": "covers your whole body"
+  },
+  {
+   "w": "bone",
+   "e": "🦴",
+   "h": "hard parts inside your body"
+  },
+  {
+   "w": "heart",
+   "e": "❤️",
+   "h": "beats inside your chest"
+  },
+  {
+   "w": "brain",
+   "e": "🧠",
+   "h": "helps you think"
+  },
+  {
+   "w": "lung",
+   "h": "helps you breathe"
+  },
+  {
+   "w": "lungs",
+   "h": "help you breathe air"
+  },
+  {
+   "w": "spine",
+   "h": "runs down the middle of your back"
+  },
+  {
+   "w": "pupil",
+   "h": "the black dot in the middle of your eye"
+  },
+  {
+   "w": "shirt",
+   "e": "👕",
+   "h": "you wear this on your top"
+  },
+  {
+   "w": "pants",
+   "e": "👖",
+   "h": "you wear these on your legs"
+  },
+  {
+   "w": "socks",
+   "e": "🧦",
+   "h": "you wear these on your feet"
+  },
+  {
+   "w": "shoes",
+   "e": "👟",
+   "h": "you wear these to walk outside"
+  },
+  {
+   "w": "dress",
+   "e": "👗",
+   "h": "a piece of clothing worn over the body"
+  },
+  {
+   "w": "skirt",
+   "h": "a piece of clothing worn below the waist"
+  },
+  {
+   "w": "scarf",
+   "e": "🧣",
+   "h": "wrap this around your neck when it's cold"
+  },
+  {
+   "w": "glove",
+   "e": "🧤",
+   "h": "keeps one hand warm"
+  },
+  {
+   "w": "coat",
+   "e": "🧥",
+   "h": "wear this when it's chilly outside"
+  },
+  {
+   "w": "boots",
+   "e": "👢",
+   "h": "tall shoes for rainy days"
+  },
+  {
+   "w": "boot",
+   "h": "a tall shoe"
+  },
+  {
+   "w": "belt",
+   "h": "holds your pants up"
+  },
+  {
+   "w": "vest",
+   "h": "a sleeveless piece of clothing"
+  },
+  {
+   "w": "robe",
+   "h": "a long comfy garment"
+  },
+  {
+   "w": "suit",
+   "h": "fancy clothes for special days"
+  },
+  {
+   "w": "mitt",
+   "h": "a glove for catching a ball"
+  },
+  {
+   "w": "mitts",
+   "h": "thick warm gloves"
+  },
+  {
+   "w": "cloak",
+   "h": "a long cape you wear"
+  },
+  {
+   "w": "shawl",
+   "h": "a wrap for your shoulders"
+  },
+  {
+   "w": "apron",
+   "h": "worn to keep clothes clean while cooking"
+  },
+  {
+   "w": "sunny",
+   "e": "☀️",
+   "h": "a bright day full of sunshine"
+  },
+  {
+   "w": "rainy",
+   "e": "🌧️",
+   "h": "a day with lots of rain"
+  },
+  {
+   "w": "windy",
+   "e": "💨",
+   "h": "a day when the air is blowing hard"
+  },
+  {
+   "w": "cloud",
+   "e": "☁️",
+   "h": "a fluffy white shape in the sky"
+  },
+  {
+   "w": "storm",
+   "e": "⛈️",
+   "h": "strong wind and rain together"
+  },
+  {
+   "w": "snow",
+   "e": "❄️",
+   "h": "cold white fluff that falls in winter"
+  },
+  {
+   "w": "rain",
+   "e": "🌧️",
+   "h": "drops that fall from clouds"
+  },
+  {
+   "w": "wind",
+   "e": "💨",
+   "h": "you feel it but can't see it"
+  },
+  {
+   "w": "mist",
+   "h": "a light foggy haze"
+  },
+  {
+   "w": "frost",
+   "h": "icy crystals on cold mornings"
+  },
+  {
+   "w": "sleet",
+   "h": "cold rain that's part ice"
+  },
+  {
+   "w": "star",
+   "e": "⭐",
+   "h": "twinkles in the night sky"
+  },
+  {
+   "w": "stars",
+   "h": "tiny twinkling lights in the sky"
+  },
+  {
+   "w": "moon",
+   "e": "🌙",
+   "h": "glows in the night sky"
+  },
+  {
+   "w": "tree",
+   "e": "🌳",
+   "h": "tall and green with leaves and branches"
+  },
+  {
+   "w": "trees",
+   "h": "tall plants with trunks and leaves"
+  },
+  {
+   "w": "leaf",
+   "e": "🍃",
+   "h": "grows on trees, falls in autumn"
+  },
+  {
+   "w": "grass",
+   "e": "🌱",
+   "h": "green and grows in your yard"
+  },
+  {
+   "w": "plant",
+   "e": "🌱",
+   "h": "something green that grows from the ground"
+  },
+  {
+   "w": "petal",
+   "e": "🌸",
+   "h": "the colorful part of a flower"
+  },
+  {
+   "w": "stem",
+   "h": "holds up a flower"
+  },
+  {
+   "w": "root",
+   "h": "grows underground to feed a plant"
+  },
+  {
+   "w": "roots",
+   "h": "parts of a plant that grow underground"
+  },
+  {
+   "w": "pond",
+   "h": "a small body of still water"
+  },
+  {
+   "w": "lake",
+   "h": "a big body of water surrounded by land"
+  },
+  {
+   "w": "river",
+   "e": "🏞️",
+   "h": "flowing water that leads to the sea"
+  },
+  {
+   "w": "ocean",
+   "e": "🌊",
+   "h": "a huge body of salty water"
+  },
+  {
+   "w": "beach",
+   "e": "🏖️",
+   "h": "sandy place next to the sea"
+  },
+  {
+   "w": "sand",
+   "h": "tiny grains found at the beach"
+  },
+  {
+   "w": "rock",
+   "e": "🪨",
+   "h": "a hard piece of the earth"
+  },
+  {
+   "w": "rocks",
+   "h": "hard pieces of the earth"
+  },
+  {
+   "w": "stone",
+   "h": "a small hard rock"
+  },
+  {
+   "w": "hill",
+   "e": "⛰️",
+   "h": "a small rounded mountain"
+  },
+  {
+   "w": "hills",
+   "h": "small rounded mountains"
+  },
+  {
+   "w": "field",
+   "h": "a big open grassy space"
+  },
+  {
+   "w": "woods",
+   "h": "a small forest"
+  },
+  {
+   "w": "creek",
+   "h": "a small flowing stream"
+  },
+  {
+   "w": "brook",
+   "h": "a tiny gentle stream"
+  },
+  {
+   "w": "cliff",
+   "h": "a steep rocky edge"
+  },
+  {
+   "w": "cave",
+   "h": "a hollow space inside a hill or rock"
+  },
+  {
+   "w": "shore",
+   "h": "the edge of a lake or ocean"
+  },
+  {
+   "w": "waves",
+   "e": "🌊",
+   "h": "the moving water at the beach"
+  },
+  {
+   "w": "book",
+   "e": "📖",
+   "h": "you read this"
+  },
+  {
+   "w": "books",
+   "h": "you read these"
+  },
+  {
+   "w": "desk",
+   "h": "you sit at this to work"
+  },
+  {
+   "w": "ruler",
+   "e": "📏",
+   "h": "used to draw straight lines"
+  },
+  {
+   "w": "paper",
+   "e": "📄",
+   "h": "you write and draw on this"
+  },
+  {
+   "w": "paint",
+   "e": "🎨",
+   "h": "colorful liquid used for art"
+  },
+  {
+   "w": "brush",
+   "e": "🖌️",
+   "h": "used to paint or comb hair"
+  },
+  {
+   "w": "glue",
+   "h": "sticky stuff for crafts"
+  },
+  {
+   "w": "chalk",
+   "h": "used to write on a board"
+  },
+  {
+   "w": "board",
+   "h": "a flat surface for writing"
+  },
+  {
+   "w": "class",
+   "h": "a group of students learning together"
+  },
+  {
+   "w": "grade",
+   "h": "a score on your schoolwork"
+  },
+  {
+   "w": "notes",
+   "h": "short bits of writing to remember things"
+  },
+  {
+   "w": "story",
+   "e": "📖",
+   "h": "a tale you read or tell"
+  },
+  {
+   "w": "words",
+   "h": "letters put together to mean something"
+  },
+  {
+   "w": "count",
+   "h": "say numbers in order"
+  },
+  {
+   "w": "math",
+   "h": "the subject with numbers"
+  },
+  {
+   "w": "quiz",
+   "h": "a short test"
+  },
+  {
+   "w": "test",
+   "e": "📝",
+   "h": "questions to check what you learned"
+  },
+  {
+   "w": "lunch",
+   "e": "🍱",
+   "h": "the meal you eat at midday"
+  },
+  {
+   "w": "table",
+   "h": "you eat and work at this"
+  },
+  {
+   "w": "lamp",
+   "e": "💡",
+   "h": "lights up a room"
+  },
+  {
+   "w": "sofa",
+   "e": "🛋️",
+   "h": "a comfy seat for many people"
+  },
+  {
+   "w": "couch",
+   "h": "a comfy seat for many people"
+  },
+  {
+   "w": "plate",
+   "e": "🍽️",
+   "h": "you eat food off this"
+  },
+  {
+   "w": "spoon",
+   "e": "🥄",
+   "h": "used to eat soup or cereal"
+  },
+  {
+   "w": "fork",
+   "e": "🍴",
+   "h": "used to pick up food"
+  },
+  {
+   "w": "cups",
+   "h": "you drink out of these"
+  },
+  {
+   "w": "glass",
+   "e": "🥛",
+   "h": "you drink water from this"
+  },
+  {
+   "w": "bowl",
+   "e": "🥣",
+   "h": "holds your cereal or soup"
+  },
+  {
+   "w": "sink",
+   "h": "where you wash your hands"
+  },
+  {
+   "w": "stove",
+   "h": "used to cook food"
+  },
+  {
+   "w": "oven",
+   "h": "used to bake food"
+  },
+  {
+   "w": "towel",
+   "h": "used to dry off"
+  },
+  {
+   "w": "soap",
+   "e": "🧼",
+   "h": "used to wash your hands"
+  },
+  {
+   "w": "broom",
+   "e": "🧹",
+   "h": "used to sweep the floor"
+  },
+  {
+   "w": "pail",
+   "h": "a bucket for carrying things"
+  },
+  {
+   "w": "door",
+   "e": "🚪",
+   "h": "you open this to enter a room"
+  },
+  {
+   "w": "doors",
+   "h": "you open these to go inside"
+  },
+  {
+   "w": "floor",
+   "h": "you walk on this"
+  },
+  {
+   "w": "roof",
+   "h": "covers the top of a house"
+  },
+  {
+   "w": "wall",
+   "h": "a side of a room"
+  },
+  {
+   "w": "walls",
+   "h": "the sides of a room"
+  },
+  {
+   "w": "porch",
+   "h": "a covered area outside your front door"
+  },
+  {
+   "w": "yard",
+   "h": "the grassy area outside a house"
+  },
+  {
+   "w": "gate",
+   "h": "a small door in a fence"
+  },
+  {
+   "w": "fence",
+   "h": "keeps a yard closed in"
+  },
+  {
+   "w": "stair",
+   "h": "one step going up or down"
+  },
+  {
+   "w": "quilt",
+   "h": "a cozy blanket"
+  },
+  {
+   "w": "sheet",
+   "h": "covers your bed"
+  },
+  {
+   "w": "shelf",
+   "h": "holds books or toys on the wall"
+  },
+  {
+   "w": "clock",
+   "e": "🕐",
+   "h": "tells you what time it is"
+  },
+  {
+   "w": "watch",
+   "e": "⌚",
+   "h": "tells time on your wrist"
+  },
+  {
+   "w": "phone",
+   "e": "📱",
+   "h": "used to call or talk to someone"
+  },
+  {
+   "w": "radio",
+   "e": "📻",
+   "h": "plays music and sounds"
+  },
+  {
+   "w": "light",
+   "e": "💡",
+   "h": "helps you see in the dark"
+  },
+  {
+   "w": "ball",
+   "e": "⚽",
+   "h": "you kick or throw this to play"
+  },
+  {
+   "w": "balls",
+   "h": "round toys you throw or kick"
+  },
+  {
+   "w": "doll",
+   "h": "a toy shaped like a person"
+  },
+  {
+   "w": "dolls",
+   "h": "toys shaped like little people"
+  },
+  {
+   "w": "kite",
+   "e": "🪁",
+   "h": "flies high on a windy day"
+  },
+  {
+   "w": "kites",
+   "h": "toys that fly on a string"
+  },
+  {
+   "w": "block",
+   "h": "a toy piece you stack up"
+  },
+  {
+   "w": "swing",
+   "h": "you sit and go back and forth"
+  },
+  {
+   "w": "slide",
+   "h": "you climb up and zoom down"
+  },
+  {
+   "w": "drum",
+   "e": "🥁",
+   "h": "you hit this to make a beat"
+  },
+  {
+   "w": "drums",
+   "h": "instruments you bang to make a rhythm"
+  },
+  {
+   "w": "horn",
+   "h": "you blow into this to make music"
+  },
+  {
+   "w": "bell",
+   "e": "🔔",
+   "h": "makes a ringing sound"
+  },
+  {
+   "w": "bells",
+   "h": "make ringing sounds"
+  },
+  {
+   "w": "bike",
+   "e": "🚲",
+   "h": "you pedal this to ride"
+  },
+  {
+   "w": "bikes",
+   "h": "toys with two wheels you pedal"
+  },
+  {
+   "w": "trike",
+   "h": "a bike with three wheels"
+  },
+  {
+   "w": "wagon",
+   "h": "a little cart you pull along"
+  },
+  {
+   "w": "truck",
+   "e": "🚚",
+   "h": "a big vehicle that carries things"
+  },
+  {
+   "w": "train",
+   "e": "🚂",
+   "h": "rides on tracks"
+  },
+  {
+   "w": "plane",
+   "e": "✈️",
+   "h": "flies high in the sky"
+  },
+  {
+   "w": "boat",
+   "e": "⛵",
+   "h": "floats and sails on water"
+  },
+  {
+   "w": "boats",
+   "h": "vehicles that float on water"
+  },
+  {
+   "w": "ship",
+   "e": "🚢",
+   "h": "a big boat that sails the seas"
+  },
+  {
+   "w": "ships",
+   "h": "big boats that sail the seas"
+  },
+  {
+   "w": "robot",
+   "e": "🤖",
+   "h": "a machine that can move and beep"
+  },
+  {
+   "w": "cards",
+   "h": "used to play games"
+  },
+  {
+   "w": "game",
+   "e": "🎮",
+   "h": "something fun to play"
+  },
+  {
+   "w": "games",
+   "h": "fun things to play"
+  },
+  {
+   "w": "jump",
+   "h": "push off the ground into the air"
+  },
+  {
+   "w": "jumps",
+   "h": "leaps into the air"
+  },
+  {
+   "w": "rope",
+   "h": "a long cord you can jump with"
+  },
+  {
+   "w": "spin",
+   "h": "turn around and around"
+  },
+  {
+   "w": "spins",
+   "h": "turns around and around"
+  },
+  {
+   "w": "climb",
+   "h": "go up something using your hands and feet"
+  },
+  {
+   "w": "chase",
+   "h": "run after someone"
+  },
+  {
+   "w": "catch",
+   "h": "grab something in the air"
+  },
+  {
+   "w": "throw",
+   "h": "toss something through the air"
+  },
+  {
+   "w": "toss",
+   "h": "throw something gently"
+  },
+  {
+   "w": "race",
+   "e": "🏁",
+   "h": "see who is the fastest"
+  },
+  {
+   "w": "races",
+   "h": "contests to see who is fastest"
+  },
+  {
+   "w": "walk",
+   "h": "move along on your feet"
+  },
+  {
+   "w": "skip",
+   "h": "hop lightly from foot to foot"
+  },
+  {
+   "w": "sing",
+   "e": "🎤",
+   "h": "make music with your voice"
+  },
+  {
+   "w": "dance",
+   "e": "💃",
+   "h": "move your body to music"
+  },
+  {
+   "w": "smile",
+   "e": "😊",
+   "h": "a happy look on your face"
+  },
+  {
+   "w": "wave",
+   "e": "👋",
+   "h": "move your hand to say hello"
+  },
+  {
+   "w": "clap",
+   "e": "👏",
+   "h": "bring your hands together loudly"
+  },
+  {
+   "w": "cheer",
+   "h": "shout with excitement"
+  },
+  {
+   "w": "dream",
+   "e": "💭",
+   "h": "a story your mind makes while you sleep"
+  },
+  {
+   "w": "sleep",
+   "e": "😴",
+   "h": "close your eyes and rest at night"
+  },
+  {
+   "w": "swim",
+   "e": "🏊",
+   "h": "move through the water"
+  },
+  {
+   "w": "dive",
+   "h": "jump headfirst into water"
+  },
+  {
+   "w": "float",
+   "h": "stay on top of water"
+  },
+  {
+   "w": "ride",
+   "h": "travel on something like a bike"
+  },
+  {
+   "w": "drive",
+   "e": "🚗",
+   "h": "steer a car"
+  },
+  {
+   "w": "crawl",
+   "h": "move on your hands and knees"
+  },
+  {
+   "w": "stand",
+   "h": "be up on your feet"
+  },
+  {
+   "w": "stomp",
+   "h": "step down hard"
+  },
+  {
+   "w": "bend",
+   "h": "fold your body at the middle"
+  },
+  {
+   "w": "twist",
+   "h": "turn something round"
+  },
+  {
+   "w": "march",
+   "h": "walk with steady steps"
+  },
+  {
+   "w": "hike",
+   "e": "🥾",
+   "h": "walk a long way outdoors"
+  },
+  {
+   "w": "camp",
+   "e": "🏕️",
+   "h": "sleep outdoors in a tent"
+  },
+  {
+   "w": "grow",
+   "h": "get bigger over time"
+  },
+  {
+   "w": "bloom",
+   "e": "🌸",
+   "h": "open up like a flower"
+  },
+  {
+   "w": "bake",
+   "h": "cook food in an oven"
+  },
+  {
+   "w": "cook",
+   "h": "make food ready to eat"
+  },
+  {
+   "w": "stir",
+   "h": "mix something around with a spoon"
+  },
+  {
+   "w": "pour",
+   "h": "let liquid flow out of a container"
+  },
+  {
+   "w": "wash",
+   "h": "clean something with water"
+  },
+  {
+   "w": "rinse",
+   "h": "wash off with clean water"
+  },
+  {
+   "w": "scrub",
+   "h": "clean something hard"
+  },
+  {
+   "w": "sweep",
+   "h": "clean the floor with a broom"
+  },
+  {
+   "w": "clean",
+   "h": "free of dirt"
+  },
+  {
+   "w": "fold",
+   "h": "bend something over itself"
+  },
+  {
+   "w": "draw",
+   "e": "✏️",
+   "h": "make a picture with a pencil"
+  },
+  {
+   "w": "color",
+   "h": "add colors to a picture"
+  },
+  {
+   "w": "trace",
+   "h": "draw over lines that are already there"
+  },
+  {
+   "w": "write",
+   "h": "put words on paper"
+  },
+  {
+   "w": "read",
+   "h": "look at words and understand them"
+  },
+  {
+   "w": "learn",
+   "h": "find out something new"
+  },
+  {
+   "w": "teach",
+   "h": "help someone learn"
+  },
+  {
+   "w": "study",
+   "h": "work hard to learn something"
+  },
+  {
+   "w": "think",
+   "e": "🤔",
+   "h": "use your brain to figure something out"
+  },
+  {
+   "w": "guess",
+   "h": "try to answer without being sure"
+  },
+  {
+   "w": "solve",
+   "h": "figure out the answer"
+  },
+  {
+   "w": "share",
+   "h": "give some of what you have to others"
+  },
+  {
+   "w": "help",
+   "h": "lend a hand to someone"
+  },
+  {
+   "w": "hold",
+   "h": "keep something in your hands"
+  },
+  {
+   "w": "carry",
+   "h": "hold something while you move"
+  },
+  {
+   "w": "lift",
+   "h": "raise something up"
+  },
+  {
+   "w": "push",
+   "h": "move something away from you"
+  },
+  {
+   "w": "pull",
+   "h": "move something toward you"
+  },
+  {
+   "w": "open",
+   "h": "make something not closed"
+  },
+  {
+   "w": "close",
+   "h": "shut something"
+  },
+  {
+   "w": "shut",
+   "h": "close something"
+  },
+  {
+   "w": "lock",
+   "h": "keep something safely closed"
+  },
+  {
+   "w": "ring",
+   "e": "🔔",
+   "h": "make a bell sound"
+  },
+  {
+   "w": "call",
+   "e": "📞",
+   "h": "talk to someone on the phone"
+  },
+  {
+   "w": "talk",
+   "e": "💬",
+   "h": "say words to someone"
+  },
+  {
+   "w": "chat",
+   "e": "💬",
+   "h": "have a friendly talk"
+  },
+  {
+   "w": "shout",
+   "h": "say something very loudly"
+  },
+  {
+   "w": "yell",
+   "h": "shout loudly"
+  },
+  {
+   "w": "greet",
+   "h": "say hello to someone"
+  },
+  {
+   "w": "thank",
+   "h": "tell someone you appreciate them"
+  },
+  {
+   "w": "give",
+   "h": "hand something to someone"
+  },
+  {
+   "w": "take",
+   "h": "grab something and keep it"
+  },
+  {
+   "w": "bring",
+   "h": "carry something with you"
+  },
+  {
+   "w": "send",
+   "e": "📬",
+   "h": "mail or pass something along"
+  },
+  {
+   "w": "mail",
+   "e": "📬",
+   "h": "letters and packages sent to you"
+  },
+  {
+   "w": "visit",
+   "h": "go see someone or someplace"
+  },
+  {
+   "w": "enter",
+   "h": "go into a place"
+  },
+  {
+   "w": "leave",
+   "h": "go away from a place"
+  },
+  {
+   "w": "start",
+   "h": "begin something"
+  },
+  {
+   "w": "begin",
+   "h": "start something"
+  },
+  {
+   "w": "stop",
+   "e": "🛑",
+   "h": "come to a halt"
+  },
+  {
+   "w": "pause",
+   "e": "⏸️",
+   "h": "take a short break"
+  },
+  {
+   "w": "wait",
+   "h": "stay until it's time"
+  },
+  {
+   "w": "look",
+   "h": "use your eyes to see"
+  },
+  {
+   "w": "stare",
+   "h": "look at something for a long time"
+  },
+  {
+   "w": "peek",
+   "h": "take a quick little look"
+  },
+  {
+   "w": "find",
+   "h": "discover something you were looking for"
+  },
+  {
+   "w": "seek",
+   "h": "search for something"
+  },
+  {
+   "w": "hide",
+   "h": "go where no one can see you"
+  },
+  {
+   "w": "reach",
+   "h": "stretch out your arm to get something"
+  },
+  {
+   "w": "speak",
+   "e": "💬",
+   "h": "say words out loud"
+  },
+  {
+   "w": "sneak",
+   "h": "move quietly so no one notices"
+  },
+  {
+   "w": "touch",
+   "e": "✋",
+   "h": "feel something with your hands"
+  },
+  {
+   "w": "taste",
+   "e": "👅",
+   "h": "try food with your tongue"
+  },
+  {
+   "w": "smell",
+   "e": "👃",
+   "h": "notice a scent with your nose"
+  },
+  {
+   "w": "sense",
+   "h": "seeing, hearing, smelling, tasting, or touching"
+  },
+  {
+   "w": "swift",
+   "h": "another word for fast"
+  },
+  {
+   "w": "happy",
+   "e": "😊",
+   "h": "feeling very glad"
+  },
+  {
+   "w": "silly",
+   "e": "🤪",
+   "h": "funny and playful"
+  },
+  {
+   "w": "funny",
+   "e": "😄",
+   "h": "makes you laugh"
+  },
+  {
+   "w": "proud",
+   "h": "feeling good about what you did"
+  },
+  {
+   "w": "brave",
+   "h": "not afraid to try something hard"
+  },
+  {
+   "w": "sweet",
+   "h": "tastes like sugar, or very kind"
+  },
+  {
+   "w": "kind",
+   "h": "caring and gentle to others"
+  },
+  {
+   "w": "calm",
+   "e": "😌",
+   "h": "quiet and peaceful"
+  },
+  {
+   "w": "eager",
+   "h": "excited and ready to go"
+  },
+  {
+   "w": "merry",
+   "h": "happy and cheerful"
+  },
+  {
+   "w": "jolly",
+   "h": "cheerful and full of fun"
+  },
+  {
+   "w": "lucky",
+   "e": "🍀",
+   "h": "having good things happen to you"
+  },
+  {
+   "w": "glow",
+   "h": "give off a soft light"
+  },
+  {
+   "w": "glad",
+   "h": "happy about something"
+  },
+  {
+   "w": "tired",
+   "e": "😴",
+   "h": "feeling sleepy"
+  },
+  {
+   "w": "quiet",
+   "h": "making very little noise"
+  },
+  {
+   "w": "loud",
+   "e": "📢",
+   "h": "makes a lot of noise"
+  },
+  {
+   "w": "bold",
+   "h": "brave and confident"
+  },
+  {
+   "w": "fresh",
+   "h": "new and clean"
+  },
+  {
+   "w": "neat",
+   "h": "tidy and in order"
+  },
+  {
+   "w": "tidy",
+   "h": "neat and clean"
+  },
+  {
+   "w": "messy",
+   "h": "not neat, all over the place"
+  },
+  {
+   "w": "quick",
+   "h": "moving fast"
+  },
+  {
+   "w": "slow",
+   "h": "not fast"
+  },
+  {
+   "w": "fast",
+   "h": "moving with great speed"
+  },
+  {
+   "w": "soft",
+   "h": "gentle to the touch"
+  },
+  {
+   "w": "hard",
+   "h": "firm, not soft"
+  },
+  {
+   "w": "rough",
+   "h": "not smooth"
+  },
+  {
+   "w": "tough",
+   "h": "strong and hard to break"
+  },
+  {
+   "w": "heavy",
+   "h": "weighs a lot"
+  },
+  {
+   "w": "sharp",
+   "h": "has a fine cutting edge"
+  },
+  {
+   "w": "dull",
+   "h": "not sharp or exciting"
+  },
+  {
+   "w": "shiny",
+   "e": "✨",
+   "h": "reflects light brightly"
+  },
+  {
+   "w": "dark",
+   "h": "with little or no light"
+  },
+  {
+   "w": "warm",
+   "h": "a little hot, cozy"
+  },
+  {
+   "w": "cool",
+   "e": "😎",
+   "h": "a little cold, refreshing"
+  },
+  {
+   "w": "cold",
+   "e": "🥶",
+   "h": "very chilly"
+  },
+  {
+   "w": "giant",
+   "h": "very very big"
+  },
+  {
+   "w": "blue",
+   "e": "🔵",
+   "h": "the color of the sky"
+  },
+  {
+   "w": "pink",
+   "e": "🩷",
+   "h": "a light shade of red"
+  },
+  {
+   "w": "gold",
+   "h": "a shiny yellow color"
+  },
+  {
+   "w": "teal",
+   "h": "a mix of blue and green"
+  },
+  {
+   "w": "gray",
+   "h": "a color between black and white"
+  },
+  {
+   "w": "green",
+   "e": "🟢",
+   "h": "the color of grass"
+  },
+  {
+   "w": "black",
+   "e": "⚫",
+   "h": "the darkest color"
+  },
+  {
+   "w": "white",
+   "e": "⚪",
+   "h": "the color of snow"
+  },
+  {
+   "w": "brown",
+   "e": "🟤",
+   "h": "the color of dirt or wood"
+  },
+  {
+   "w": "coral",
+   "h": "a soft orange-pink color"
+  },
+  {
+   "w": "amber",
+   "h": "a warm golden-orange color"
+  },
+  {
+   "w": "ivory",
+   "h": "a creamy white color"
+  },
+  {
+   "w": "oval",
+   "h": "shaped like an egg"
+  },
+  {
+   "w": "cube",
+   "h": "a shape with six square sides"
+  },
+  {
+   "w": "disk",
+   "h": "a flat round shape"
+  },
+  {
+   "w": "round",
+   "h": "shaped like a circle"
+  },
+  {
+   "w": "three",
+   "h": "one more than two"
+  },
+  {
+   "w": "seven",
+   "h": "one more than six"
+  },
+  {
+   "w": "nine",
+   "h": "one less than ten"
+  },
+  {
+   "w": "five",
+   "h": "one more than four"
+  },
+  {
+   "w": "four",
+   "h": "one more than three"
+  },
+  {
+   "w": "zero",
+   "h": "the number that means none"
+  },
+  {
+   "w": "dozen",
+   "h": "a group of twelve"
+  },
+  {
+   "w": "twin",
+   "h": "one of two born together"
+  },
+  {
+   "w": "twins",
+   "h": "two born at the same time"
+  },
+  {
+   "w": "pair",
+   "h": "a set of two"
+  },
+  {
+   "w": "half",
+   "h": "one of two equal parts"
+  },
+  {
+   "w": "whole",
+   "h": "all of something, not just a part"
+  },
+  {
+   "w": "first",
+   "e": "🥇",
+   "h": "comes before all the others"
+  },
+  {
+   "w": "last",
+   "h": "comes after all the others"
+  },
+  {
+   "w": "next",
+   "h": "the one right after this one"
+  },
+  {
+   "w": "soon",
+   "h": "in a little while"
+  },
+  {
+   "w": "late",
+   "h": "after the right time"
+  },
+  {
+   "w": "noon",
+   "h": "the middle of the day"
+  },
+  {
+   "w": "night",
+   "e": "🌙",
+   "h": "when it gets dark outside"
+  },
+  {
+   "w": "dawn",
+   "h": "the very start of the day"
+  },
+  {
+   "w": "dusk",
+   "h": "when the day turns to night"
+  },
+  {
+   "w": "week",
+   "h": "seven days"
+  },
+  {
+   "w": "weeks",
+   "h": "groups of seven days"
+  },
+  {
+   "w": "month",
+   "e": "📅",
+   "h": "about thirty days"
+  },
+  {
+   "w": "year",
+   "h": "twelve months"
+  },
+  {
+   "w": "years",
+   "h": "long spans of twelve months"
+  },
+  {
+   "w": "today",
+   "e": "📅",
+   "h": "this very day"
+  },
+  {
+   "w": "later",
+   "h": "at a time after now"
+  },
+  {
+   "w": "often",
+   "h": "happening many times"
+  },
+  {
+   "w": "never",
+   "h": "not at any time"
+  },
+  {
+   "w": "house",
+   "e": "🏠",
+   "h": "a place where a family lives"
+  },
+  {
+   "w": "home",
+   "e": "🏡",
+   "h": "the place where you live"
+  },
+  {
+   "w": "room",
+   "h": "a space inside a building"
+  },
+  {
+   "w": "rooms",
+   "h": "spaces inside a building"
+  },
+  {
+   "w": "park",
+   "e": "🏞️",
+   "h": "a place with grass and playgrounds"
+  },
+  {
+   "w": "road",
+   "e": "🛣️",
+   "h": "cars drive on this"
+  },
+  {
+   "w": "roads",
+   "h": "paths that cars drive on"
+  },
+  {
+   "w": "path",
+   "h": "a trail you walk along"
+  },
+  {
+   "w": "paths",
+   "h": "trails you walk along"
+  },
+  {
+   "w": "farm",
+   "e": "🚜",
+   "h": "a place where crops and animals are raised"
+  },
+  {
+   "w": "barn",
+   "h": "a building where farm animals sleep"
+  },
+  {
+   "w": "town",
+   "e": "🏘️",
+   "h": "a small place where people live"
+  },
+  {
+   "w": "city",
+   "e": "🏙️",
+   "h": "a big place full of buildings"
+  },
+  {
+   "w": "shop",
+   "e": "🏪",
+   "h": "a place where you buy things"
+  },
+  {
+   "w": "store",
+   "h": "a place where you buy things"
+  },
+  {
+   "w": "mall",
+   "h": "a big building full of shops"
+  },
+  {
+   "w": "bank",
+   "e": "🏦",
+   "h": "a place that keeps your money safe"
+  },
+  {
+   "w": "pool",
+   "h": "a place to swim"
+  },
+  {
+   "w": "nest",
+   "h": "a home a bird builds"
+  },
+  {
+   "w": "hive",
+   "e": "🐝",
+   "h": "where bees live"
+  },
+  {
+   "w": "song",
+   "e": "🎵",
+   "h": "music with words you sing"
+  },
+  {
+   "w": "songs",
+   "h": "pieces of music with words"
+  },
+  {
+   "w": "music",
+   "e": "🎶",
+   "h": "sounds you love to listen to"
+  },
+  {
+   "w": "flute",
+   "h": "a thin instrument you blow into"
+  },
+  {
+   "w": "piano",
+   "e": "🎹",
+   "h": "an instrument with black and white keys"
+  },
+  {
+   "w": "band",
+   "h": "a group of people who play music"
+  },
+  {
+   "w": "tune",
+   "h": "a short piece of music"
+  },
+  {
+   "w": "beat",
+   "h": "the rhythm of music"
+  },
+  {
+   "w": "sound",
+   "h": "something you hear"
+  },
+  {
+   "w": "noise",
+   "h": "a loud sound"
+  },
+  {
+   "w": "voice",
+   "h": "the sound you make when you talk"
+  },
+  {
+   "w": "team",
+   "h": "a group that works together"
+  },
+  {
+   "w": "goal",
+   "e": "🥅",
+   "h": "scoring point in a game"
+  },
+  {
+   "w": "score",
+   "h": "the points in a game"
+  },
+  {
+   "w": "skate",
+   "e": "⛸️",
+   "h": "glide along on wheels or blades"
+  },
+  {
+   "w": "pitch",
+   "h": "throw a ball in a game"
+  },
+  {
+   "w": "court",
+   "h": "where you play basketball or tennis"
+  },
+  {
+   "w": "match",
+   "h": "a game between two teams"
+  },
+  {
+   "w": "medal",
+   "e": "🏅",
+   "h": "a prize you wear around your neck"
+  },
+  {
+   "w": "prize",
+   "e": "🎁",
+   "h": "something you win"
+  },
+  {
+   "w": "champ",
+   "h": "a winner"
+  },
+  {
+   "w": "wins",
+   "h": "comes in first place"
+  },
+  {
+   "w": "baby",
+   "e": "👶",
+   "h": "a very young child"
+  },
+  {
+   "w": "girl",
+   "e": "👧",
+   "h": "a young female person"
+  },
+  {
+   "w": "child",
+   "h": "a young person"
+  },
+  {
+   "w": "teen",
+   "h": "a young person between 13 and 19"
+  },
+  {
+   "w": "adult",
+   "h": "a grown-up person"
+  },
+  {
+   "w": "aunt",
+   "h": "your parent's sister"
+  },
+  {
+   "w": "uncle",
+   "h": "your parent's brother"
+  },
+  {
+   "w": "buddy",
+   "h": "a close friend"
+  },
+  {
+   "w": "guest",
+   "h": "someone who visits you"
+  },
+  {
+   "w": "coach",
+   "h": "someone who trains a sports team"
+  },
+  {
+   "w": "nurse",
+   "h": "someone who helps sick people feel better"
+  },
+  {
+   "w": "pilot",
+   "h": "someone who flies a plane"
+  },
+  {
+   "w": "baker",
+   "h": "someone who makes bread and cakes"
+  },
+  {
+   "w": "actor",
+   "h": "someone who performs in shows"
+  },
+  {
+   "w": "jeep",
+   "e": "🚙",
+   "h": "a rugged vehicle for bumpy roads"
+  },
+  {
+   "w": "cart",
+   "e": "🛒",
+   "h": "you push this while shopping"
+  },
+  {
+   "w": "sled",
+   "e": "🛷",
+   "h": "you slide down snowy hills on this"
+  },
+  {
+   "w": "canoe",
+   "e": "🛶",
+   "h": "a slim boat you paddle"
+  },
+  {
+   "w": "ferry",
+   "e": "⛴️",
+   "h": "a boat that carries people across water"
+  },
+  {
+   "w": "comet",
+   "e": "☄️",
+   "h": "a bright ball of ice that streaks across space"
+  },
+  {
+   "w": "earth",
+   "e": "🌍",
+   "h": "the planet we live on"
+  }
+ ],
+ "HARD": [
+  {
+   "w": "spider",
+   "e": "🕷️",
+   "h": "has eight legs and spins webs"
+  },
+  {
+   "w": "dragon",
+   "e": "🐉",
+   "h": "a fire-breathing creature in stories"
+  },
+  {
+   "w": "cricket",
+   "e": "🦗",
+   "h": "a hopping insect that chirps"
+  },
+  {
+   "w": "panther"
+  },
+  {
+   "w": "cheetah",
+   "e": "🐆",
+   "h": "the fastest animal on land"
+  },
+  {
+   "w": "gopher"
+  },
+  {
+   "w": "dolphin",
+   "e": "🐬",
+   "h": "a smart, friendly sea animal that jumps"
+  },
+  {
+   "w": "chicken",
+   "e": "🐔",
+   "h": "a farm bird that lays eggs"
+  },
+  {
+   "w": "ostrich"
+  },
+  {
+   "w": "python"
+  },
+  {
+   "w": "sparrow"
+  },
+  {
+   "w": "catfish"
+  },
+  {
+   "w": "peacock",
+   "e": "🦚",
+   "h": "a bird with a huge colorful tail"
+  },
+  {
+   "w": "penguin",
+   "e": "🐧",
+   "h": "a bird that swims but can't fly"
+  },
+  {
+   "w": "chimp"
+  },
+  {
+   "w": "prawn",
+   "e": "🦐",
+   "h": "a small sea creature you can eat"
+  },
+  {
+   "w": "cheese",
+   "e": "🧀",
+   "h": "yellow food made from milk"
+  },
+  {
+   "w": "cherry",
+   "e": "🍒",
+   "h": "a small round red fruit"
+  },
+  {
+   "w": "pretzel",
+   "e": "🥨",
+   "h": "a twisted salty snack"
+  },
+  {
+   "w": "spinach"
+  },
+  {
+   "w": "chowder"
+  },
+  {
+   "w": "cracker"
+  },
+  {
+   "w": "biscuit"
+  },
+  {
+   "w": "ketchup"
+  },
+  {
+   "w": "mustard"
+  },
+  {
+   "w": "crouton"
+  },
+  {
+   "w": "crumble"
+  },
+  {
+   "w": "brownie"
+  },
+  {
+   "w": "custard"
+  },
+  {
+   "w": "churro"
+  },
+  {
+   "w": "squash"
+  },
+  {
+   "w": "cashew"
+  },
+  {
+   "w": "sprout",
+   "e": "🌱",
+   "h": "a tiny new plant just starting to grow"
+  },
+  {
+   "w": "blanket"
+  },
+  {
+   "w": "basket",
+   "e": "🧺",
+   "h": "you carry things in it"
+  },
+  {
+   "w": "bucket",
+   "e": "🪣",
+   "h": "you fill it with water or sand"
+  },
+  {
+   "w": "blender"
+  },
+  {
+   "w": "toaster"
+  },
+  {
+   "w": "kitchen"
+  },
+  {
+   "w": "crayon",
+   "e": "🖍️",
+   "h": "you color pictures with it"
+  },
+  {
+   "w": "sponge",
+   "e": "🧽",
+   "h": "soaks up water when you clean"
+  },
+  {
+   "w": "switch"
+  },
+  {
+   "w": "shutter"
+  },
+  {
+   "w": "shelves"
+  },
+  {
+   "w": "stapler"
+  },
+  {
+   "w": "string"
+  },
+  {
+   "w": "spatula"
+  },
+  {
+   "w": "skillet"
+  },
+  {
+   "w": "stopper"
+  },
+  {
+   "w": "clothes"
+  },
+  {
+   "w": "socket"
+  },
+  {
+   "w": "bracket"
+  },
+  {
+   "w": "trolley"
+  },
+  {
+   "w": "pitcher"
+  },
+  {
+   "w": "shower",
+   "e": "🚿",
+   "h": "where you wash yourself"
+  },
+  {
+   "w": "dresser"
+  },
+  {
+   "w": "drawer"
+  },
+  {
+   "w": "drapes"
+  },
+  {
+   "w": "frame",
+   "e": "🖼️",
+   "h": "holds a picture on the wall"
+  },
+  {
+   "w": "crate"
+  },
+  {
+   "w": "trash",
+   "e": "🗑️",
+   "h": "where you throw things away"
+  },
+  {
+   "w": "polish"
+  },
+  {
+   "w": "shine"
+  },
+  {
+   "w": "sparkle"
+  },
+  {
+   "w": "gleam"
+  },
+  {
+   "w": "clutter"
+  },
+  {
+   "w": "chair",
+   "e": "🪑",
+   "h": "you sit on it"
+  },
+  {
+   "w": "thunder"
+  },
+  {
+   "w": "stream"
+  },
+  {
+   "w": "breeze"
+  },
+  {
+   "w": "splash",
+   "e": "💦",
+   "h": "the sound water makes when you jump in"
+  },
+  {
+   "w": "shadow"
+  },
+  {
+   "w": "shade"
+  },
+  {
+   "w": "forest"
+  },
+  {
+   "w": "branch"
+  },
+  {
+   "w": "shrub"
+  },
+  {
+   "w": "blossom",
+   "e": "🌺",
+   "h": "a flower on a tree in spring"
+  },
+  {
+   "w": "flower",
+   "e": "🌸",
+   "h": "a colorful bloom that grows in gardens"
+  },
+  {
+   "w": "jungle"
+  },
+  {
+   "w": "shimmer"
+  },
+  {
+   "w": "glimmer"
+  },
+  {
+   "w": "glitter"
+  },
+  {
+   "w": "crystal",
+   "e": "💎",
+   "h": "a clear sparkling stone"
+  },
+  {
+   "w": "spring"
+  },
+  {
+   "w": "drought"
+  },
+  {
+   "w": "flurry"
+  },
+  {
+   "w": "chilly",
+   "e": "🥶",
+   "h": "a little bit cold"
+  },
+  {
+   "w": "frosty"
+  },
+  {
+   "w": "stormy"
+  },
+  {
+   "w": "cloudy",
+   "e": "☁️",
+   "h": "the sky is covered in gray puffs"
+  },
+  {
+   "w": "breezy"
+  },
+  {
+   "w": "misty"
+  },
+  {
+   "w": "gloomy"
+  },
+  {
+   "w": "bright"
+  },
+  {
+   "w": "thumb",
+   "e": "👍",
+   "h": "the shortest finger on your hand"
+  },
+  {
+   "w": "throat"
+  },
+  {
+   "w": "stomach"
+  },
+  {
+   "w": "wrist"
+  },
+  {
+   "w": "eyebrow"
+  },
+  {
+   "w": "eyelash"
+  },
+  {
+   "w": "skull",
+   "e": "💀",
+   "h": "the bone that protects your brain"
+  },
+  {
+   "w": "breath"
+  },
+  {
+   "w": "thigh"
+  },
+  {
+   "w": "wrinkle"
+  },
+  {
+   "w": "freckle"
+  },
+  {
+   "w": "blister"
+  },
+  {
+   "w": "bruise"
+  },
+  {
+   "w": "scratch"
+  },
+  {
+   "w": "sneeze",
+   "e": "🤧",
+   "h": "achoo! it happens when your nose tickles"
+  },
+  {
+   "w": "shiver"
+  },
+  {
+   "w": "tremble"
+  },
+  {
+   "w": "stretch"
+  },
+  {
+   "w": "stumble"
+  },
+  {
+   "w": "wriggle"
+  },
+  {
+   "w": "crouch"
+  },
+  {
+   "w": "shrug",
+   "e": "🤷",
+   "h": "lifting your shoulders when you don't know"
+  },
+  {
+   "w": "clutch"
+  },
+  {
+   "w": "squeeze"
+  },
+  {
+   "w": "sprint",
+   "e": "🏃",
+   "h": "running as fast as you can"
+  },
+  {
+   "w": "scream",
+   "e": "😱",
+   "h": "a loud shout when you're scared or excited"
+  },
+  {
+   "w": "shatter"
+  },
+  {
+   "w": "shuffle"
+  },
+  {
+   "w": "tumble"
+  },
+  {
+   "w": "fumble"
+  },
+  {
+   "w": "grumble"
+  },
+  {
+   "w": "mumble"
+  },
+  {
+   "w": "rumble"
+  },
+  {
+   "w": "jumble"
+  },
+  {
+   "w": "bubble",
+   "e": "🫧",
+   "h": "a round floaty ball of air or soap"
+  },
+  {
+   "w": "wobble"
+  },
+  {
+   "w": "double"
+  },
+  {
+   "w": "juggle",
+   "e": "🤹",
+   "h": "keeping several balls moving in the air"
+  },
+  {
+   "w": "giggle",
+   "e": "😄",
+   "h": "a light happy laugh"
+  },
+  {
+   "w": "wiggle"
+  },
+  {
+   "w": "snuggle"
+  },
+  {
+   "w": "griddle"
+  },
+  {
+   "w": "twinkle"
+  },
+  {
+   "w": "crinkle"
+  },
+  {
+   "w": "speckle"
+  },
+  {
+   "w": "knuckle"
+  },
+  {
+   "w": "buckle"
+  },
+  {
+   "w": "chuckle"
+  },
+  {
+   "w": "cackle"
+  },
+  {
+   "w": "tackle"
+  },
+  {
+   "w": "drizzle",
+   "e": "🌦️",
+   "h": "light rain falling gently"
+  },
+  {
+   "w": "scamper"
+  },
+  {
+   "w": "scurry"
+  },
+  {
+   "w": "scatter"
+  },
+  {
+   "w": "scoop"
+  },
+  {
+   "w": "scoot"
+  },
+  {
+   "w": "scrap"
+  },
+  {
+   "w": "scrape"
+  },
+  {
+   "w": "screech"
+  },
+  {
+   "w": "screen",
+   "e": "🖥️",
+   "h": "the flat part of a computer or TV you look at"
+  },
+  {
+   "w": "shriek"
+  },
+  {
+   "w": "thrive"
+  },
+  {
+   "w": "throne"
+  },
+  {
+   "w": "shove"
+  },
+  {
+   "w": "trudge"
+  },
+  {
+   "w": "trickle"
+  },
+  {
+   "w": "slither"
+  },
+  {
+   "w": "slouch"
+  },
+  {
+   "w": "slobber",
+   "e": "🤤",
+   "h": "drool dripping from your mouth"
+  },
+  {
+   "w": "slumber"
+  },
+  {
+   "w": "slipper",
+   "e": "🥿",
+   "h": "soft shoe you wear indoors"
+  },
+  {
+   "w": "slender"
+  },
+  {
+   "w": "sprawl"
+  },
+  {
+   "w": "spruce"
+  },
+  {
+   "w": "squeak"
+  },
+  {
+   "w": "squeal"
+  },
+  {
+   "w": "squint"
+  },
+  {
+   "w": "squirt"
+  },
+  {
+   "w": "squish"
+  },
+  {
+   "w": "swerve"
+  },
+  {
+   "w": "swirl",
+   "e": "🌀",
+   "h": "spinning around and around"
+  },
+  {
+   "w": "swoop"
+  },
+  {
+   "w": "swoosh",
+   "e": "💨",
+   "h": "the sound of something moving fast"
+  },
+  {
+   "w": "twirl"
+  },
+  {
+   "w": "twitch"
+  },
+  {
+   "w": "shorts",
+   "e": "🩳",
+   "h": "short pants for warm days"
+  },
+  {
+   "w": "sweater"
+  },
+  {
+   "w": "jacket",
+   "e": "🧥",
+   "h": "you wear it to stay warm outside"
+  },
+  {
+   "w": "sneaker",
+   "e": "👟",
+   "h": "a comfy shoe for running and playing"
+  },
+  {
+   "w": "blouse",
+   "e": "👚",
+   "h": "a shirt often worn by women or girls"
+  },
+  {
+   "w": "pocket"
+  },
+  {
+   "w": "stripe"
+  },
+  {
+   "w": "fleece"
+  },
+  {
+   "w": "flannel"
+  },
+  {
+   "w": "glasses",
+   "e": "👓",
+   "h": "help you see better"
+  },
+  {
+   "w": "slacks"
+  },
+  {
+   "w": "thimble"
+  },
+  {
+   "w": "teacher"
+  },
+  {
+   "w": "science",
+   "e": "🔬",
+   "h": "the subject where you learn how things work"
+  },
+  {
+   "w": "printer",
+   "e": "🖨️",
+   "h": "prints your homework on paper"
+  },
+  {
+   "w": "stencil"
+  },
+  {
+   "w": "sharpen"
+  },
+  {
+   "w": "speech",
+   "e": "💬",
+   "h": "talking out loud to others"
+  },
+  {
+   "w": "sketch"
+  },
+  {
+   "w": "smart"
+  },
+  {
+   "w": "clever"
+  },
+  {
+   "w": "tractor",
+   "e": "🚜",
+   "h": "a farm vehicle that pulls big loads"
+  },
+  {
+   "w": "scooter",
+   "e": "🛴",
+   "h": "you stand and push it with one foot"
+  },
+  {
+   "w": "freight"
+  },
+  {
+   "w": "steamer"
+  },
+  {
+   "w": "rocket",
+   "e": "🚀",
+   "h": "blasts off into space"
+  },
+  {
+   "w": "shuttle"
+  },
+  {
+   "w": "glider"
+  },
+  {
+   "w": "blimp"
+  },
+  {
+   "w": "chopper",
+   "e": "🚁",
+   "h": "a nickname for a helicopter"
+  },
+  {
+   "w": "sleigh",
+   "e": "🛷",
+   "h": "a sled pulled through the snow"
+  },
+  {
+   "w": "cruiser"
+  },
+  {
+   "w": "transit"
+  },
+  {
+   "w": "traffic",
+   "e": "🚦",
+   "h": "lots of cars all moving at once"
+  },
+  {
+   "w": "trophy",
+   "e": "🏆",
+   "h": "a prize you win for doing great"
+  },
+  {
+   "w": "whistle"
+  },
+  {
+   "w": "dribble",
+   "e": "🏀",
+   "h": "bouncing a ball while you move"
+  },
+  {
+   "w": "striker"
+  },
+  {
+   "w": "catcher",
+   "e": "⚾",
+   "h": "the baseball player who catches the pitch"
+  },
+  {
+   "w": "gymnast",
+   "e": "🤸",
+   "h": "an athlete who flips and tumbles"
+  },
+  {
+   "w": "track"
+  },
+  {
+   "w": "skater",
+   "e": "⛸️",
+   "h": "someone who glides on ice or wheels"
+  },
+  {
+   "w": "skating"
+  },
+  {
+   "w": "skier",
+   "e": "⛷️",
+   "h": "someone who slides down snowy hills"
+  },
+  {
+   "w": "skiing"
+  },
+  {
+   "w": "stamina"
+  },
+  {
+   "w": "cheery"
+  },
+  {
+   "w": "grumpy"
+  },
+  {
+   "w": "clumsy"
+  },
+  {
+   "w": "sturdy"
+  },
+  {
+   "w": "speedy"
+  },
+  {
+   "w": "sneaky"
+  },
+  {
+   "w": "spooky"
+  },
+  {
+   "w": "shady"
+  },
+  {
+   "w": "stinky"
+  },
+  {
+   "w": "squeaky"
+  },
+  {
+   "w": "scrawny"
+  },
+  {
+   "w": "chubby"
+  },
+  {
+   "w": "thirsty"
+  },
+  {
+   "w": "sleepy"
+  },
+  {
+   "w": "grouchy"
+  },
+  {
+   "w": "cranky"
+  },
+  {
+   "w": "clingy"
+  },
+  {
+   "w": "chatty"
+  },
+  {
+   "w": "crafty"
+  },
+  {
+   "w": "flashy"
+  },
+  {
+   "w": "flimsy"
+  },
+  {
+   "w": "fluffy"
+  },
+  {
+   "w": "steady"
+  },
+  {
+   "w": "strong"
+  },
+  {
+   "w": "strange"
+  },
+  {
+   "w": "toasty"
+  },
+  {
+   "w": "crusty"
+  },
+  {
+   "w": "crispy"
+  },
+  {
+   "w": "chewy"
+  },
+  {
+   "w": "crunchy"
+  },
+  {
+   "w": "mushy"
+  },
+  {
+   "w": "squishy"
+  },
+  {
+   "w": "sticky"
+  },
+  {
+   "w": "prickly"
+  },
+  {
+   "w": "shaggy"
+  },
+  {
+   "w": "spotty"
+  },
+  {
+   "w": "glossy"
+  },
+  {
+   "w": "trumpet",
+   "e": "🎺",
+   "h": "a shiny brass instrument you blow into"
+  },
+  {
+   "w": "drummer",
+   "e": "🥁",
+   "h": "plays the beat on drums"
+  },
+  {
+   "w": "twelve"
+  },
+  {
+   "w": "thirty"
+  },
+  {
+   "w": "twenty"
+  },
+  {
+   "w": "twelfth"
+  },
+  {
+   "w": "brother"
+  },
+  {
+   "w": "sister"
+  },
+  {
+   "w": "nephew"
+  },
+  {
+   "w": "wrench"
+  },
+  {
+   "w": "drill"
+  },
+  {
+   "w": "clamp"
+  },
+  {
+   "w": "scraper"
+  },
+  {
+   "w": "chisel"
+  },
+  {
+   "w": "clown",
+   "e": "🤡",
+   "h": "makes people laugh at the circus"
+  },
+  {
+   "w": "clover",
+   "e": "🍀",
+   "h": "a lucky green plant with tiny leaves"
+  },
+  {
+   "w": "crack"
+  },
+  {
+   "w": "craft"
+  },
+  {
+   "w": "crash",
+   "e": "💥",
+   "h": "a loud sound when things collide"
+  },
+  {
+   "w": "crazy",
+   "e": "🤪",
+   "h": "silly and wild"
+  },
+  {
+   "w": "cream"
+  },
+  {
+   "w": "crisp"
+  },
+  {
+   "w": "cross",
+   "e": "❌",
+   "h": "an X mark"
+  },
+  {
+   "w": "crowd",
+   "e": "👥",
+   "h": "lots of people gathered together"
+  },
+  {
+   "w": "crown",
+   "e": "👑",
+   "h": "worn by a king or queen"
+  },
+  {
+   "w": "cruise",
+   "e": "🛳️",
+   "h": "a big ship you take a vacation on"
+  },
+  {
+   "w": "crunch"
+  },
+  {
+   "w": "clear"
+  },
+  {
+   "w": "click",
+   "e": "🖱️",
+   "h": "the sound a mouse button makes"
+  },
+  {
+   "w": "cloth"
+  },
+  {
+   "w": "flame",
+   "e": "🔥",
+   "h": "the hot glowing part of a fire"
+  },
+  {
+   "w": "flash",
+   "e": "⚡",
+   "h": "a sudden bright burst of light"
+  },
+  {
+   "w": "flavor"
+  },
+  {
+   "w": "flight",
+   "e": "✈️",
+   "h": "a trip on an airplane"
+  },
+  {
+   "w": "flock"
+  },
+  {
+   "w": "flood",
+   "e": "🌊",
+   "h": "when water covers land that's usually dry"
+  },
+  {
+   "w": "flour"
+  },
+  {
+   "w": "fluff"
+  },
+  {
+   "w": "stage"
+  },
+  {
+   "w": "stain"
+  },
+  {
+   "w": "stamp"
+  },
+  {
+   "w": "state"
+  },
+  {
+   "w": "steam"
+  },
+  {
+   "w": "steel"
+  },
+  {
+   "w": "steep"
+  },
+  {
+   "w": "steer"
+  },
+  {
+   "w": "stick"
+  },
+  {
+   "w": "sting"
+  },
+  {
+   "w": "stink"
+  },
+  {
+   "w": "stool"
+  },
+  {
+   "w": "stray"
+  },
+  {
+   "w": "stroll"
+  },
+  {
+   "w": "style"
+  },
+  {
+   "w": "space",
+   "e": "🌌",
+   "h": "where planets and stars are"
+  },
+  {
+   "w": "spark"
+  },
+  {
+   "w": "speed"
+  },
+  {
+   "w": "spell"
+  },
+  {
+   "w": "spill"
+  },
+  {
+   "w": "spiral"
+  },
+  {
+   "w": "sport",
+   "e": "⚽",
+   "h": "a game you play to be active"
+  },
+  {
+   "w": "spout"
+  },
+  {
+   "w": "spray"
+  },
+  {
+   "w": "spread"
+  },
+  {
+   "w": "skill"
+  },
+  {
+   "w": "sleeve"
+  },
+  {
+   "w": "slice"
+  },
+  {
+   "w": "slime"
+  },
+  {
+   "w": "slope"
+  },
+  {
+   "w": "slush"
+  },
+  {
+   "w": "small"
+  },
+  {
+   "w": "smooth"
+  },
+  {
+   "w": "smudge"
+  },
+  {
+   "w": "sniff"
+  },
+  {
+   "w": "snore",
+   "e": "💤",
+   "h": "the noise you make sleeping loudly"
+  },
+  {
+   "w": "snout",
+   "e": "🐽",
+   "h": "the nose of a pig or other animal"
+  },
+  {
+   "w": "snowy"
+  },
+  {
+   "w": "swamp"
+  },
+  {
+   "w": "swarm",
+   "e": "🐝",
+   "h": "a big group of buzzing insects"
+  },
+  {
+   "w": "glide"
+  },
+  {
+   "w": "glisten"
+  },
+  {
+   "w": "globe",
+   "e": "🌍",
+   "h": "a round model of the whole world"
+  },
+  {
+   "w": "grand"
+  },
+  {
+   "w": "graph",
+   "e": "📊",
+   "h": "a picture that shows numbers"
+  },
+  {
+   "w": "grease"
+  },
+  {
+   "w": "great"
+  },
+  {
+   "w": "grill"
+  },
+  {
+   "w": "gross",
+   "e": "🤢",
+   "h": "so yucky it makes you say ew"
+  },
+  {
+   "w": "ground"
+  },
+  {
+   "w": "group"
+  },
+  {
+   "w": "grown"
+  },
+  {
+   "w": "place"
+  },
+  {
+   "w": "plank"
+  },
+  {
+   "w": "plunge"
+  },
+  {
+   "w": "prance"
+  },
+  {
+   "w": "prank"
+  },
+  {
+   "w": "press"
+  },
+  {
+   "w": "pretty"
+  },
+  {
+   "w": "prince",
+   "e": "🤴",
+   "h": "the son of a king or queen"
+  },
+  {
+   "w": "print"
+  },
+  {
+   "w": "trail"
+  },
+  {
+   "w": "trick"
+  },
+  {
+   "w": "tricky"
+  },
+  {
+   "w": "troop"
+  },
+  {
+   "w": "trunk"
+  },
+  {
+   "w": "drank"
+  },
+  {
+   "w": "dried"
+  },
+  {
+   "w": "drink",
+   "e": "🥤",
+   "h": "something you sip to stay hydrated"
+  },
+  {
+   "w": "drool"
+  },
+  {
+   "w": "drowsy"
+  },
+  {
+   "w": "scent"
+  },
+  {
+   "w": "school",
+   "e": "🏫",
+   "h": "the place where you go to learn"
+  },
+  {
+   "w": "scout"
+  },
+  {
+   "w": "scroll",
+   "e": "📜",
+   "h": "a rolled-up piece of paper"
+  },
+  {
+   "w": "scuba",
+   "e": "🤿",
+   "h": "diving gear for breathing underwater"
+  },
+  {
+   "w": "blast"
+  },
+  {
+   "w": "blaze"
+  },
+  {
+   "w": "blend"
+  },
+  {
+   "w": "blink"
+  },
+  {
+   "w": "blond"
+  },
+  {
+   "w": "blush"
+  },
+  {
+   "w": "braid"
+  },
+  {
+   "w": "brake"
+  },
+  {
+   "w": "brass"
+  },
+  {
+   "w": "break"
+  },
+  {
+   "w": "breathe"
+  },
+  {
+   "w": "brunch",
+   "e": "🥞",
+   "h": "a meal between breakfast and lunch"
+  },
+  {
+   "w": "change"
+  },
+  {
+   "w": "chant"
+  },
+  {
+   "w": "chapter"
+  },
+  {
+   "w": "charm"
+  },
+  {
+   "w": "check",
+   "e": "✅",
+   "h": "a mark that shows something is correct"
+  },
+  {
+   "w": "chess",
+   "e": "♟️",
+   "h": "a game played with kings and knights"
+  },
+  {
+   "w": "chili"
+  },
+  {
+   "w": "chill",
+   "e": "🧊",
+   "h": "very cold, or relaxing"
+  },
+  {
+   "w": "chime",
+   "e": "🔔",
+   "h": "a gentle ringing sound"
+  },
+  {
+   "w": "chimney"
+  },
+  {
+   "w": "chirp",
+   "e": "🐦",
+   "h": "the sound a small bird makes"
+  },
+  {
+   "w": "choir"
+  },
+  {
+   "w": "chomp"
+  },
+  {
+   "w": "chore"
+  },
+  {
+   "w": "chunk"
+  },
+  {
+   "w": "shaky"
+  },
+  {
+   "w": "shape",
+   "e": "🔷",
+   "h": "like a circle, square, or triangle"
+  },
+  {
+   "w": "shell",
+   "e": "🐚",
+   "h": "the hard covering on a snail or on the beach"
+  },
+  {
+   "w": "shield",
+   "e": "🛡️",
+   "h": "protects you from harm"
+  },
+  {
+   "w": "short"
+  },
+  {
+   "w": "shush"
+  },
+  {
+   "w": "thick"
+  },
+  {
+   "w": "third",
+   "e": "🥉",
+   "h": "the medal color after gold and silver"
+  },
+  {
+   "w": "thorn"
+  },
+  {
+   "w": "thread",
+   "e": "🧵",
+   "h": "thin string used for sewing"
+  },
+  {
+   "w": "thrill"
+  },
+  {
+   "w": "thump"
+  },
+  {
+   "w": "wheel"
+  },
+  {
+   "w": "whiff"
+  },
+  {
+   "w": "whirl"
+  },
+  {
+   "w": "whisk"
+  },
+  {
+   "w": "whisker"
+  },
+  {
+   "w": "photo",
+   "e": "📷",
+   "h": "a picture you take with a camera"
+  },
+  {
+   "w": "wreath"
+  },
+  {
+   "w": "wreck"
+  },
+  {
+   "w": "writer"
+  },
+  {
+   "w": "wrong"
+  },
+  {
+   "w": "twine"
+  },
+  {
+   "w": "quack",
+   "e": "🦆",
+   "h": "the sound a duck makes"
+  },
+  {
+   "w": "quake"
+  },
+  {
+   "w": "queen"
+  },
+  {
+   "w": "quest"
+  },
+  {
+   "w": "squirm"
+  },
+  {
+   "w": "ticket",
+   "e": "🎫",
+   "h": "you need it to get into a show or ride"
+  },
+  {
+   "w": "packet"
+  },
+  {
+   "w": "young"
+  },
+  {
+   "w": "brick",
+   "h": "a block used to build a house"
+  },
+  {
+   "w": "bridge",
+   "h": "it lets you cross a river"
+  },
+  {
+   "w": "brief",
+   "h": "short and quick"
+  },
+  {
+   "w": "brisk",
+   "h": "a fast, lively walk"
+  },
+  {
+   "w": "broken",
+   "h": "not working anymore"
+  },
+  {
+   "w": "bronze",
+   "h": "a shiny brownish metal"
+  },
+  {
+   "w": "browse",
+   "h": "to look around without buying"
+  },
+  {
+   "w": "bristle",
+   "h": "a stiff hair on a brush"
+  },
+  {
+   "w": "briefly",
+   "h": "for a short time"
+  },
+  {
+   "w": "clash",
+   "h": "when colors or ideas don't match"
+  },
+  {
+   "w": "clasp",
+   "h": "a hook that fastens something shut"
+  },
+  {
+   "w": "clench",
+   "h": "to squeeze tightly, like a fist"
+  },
+  {
+   "w": "cling",
+   "h": "to hold on tightly"
+  },
+  {
+   "w": "clinic",
+   "h": "a small place to see a doctor"
+  },
+  {
+   "w": "clone",
+   "h": "an exact copy"
+  },
+  {
+   "w": "chain",
+   "h": "linked metal rings"
+  },
+  {
+   "w": "chief",
+   "h": "the person in charge"
+  },
+  {
+   "w": "choice",
+   "h": "picking one thing over another"
+  },
+  {
+   "w": "choose",
+   "h": "to pick something"
+  },
+  {
+   "w": "chose",
+   "h": "past tense of choose"
+  },
+  {
+   "w": "church",
+   "h": "a building for worship"
+  },
+  {
+   "w": "shift",
+   "h": "to move or change"
+  },
+  {
+   "w": "shock",
+   "h": "a big surprise"
+  },
+  {
+   "w": "shoot",
+   "h": "to send flying, like a basketball"
+  },
+  {
+   "w": "should",
+   "h": "a word for what's expected"
+  },
+  {
+   "w": "throb",
+   "h": "a steady pounding feeling"
+  },
+  {
+   "w": "thrust",
+   "h": "a strong forward push"
+  },
+  {
+   "w": "thrifty",
+   "h": "careful with spending money"
+  },
+  {
+   "w": "thrift",
+   "h": "being careful with money"
+  },
+  {
+   "w": "wharf",
+   "h": "a dock where boats are loaded"
+  },
+  {
+   "w": "phrase",
+   "h": "a short group of words"
+  },
+  {
+   "w": "locket",
+   "h": "a small case worn on a necklace"
+  },
+  {
+   "w": "racket",
+   "e": "🎾",
+   "h": "what you use to hit a tennis ball"
+  },
+  {
+   "w": "kicker",
+   "h": "the player who kicks the ball"
+  },
+  {
+   "w": "flicker",
+   "h": "to shine unsteadily, like a candle"
+  },
+  {
+   "w": "sticker",
+   "e": "🏷️",
+   "h": "a small sticky picture"
+  },
+  {
+   "w": "single",
+   "h": "just one"
+  },
+  {
+   "w": "singer",
+   "e": "🎤",
+   "h": "someone who sings"
+  },
+  {
+   "w": "longer",
+   "h": "more long"
+  },
+  {
+   "w": "hunger",
+   "h": "the feeling of needing food"
+  },
+  {
+   "w": "hungry",
+   "h": "wanting to eat"
+  },
+  {
+   "w": "finger",
+   "h": "one of the parts on your hand"
+  },
+  {
+   "w": "linger",
+   "h": "to stay a little longer"
+  },
+  {
+   "w": "anger",
+   "h": "a strong feeling of being upset"
+  },
+  {
+   "w": "danger",
+   "h": "a chance something bad could happen"
+  },
+  {
+   "w": "ranger",
+   "h": "someone who protects a park"
+  },
+  {
+   "w": "tangle",
+   "h": "a messy knot"
+  },
+  {
+   "w": "angle",
+   "e": "📐",
+   "h": "the space between two lines that meet"
+  },
+  {
+   "w": "angry",
+   "h": "feeling mad"
+  },
+  {
+   "w": "mingle",
+   "h": "to mix with a group of people"
+  },
+  {
+   "w": "tingle",
+   "h": "a light prickly feeling"
+  },
+  {
+   "w": "dangle",
+   "h": "to hang loosely"
+  },
+  {
+   "w": "trial",
+   "h": "a test or attempt"
+  },
+  {
+   "w": "tribe",
+   "h": "a group of related families"
+  },
+  {
+   "w": "triple",
+   "h": "three times as much"
+  },
+  {
+   "w": "drain",
+   "h": "where water flows away"
+  },
+  {
+   "w": "drama",
+   "h": "a play or exciting story"
+  },
+  {
+   "w": "drift",
+   "h": "to float slowly along"
+  },
+  {
+   "w": "drone",
+   "e": "🚁",
+   "h": "a flying robot without a pilot"
+  },
+  {
+   "w": "dryer",
+   "h": "a machine that dries clothes"
+  },
+  {
+   "w": "swipe",
+   "h": "to slide your finger across a screen"
+  },
+  {
+   "w": "swivel",
+   "h": "to turn around in place"
+  },
+  {
+   "w": "spade",
+   "h": "a tool for digging"
+  },
+  {
+   "w": "spare",
+   "h": "extra, just in case"
+  },
+  {
+   "w": "spirit",
+   "h": "a lively, cheerful mood"
+  },
+  {
+   "w": "spool",
+   "h": "a small reel that holds thread"
+  },
+  {
+   "w": "slang",
+   "h": "casual, everyday words"
+  },
+  {
+   "w": "slant",
+   "h": "to lean at an angle"
+  },
+  {
+   "w": "slate",
+   "h": "a flat gray rock, or a clean start"
+  },
+  {
+   "w": "sleek",
+   "h": "smooth and shiny"
+  },
+  {
+   "w": "slept",
+   "h": "past tense of sleep"
+  },
+  {
+   "w": "slick",
+   "h": "smooth and slippery"
+  },
+  {
+   "w": "slink",
+   "h": "to move quietly and secretly"
+  },
+  {
+   "w": "sloppy",
+   "h": "messy"
+  },
+  {
+   "w": "slosh",
+   "h": "to splash around"
+  },
+  {
+   "w": "glaze",
+   "h": "a shiny coating, like on a donut"
+  },
+  {
+   "w": "gleeful",
+   "h": "full of joy"
+  },
+  {
+   "w": "glory",
+   "h": "great honor or fame"
+  },
+  {
+   "w": "glint",
+   "h": "a quick flash of light"
+  },
+  {
+   "w": "flair",
+   "h": "a natural talent or style"
+  },
+  {
+   "w": "flake",
+   "h": "a tiny, thin piece, like snow"
+  },
+  {
+   "w": "flare",
+   "h": "a sudden burst of light"
+  },
+  {
+   "w": "flask",
+   "h": "a small container for liquid"
+  },
+  {
+   "w": "fleet",
+   "h": "a group of ships or vehicles"
+  },
+  {
+   "w": "flick",
+   "h": "a quick, light snap"
+  },
+  {
+   "w": "fling",
+   "h": "to throw something carelessly"
+  },
+  {
+   "w": "floss",
+   "e": "🦷",
+   "h": "thin string used to clean between teeth"
+  },
+  {
+   "w": "flush",
+   "h": "to turn red, or rinse with water"
+  },
+  {
+   "w": "flyer",
+   "h": "a paper with information, or someone who flies"
+  },
+  {
+   "w": "scale",
+   "h": "used to weigh things, or a fish's covering"
+  },
+  {
+   "w": "scope",
+   "h": "the range or extent of something"
+  },
+  {
+   "w": "squad",
+   "h": "a small team of people"
+  },
+  {
+   "w": "straw",
+   "h": "a thin tube for drinking"
+  },
+  {
+   "w": "strap",
+   "h": "a strip that holds something in place"
+  },
+  {
+   "w": "streak",
+   "h": "a long thin line or mark"
+  },
+  {
+   "w": "strict",
+   "h": "following rules very closely"
+  },
+  {
+   "w": "stride",
+   "h": "a long step while walking"
+  },
+  {
+   "w": "strive",
+   "h": "to try very hard"
+  },
+  {
+   "w": "strum",
+   "h": "to play a guitar with your fingers"
+  },
+  {
+   "w": "strand",
+   "h": "a single thin piece, like of hair"
+  },
+  {
+   "w": "screw",
+   "h": "a metal fastener you twist in"
+  },
+  {
+   "w": "script",
+   "h": "the written words for a play or movie"
+  },
+  {
+   "w": "scrappy",
+   "h": "small but full of fight and spirit"
+  },
+  {
+   "w": "sprain",
+   "h": "to twist a joint painfully"
+  },
+  {
+   "w": "stale",
+   "h": "no longer fresh"
+  },
+  {
+   "w": "stalk",
+   "h": "the stem of a plant"
+  },
+  {
+   "w": "stall",
+   "h": "a small stand at a market"
+  },
+  {
+   "w": "steed",
+   "h": "an old word for a horse"
+  },
+  {
+   "w": "stump",
+   "h": "what's left of a tree after it's cut"
+  },
+  {
+   "w": "stunt",
+   "h": "a daring trick"
+  },
+  {
+   "w": "knight",
+   "h": "a hero in shining armor from long ago"
+  },
+  {
+   "w": "kneel",
+   "h": "to go down on your knees"
+  },
+  {
+   "w": "knead",
+   "h": "to press and fold dough"
+  },
+  {
+   "w": "wring",
+   "h": "to twist and squeeze, like a wet towel"
+  },
+  {
+   "w": "wrote",
+   "h": "past tense of write"
+  },
+  {
+   "w": "gnome",
+   "h": "a tiny mythical garden creature"
+  },
+  {
+   "w": "thicken",
+   "h": "to become thicker"
+  },
+  {
+   "w": "crackle",
+   "h": "a series of small snapping sounds"
+  }
+ ],
+ "EXPERT": [
+  {
+   "w": "accompany",
+   "h": "to go along with someone"
+  },
+  {
+   "w": "accomplish",
+   "h": "to finish something you set out to do"
+  },
+  {
+   "w": "acknowledge",
+   "h": "to admit that something is true"
+  },
+  {
+   "w": "acquire",
+   "h": "to get or obtain something"
+  },
+  {
+   "w": "adequate",
+   "h": "enough for what is needed"
+  },
+  {
+   "w": "admirable",
+   "h": "deserving respect and praise"
+  },
+  {
+   "w": "adorable",
+   "h": "very cute and lovable"
+  },
+  {
+   "w": "adventure",
+   "h": "an exciting journey or experience"
+  },
+  {
+   "w": "adventurous",
+   "h": "willing to try exciting new things"
+  },
+  {
+   "w": "alligator",
+   "e": "🐊",
+   "h": "a reptile with a long snout and sharp teeth"
+  },
+  {
+   "w": "allowance",
+   "h": "money given regularly, like weekly pocket money"
+  },
+  {
+   "w": "almanac",
+   "h": "a book published yearly with facts and calendars"
+  },
+  {
+   "w": "alphabet",
+   "h": "the set of letters used to write a language"
+  },
+  {
+   "w": "although",
+   "h": "a word meaning even though"
+  },
+  {
+   "w": "altogether",
+   "h": "completely, or all at once"
+  },
+  {
+   "w": "aluminum",
+   "h": "a lightweight silvery metal"
+  },
+  {
+   "w": "amazing",
+   "h": "causing great surprise or wonder"
+  },
+  {
+   "w": "ancient",
+   "h": "very old, from long ago"
+  },
+  {
+   "w": "announce",
+   "h": "to make something known publicly"
+  },
+  {
+   "w": "another",
+   "h": "one more, or a different one"
+  },
+  {
+   "w": "answer",
+   "h": "a reply to a question"
+  },
+  {
+   "w": "apologize",
+   "h": "to say sorry"
+  },
+  {
+   "w": "applaud",
+   "h": "to clap your hands to show approval"
+  },
+  {
+   "w": "appliance",
+   "h": "a machine used at home, like a toaster"
+  },
+  {
+   "w": "applicant",
+   "h": "a person who applies for something"
+  },
+  {
+   "w": "appoint",
+   "h": "to choose someone for a job"
+  },
+  {
+   "w": "appreciate",
+   "h": "to be grateful for something"
+  },
+  {
+   "w": "approach",
+   "h": "to come near, or a way of doing something"
+  },
+  {
+   "w": "approval",
+   "h": "agreement that something is good or acceptable"
+  },
+  {
+   "w": "arithmetic",
+   "h": "the part of math with adding and subtracting"
+  },
+  {
+   "w": "arrange",
+   "h": "to put things in order"
+  },
+  {
+   "w": "arrival",
+   "h": "the act of getting somewhere"
+  },
+  {
+   "w": "article",
+   "h": "a written piece in a newspaper or magazine"
+  },
+  {
+   "w": "aspect",
+   "h": "one part or feature of something"
+  },
+  {
+   "w": "assist",
+   "h": "to help someone"
+  },
+  {
+   "w": "associate",
+   "h": "to connect one thing with another"
+  },
+  {
+   "w": "assure",
+   "h": "to tell someone something confidently"
+  },
+  {
+   "w": "athlete",
+   "h": "a person who is good at sports"
+  },
+  {
+   "w": "attend",
+   "h": "to go to an event"
+  },
+  {
+   "w": "audience",
+   "h": "the people watching a show"
+  },
+  {
+   "w": "authentic",
+   "h": "real, not fake"
+  },
+  {
+   "w": "author",
+   "h": "a person who writes a book"
+  },
+  {
+   "w": "automatic",
+   "h": "working by itself without help"
+  },
+  {
+   "w": "available",
+   "h": "able to be used or gotten"
+  },
+  {
+   "w": "avenue",
+   "h": "a wide street"
+  },
+  {
+   "w": "average",
+   "h": "the usual amount, or typical"
+  },
+  {
+   "w": "awkward",
+   "h": "clumsy or uncomfortable"
+  },
+  {
+   "w": "balance",
+   "h": "a steady state, or staying steady on your feet"
+  },
+  {
+   "w": "basically",
+   "h": "in the simplest way of saying it"
+  },
+  {
+   "w": "beautiful",
+   "h": "very pretty to look at"
+  },
+  {
+   "w": "because",
+   "h": "used to give a reason"
+  },
+  {
+   "w": "believe",
+   "h": "to think something is true"
+  },
+  {
+   "w": "belong",
+   "h": "to be a member of, or to fit in"
+  },
+  {
+   "w": "beneficial",
+   "h": "helpful or good for you"
+  },
+  {
+   "w": "bicycle",
+   "e": "🚲",
+   "h": "a two-wheeled ride you pedal"
+  },
+  {
+   "w": "bracelet",
+   "h": "jewelry worn around the wrist"
+  },
+  {
+   "w": "broccoli",
+   "e": "🥦",
+   "h": "a green vegetable that looks like tiny trees"
+  },
+  {
+   "w": "brochure",
+   "h": "a small printed booklet with information"
+  },
+  {
+   "w": "bulletin",
+   "h": "a short public announcement or notice"
+  },
+  {
+   "w": "business",
+   "h": "a company, or the work of buying and selling"
+  },
+  {
+   "w": "cabinet",
+   "h": "a cupboard for storing things"
+  },
+  {
+   "w": "cafeteria",
+   "h": "a place where you get food at school or work"
+  },
+  {
+   "w": "calculate",
+   "h": "to work out an answer using math"
+  },
+  {
+   "w": "calendar",
+   "h": "a chart showing the days of the year"
+  },
+  {
+   "w": "capable",
+   "h": "able to do something"
+  },
+  {
+   "w": "carpenter",
+   "h": "a person who builds things out of wood"
+  },
+  {
+   "w": "cartoon",
+   "h": "a funny drawing or animated show"
+  },
+  {
+   "w": "ceiling",
+   "h": "the top inside surface of a room"
+  },
+  {
+   "w": "celebration",
+   "h": "a party or event honoring something special"
+  },
+  {
+   "w": "certain",
+   "h": "sure about something"
+  },
+  {
+   "w": "certificate",
+   "h": "an official paper showing an achievement"
+  },
+  {
+   "w": "champion",
+   "h": "the winner of a contest"
+  },
+  {
+   "w": "changeable",
+   "h": "able to change often"
+  },
+  {
+   "w": "character",
+   "h": "a person in a story, or someone's personality"
+  },
+  {
+   "w": "cheerful",
+   "h": "happy and bright"
+  },
+  {
+   "w": "chemical",
+   "h": "a substance used in science"
+  },
+  {
+   "w": "chocolate",
+   "e": "🍫",
+   "h": "a sweet treat made from cacao"
+  },
+  {
+   "w": "chorus",
+   "h": "a group singing together, or a song's repeated part"
+  },
+  {
+   "w": "cinnamon",
+   "h": "a sweet spice used in baking"
+  },
+  {
+   "w": "citizen",
+   "h": "an official member of a country"
+  },
+  {
+   "w": "clarify",
+   "h": "to make something easier to understand"
+  },
+  {
+   "w": "climate",
+   "h": "the usual weather of a place"
+  },
+  {
+   "w": "closet",
+   "h": "a small room or space for storing clothes"
+  },
+  {
+   "w": "coincidence",
+   "h": "two things happening together by chance"
+  },
+  {
+   "w": "collapse",
+   "h": "to fall down suddenly"
+  },
+  {
+   "w": "collect",
+   "h": "to gather things together"
+  },
+  {
+   "w": "college",
+   "h": "a school you attend after high school"
+  },
+  {
+   "w": "combine",
+   "h": "to join two or more things together"
+  },
+  {
+   "w": "comfortable",
+   "h": "cozy and pleasant to be in"
+  },
+  {
+   "w": "commercial",
+   "h": "related to business, or an ad on TV"
+  },
+  {
+   "w": "committee",
+   "h": "a group chosen to do a task"
+  },
+  {
+   "w": "communicate",
+   "h": "to share information with others"
+  },
+  {
+   "w": "community",
+   "h": "a group of people living in the same area"
+  },
+  {
+   "w": "complete",
+   "h": "finished, or to finish something"
+  },
+  {
+   "w": "compose",
+   "h": "to create, like writing music"
+  },
+  {
+   "w": "compromise",
+   "h": "an agreement where each side gives a little"
+  },
+  {
+   "w": "concentrate",
+   "h": "to focus your attention on something"
+  },
+  {
+   "w": "concrete",
+   "h": "a hard building material, or something specific"
+  },
+  {
+   "w": "condition",
+   "h": "the state something is in"
+  },
+  {
+   "w": "congratulate",
+   "h": "to tell someone well done"
+  },
+  {
+   "w": "connection",
+   "h": "a link between two things"
+  },
+  {
+   "w": "consider",
+   "h": "to think carefully about something"
+  },
+  {
+   "w": "constitution",
+   "h": "the basic set of rules for a country"
+  },
+  {
+   "w": "container",
+   "h": "something that holds things, like a box"
+  },
+  {
+   "w": "contest",
+   "h": "a competition"
+  },
+  {
+   "w": "continent",
+   "h": "a huge landmass like Asia or Africa"
+  },
+  {
+   "w": "continue",
+   "h": "to keep going"
+  },
+  {
+   "w": "contrast",
+   "h": "a clear difference between two things"
+  },
+  {
+   "w": "contribute",
+   "h": "to give a share to help"
+  },
+  {
+   "w": "control",
+   "h": "to have power over something"
+  },
+  {
+   "w": "costume",
+   "h": "clothes worn to look like someone else"
+  },
+  {
+   "w": "courage",
+   "h": "bravery"
+  },
+  {
+   "w": "courteous",
+   "h": "polite and considerate"
+  },
+  {
+   "w": "creature",
+   "h": "a living animal"
+  },
+  {
+   "w": "cucumber",
+   "e": "🥒",
+   "h": "a long green salad vegetable"
+  },
+  {
+   "w": "customer",
+   "h": "a person who buys something"
+  },
+  {
+   "w": "deceive",
+   "h": "to make someone believe something untrue"
+  },
+  {
+   "w": "decision",
+   "h": "a choice you make"
+  },
+  {
+   "w": "definitely",
+   "h": "for sure, without any doubt"
+  },
+  {
+   "w": "dependable",
+   "h": "reliable and trustworthy"
+  },
+  {
+   "w": "deserve",
+   "h": "to have earned something"
+  },
+  {
+   "w": "dessert",
+   "h": "a sweet treat eaten after a meal"
+  },
+  {
+   "w": "destination",
+   "h": "the place you are traveling to"
+  },
+  {
+   "w": "detail",
+   "h": "a small piece of information"
+  },
+  {
+   "w": "detect",
+   "h": "to discover or notice something"
+  },
+  {
+   "w": "determine",
+   "h": "to decide or figure out"
+  },
+  {
+   "w": "develop",
+   "h": "to grow or improve over time"
+  },
+  {
+   "w": "device",
+   "h": "a tool or gadget"
+  },
+  {
+   "w": "diameter",
+   "h": "the distance across the middle of a circle"
+  },
+  {
+   "w": "dictionary",
+   "h": "a book that lists word meanings"
+  },
+  {
+   "w": "digest",
+   "h": "to break down food in your body"
+  },
+  {
+   "w": "dimension",
+   "h": "a measurement like length or height"
+  },
+  {
+   "w": "dinosaur",
+   "e": "🦕",
+   "h": "a huge ancient reptile"
+  },
+  {
+   "w": "disappear",
+   "h": "to go out of sight"
+  },
+  {
+   "w": "discovery",
+   "h": "finding something new"
+  },
+  {
+   "w": "distinct",
+   "h": "clearly different or separate"
+  },
+  {
+   "w": "district",
+   "h": "a section of a city or region"
+  },
+  {
+   "w": "downstairs",
+   "h": "on a lower floor"
+  },
+  {
+   "w": "dragonfly",
+   "e": "🐉",
+   "h": "an insect with long wings that flies over water"
+  },
+  {
+   "w": "earnest",
+   "h": "sincere and serious about something"
+  },
+  {
+   "w": "economy",
+   "h": "how a country makes and uses money"
+  },
+  {
+   "w": "education",
+   "h": "the process of learning"
+  },
+  {
+   "w": "efficient",
+   "h": "working well without wasting time or effort"
+  },
+  {
+   "w": "elaborate",
+   "h": "detailed and complicated"
+  },
+  {
+   "w": "election",
+   "h": "the process of voting for someone"
+  },
+  {
+   "w": "element",
+   "h": "a basic part of something"
+  },
+  {
+   "w": "elevator",
+   "h": "a machine that lifts people between floors"
+  },
+  {
+   "w": "eliminate",
+   "h": "to get rid of something"
+  },
+  {
+   "w": "emerge",
+   "h": "to come out into view"
+  },
+  {
+   "w": "emphasize",
+   "h": "to give special importance to something"
+  },
+  {
+   "w": "enable",
+   "h": "to make something possible"
+  },
+  {
+   "w": "enclose",
+   "h": "to put something inside, or surround it"
+  },
+  {
+   "w": "encourage",
+   "h": "to give someone confidence or support"
+  },
+  {
+   "w": "energetic",
+   "h": "full of energy"
+  },
+  {
+   "w": "engine",
+   "h": "a machine that powers a vehicle"
+  },
+  {
+   "w": "engineer",
+   "h": "a person who designs and builds things"
+  },
+  {
+   "w": "enjoyable",
+   "h": "pleasant and fun"
+  },
+  {
+   "w": "ensure",
+   "h": "to make certain of something"
+  },
+  {
+   "w": "enterprise",
+   "h": "a business or bold project"
+  },
+  {
+   "w": "entertain",
+   "h": "to amuse or interest people"
+  },
+  {
+   "w": "entrance",
+   "h": "the way into a place"
+  },
+  {
+   "w": "envelope",
+   "h": "a paper cover for a letter"
+  },
+  {
+   "w": "equipment",
+   "h": "tools or supplies needed for an activity"
+  },
+  {
+   "w": "equivalent",
+   "h": "equal in value or meaning"
+  },
+  {
+   "w": "especially",
+   "h": "more than usual, particularly"
+  },
+  {
+   "w": "estimate",
+   "h": "a rough guess at an amount"
+  },
+  {
+   "w": "eternal",
+   "h": "lasting forever"
+  },
+  {
+   "w": "evaluate",
+   "h": "to judge the value of something"
+  },
+  {
+   "w": "evidence",
+   "h": "facts that show something is true"
+  },
+  {
+   "w": "evolve",
+   "h": "to change gradually over time"
+  },
+  {
+   "w": "exceed",
+   "h": "to go beyond a limit"
+  },
+  {
+   "w": "exceptional",
+   "h": "unusually excellent"
+  },
+  {
+   "w": "execute",
+   "h": "to carry out a plan"
+  },
+  {
+   "w": "exercise",
+   "h": "physical activity to stay healthy"
+  },
+  {
+   "w": "exhale",
+   "h": "to breathe out"
+  },
+  {
+   "w": "exhaust",
+   "h": "to use up completely, or to tire out"
+  },
+  {
+   "w": "exhibit",
+   "h": "to show something publicly, like at a museum"
+  },
+  {
+   "w": "expand",
+   "h": "to grow bigger"
+  },
+  {
+   "w": "expect",
+   "h": "to think something will happen"
+  },
+  {
+   "w": "expedition",
+   "h": "a journey for a specific purpose, like exploring"
+  },
+  {
+   "w": "explain",
+   "h": "to make something clear"
+  },
+  {
+   "w": "expose",
+   "h": "to uncover or reveal something"
+  },
+  {
+   "w": "extensive",
+   "h": "covering a large area or amount"
+  },
+  {
+   "w": "facility",
+   "h": "a building made for a certain purpose"
+  },
+  {
+   "w": "farewell",
+   "h": "a goodbye"
+  },
+  {
+   "w": "favorite",
+   "h": "liked more than any other"
+  },
+  {
+   "w": "february",
+   "h": "the second month of the year"
+  },
+  {
+   "w": "federal",
+   "h": "relating to a national government"
+  },
+  {
+   "w": "feeble",
+   "h": "weak"
+  },
+  {
+   "w": "formal",
+   "h": "following proper rules and manners"
+  },
+  {
+   "w": "format",
+   "h": "the way something is arranged"
+  },
+  {
+   "w": "fossil",
+   "h": "the preserved remains of an ancient plant or animal"
+  },
+  {
+   "w": "fountain",
+   "e": "⛲",
+   "h": "a structure that shoots water into the air"
+  },
+  {
+   "w": "fragrant",
+   "h": "having a pleasant smell"
+  },
+  {
+   "w": "framework",
+   "h": "a basic structure that supports something"
+  },
+  {
+   "w": "frequent",
+   "h": "happening often"
+  },
+  {
+   "w": "friend",
+   "h": "a person you like and trust"
+  },
+  {
+   "w": "frontier",
+   "h": "the edge of settled or known land"
+  },
+  {
+   "w": "fundamental",
+   "h": "a basic and essential part"
+  },
+  {
+   "w": "furniture",
+   "h": "movable items like tables and chairs in a room"
+  },
+  {
+   "w": "gallery",
+   "h": "a room where art is shown"
+  },
+  {
+   "w": "generate",
+   "h": "to produce or create"
+  },
+  {
+   "w": "genuine",
+   "h": "real and true"
+  },
+  {
+   "w": "glacier",
+   "e": "🧊",
+   "h": "a huge slow-moving mass of ice"
+  },
+  {
+   "w": "glimpse",
+   "h": "a quick, brief look"
+  },
+  {
+   "w": "global",
+   "h": "relating to the whole world"
+  },
+  {
+   "w": "gorgeous",
+   "h": "extremely beautiful"
+  },
+  {
+   "w": "gracious",
+   "h": "kind and polite"
+  },
+  {
+   "w": "graduate",
+   "h": "to finish a level of school"
+  },
+  {
+   "w": "grammar",
+   "h": "the rules for using a language correctly"
+  },
+  {
+   "w": "gravity",
+   "h": "the force that pulls things toward the ground"
+  },
+  {
+   "w": "grocery",
+   "h": "relating to a store that sells food"
+  },
+  {
+   "w": "guarantee",
+   "h": "a firm promise that something will happen"
+  },
+  {
+   "w": "guidance",
+   "h": "help or advice"
+  },
+  {
+   "w": "happen",
+   "h": "to take place, or occur"
+  },
+  {
+   "w": "headquarters",
+   "h": "the main office of an organization"
+  },
+  {
+   "w": "historic",
+   "h": "important in history"
+  },
+  {
+   "w": "horizon",
+   "h": "the line where the sky meets the land or sea"
+  },
+  {
+   "w": "humble",
+   "h": "not thinking too highly of yourself"
+  },
+  {
+   "w": "hygiene",
+   "h": "keeping yourself and things clean"
+  },
+  {
+   "w": "icicle",
+   "e": "🧊",
+   "h": "a hanging spike of ice"
+  },
+  {
+   "w": "identify",
+   "h": "to recognize what something is"
+  },
+  {
+   "w": "ignore",
+   "h": "to pay no attention to something"
+  },
+  {
+   "w": "illustration",
+   "h": "a picture used to explain something"
+  },
+  {
+   "w": "imagination",
+   "h": "the ability to form new ideas or pictures in your mind"
+  },
+  {
+   "w": "imagine",
+   "h": "to form a picture of something in your mind"
+  },
+  {
+   "w": "impatient",
+   "h": "not willing to wait calmly"
+  },
+  {
+   "w": "implement",
+   "h": "to put a plan into action"
+  },
+  {
+   "w": "import",
+   "h": "to bring goods in from another country"
+  },
+  {
+   "w": "importance",
+   "h": "the quality of being valuable or significant"
+  },
+  {
+   "w": "important",
+   "h": "having great value or meaning"
+  },
+  {
+   "w": "impress",
+   "h": "to make someone admire you"
+  },
+  {
+   "w": "improve",
+   "h": "to make something better"
+  },
+  {
+   "w": "improvement",
+   "h": "a change that makes something better"
+  },
+  {
+   "w": "income",
+   "h": "money earned or received"
+  },
+  {
+   "w": "increase",
+   "h": "to make or become larger"
+  },
+  {
+   "w": "incredible",
+   "h": "very hard to believe, amazing"
+  },
+  {
+   "w": "indeed",
+   "h": "truly, used to add emphasis"
+  },
+  {
+   "w": "indicate",
+   "h": "to point out or show"
+  },
+  {
+   "w": "infant",
+   "h": "a very young baby"
+  },
+  {
+   "w": "infinite",
+   "h": "having no end"
+  },
+  {
+   "w": "ingredient",
+   "h": "one item used to make a recipe"
+  },
+  {
+   "w": "inhabit",
+   "h": "to live in a place"
+  },
+  {
+   "w": "inherit",
+   "h": "to receive something passed down"
+  },
+  {
+   "w": "initial",
+   "h": "happening at the beginning"
+  },
+  {
+   "w": "inquire",
+   "h": "to ask about something"
+  },
+  {
+   "w": "insight",
+   "h": "a clear understanding of something"
+  },
+  {
+   "w": "inspiration",
+   "h": "something that gives you a creative idea"
+  },
+  {
+   "w": "inspire",
+   "h": "to fill someone with an idea or feeling"
+  },
+  {
+   "w": "instance",
+   "h": "one example of something"
+  },
+  {
+   "w": "institute",
+   "h": "an organization set up for a purpose"
+  },
+  {
+   "w": "instruct",
+   "h": "to teach or direct someone"
+  },
+  {
+   "w": "intelligent",
+   "h": "smart, good at understanding things"
+  },
+  {
+   "w": "interact",
+   "h": "to talk or work together with others"
+  },
+  {
+   "w": "intermediate",
+   "h": "in the middle level, between beginner and expert"
+  },
+  {
+   "w": "internal",
+   "h": "on the inside"
+  },
+  {
+   "w": "internet",
+   "h": "the worldwide network that connects computers"
+  },
+  {
+   "w": "interview",
+   "h": "a conversation to ask someone questions"
+  },
+  {
+   "w": "intimate",
+   "h": "very close and personal"
+  },
+  {
+   "w": "invest",
+   "h": "to put money into something hoping it grows"
+  },
+  {
+   "w": "involve",
+   "h": "to include as a necessary part"
+  },
+  {
+   "w": "irrigate",
+   "h": "to supply land with water for crops"
+  },
+  {
+   "w": "isolate",
+   "h": "to set something apart from others"
+  },
+  {
+   "w": "italic",
+   "h": "slanted printed letters"
+  },
+  {
+   "w": "itinerary",
+   "h": "a planned schedule for a trip"
+  },
+  {
+   "w": "journal",
+   "h": "a personal diary or written record"
+  },
+  {
+   "w": "judgment",
+   "h": "the ability to make good decisions"
+  },
+  {
+   "w": "junior",
+   "h": "younger, or a lower rank"
+  },
+  {
+   "w": "justice",
+   "h": "fairness in how people are treated"
+  },
+  {
+   "w": "juvenile",
+   "h": "young, or relating to young people"
+  },
+  {
+   "w": "kindness",
+   "h": "the quality of being kind"
+  },
+  {
+   "w": "knapsack",
+   "h": "a bag carried on the back"
+  },
+  {
+   "w": "knowledge",
+   "h": "information and understanding you have"
+  },
+  {
+   "w": "laboratory",
+   "h": "a room used for scientific experiments"
+  },
+  {
+   "w": "language",
+   "h": "the words a group of people use to talk"
+  },
+  {
+   "w": "length",
+   "h": "how long something is"
+  },
+  {
+   "w": "limousine",
+   "e": "🚗",
+   "h": "a long, fancy car"
+  },
+  {
+   "w": "literary",
+   "h": "relating to books and writing"
+  },
+  {
+   "w": "luxury",
+   "h": "something expensive and comfortable, not necessary"
+  },
+  {
+   "w": "magazine",
+   "h": "a paper publication with articles and pictures"
+  },
+  {
+   "w": "magnificent",
+   "h": "extremely beautiful or impressive"
+  },
+  {
+   "w": "majority",
+   "h": "more than half of a group"
+  },
+  {
+   "w": "manage",
+   "h": "to be in charge of something"
+  },
+  {
+   "w": "mandatory",
+   "h": "required, not optional"
+  },
+  {
+   "w": "maneuver",
+   "h": "a skillful movement or plan"
+  },
+  {
+   "w": "mansion",
+   "h": "a very large house"
+  },
+  {
+   "w": "marvelous",
+   "h": "causing wonder, excellent"
+  },
+  {
+   "w": "material",
+   "h": "the substance something is made from"
+  },
+  {
+   "w": "mathematics",
+   "h": "the study of numbers and shapes"
+  },
+  {
+   "w": "maximum",
+   "h": "the greatest amount possible"
+  },
+  {
+   "w": "meadow",
+   "h": "a field of grass and flowers"
+  },
+  {
+   "w": "meanwhile",
+   "h": "at the same time"
+  },
+  {
+   "w": "measure",
+   "h": "to find the size or amount of something"
+  },
+  {
+   "w": "mechanic",
+   "h": "a person who fixes machines or engines"
+  },
+  {
+   "w": "melody",
+   "h": "a pleasant sequence of musical notes"
+  },
+  {
+   "w": "memorable",
+   "h": "worth remembering"
+  },
+  {
+   "w": "mention",
+   "h": "to speak about something briefly"
+  },
+  {
+   "w": "merchant",
+   "h": "a person who buys and sells goods"
+  },
+  {
+   "w": "message",
+   "h": "a piece of information sent to someone"
+  },
+  {
+   "w": "microphone",
+   "e": "🎤",
+   "h": "a device that makes your voice louder"
+  },
+  {
+   "w": "microscope",
+   "e": "🔬",
+   "h": "a tool for seeing very tiny things"
+  },
+  {
+   "w": "mileage",
+   "h": "the distance traveled, measured in miles"
+  },
+  {
+   "w": "mineral",
+   "h": "a natural solid substance found in the earth"
+  },
+  {
+   "w": "miniature",
+   "h": "a very small version of something"
+  },
+  {
+   "w": "minute",
+   "h": "a unit of time, or extremely small"
+  },
+  {
+   "w": "mischievous",
+   "h": "playfully naughty"
+  },
+  {
+   "w": "monitor",
+   "h": "a screen, or to watch something carefully"
+  },
+  {
+   "w": "monument",
+   "h": "a structure built to remember a person or event"
+  },
+  {
+   "w": "motorcycle",
+   "e": "🏍️",
+   "h": "a two-wheeled motor vehicle"
+  },
+  {
+   "w": "multiple",
+   "h": "more than one"
+  },
+  {
+   "w": "muscle",
+   "h": "a body tissue that helps you move"
+  },
+  {
+   "w": "museum",
+   "h": "a place where interesting objects are displayed"
+  },
+  {
+   "w": "narrow",
+   "h": "not wide"
+  },
+  {
+   "w": "national",
+   "h": "relating to a whole country"
+  },
+  {
+   "w": "natural",
+   "h": "existing in nature, not made by people"
+  },
+  {
+   "w": "navigate",
+   "h": "to find your way somewhere"
+  },
+  {
+   "w": "necessary",
+   "h": "needed, required"
+  },
+  {
+   "w": "neighbor",
+   "h": "a person who lives next door"
+  },
+  {
+   "w": "nervous",
+   "h": "worried or anxious about something"
+  },
+  {
+   "w": "neutral",
+   "h": "not taking any side"
+  },
+  {
+   "w": "nevertheless",
+   "h": "even so, despite that"
+  },
+  {
+   "w": "nocturnal",
+   "h": "active mainly at night"
+  },
+  {
+   "w": "nonsense",
+   "h": "words or ideas that make no sense"
+  },
+  {
+   "w": "normal",
+   "h": "usual, expected"
+  },
+  {
+   "w": "notable",
+   "h": "worth noticing"
+  },
+  {
+   "w": "notice",
+   "h": "to become aware of something"
+  },
+  {
+   "w": "notion",
+   "h": "an idea or belief"
+  },
+  {
+   "w": "nowadays",
+   "h": "at the present time"
+  },
+  {
+   "w": "nuclear",
+   "h": "relating to the energy in an atom's center"
+  },
+  {
+   "w": "nurture",
+   "h": "to care for and help something grow"
+  },
+  {
+   "w": "oblong",
+   "h": "a shape longer than it is wide"
+  },
+  {
+   "w": "observe",
+   "h": "to watch carefully"
+  },
+  {
+   "w": "obvious",
+   "h": "easy to see or understand"
+  },
+  {
+   "w": "octagon",
+   "h": "a shape with eight sides"
+  },
+  {
+   "w": "odyssey",
+   "h": "a long, adventurous journey"
+  },
+  {
+   "w": "ointment",
+   "h": "a soothing cream for skin"
+  },
+  {
+   "w": "operate",
+   "h": "to work or run something"
+  },
+  {
+   "w": "opportunity",
+   "h": "a good chance to do something"
+  },
+  {
+   "w": "optical",
+   "h": "relating to sight or the eyes"
+  },
+  {
+   "w": "optimistic",
+   "h": "expecting good things to happen"
+  },
+  {
+   "w": "organize",
+   "h": "to arrange things in order"
+  },
+  {
+   "w": "outcome",
+   "h": "the result of something"
+  },
+  {
+   "w": "outdoor",
+   "h": "happening outside"
+  },
+  {
+   "w": "outline",
+   "h": "a plan showing the main points"
+  },
+  {
+   "w": "outstanding",
+   "h": "extremely good"
+  },
+  {
+   "w": "overnight",
+   "h": "during the whole night"
+  },
+  {
+   "w": "package",
+   "h": "a wrapped box or parcel"
+  },
+  {
+   "w": "pageant",
+   "h": "a public show or competition"
+  },
+  {
+   "w": "parcel",
+   "h": "a wrapped package"
+  },
+  {
+   "w": "particle",
+   "h": "a very tiny piece of something"
+  },
+  {
+   "w": "particular",
+   "h": "specific, one out of many"
+  },
+  {
+   "w": "passage",
+   "h": "a narrow way through, or a section of writing"
+  },
+  {
+   "w": "passion",
+   "h": "a strong feeling of enthusiasm"
+  },
+  {
+   "w": "pattern",
+   "h": "a repeated design or arrangement"
+  },
+  {
+   "w": "peaceful",
+   "h": "calm and quiet"
+  },
+  {
+   "w": "people",
+   "h": "more than one person"
+  },
+  {
+   "w": "percent",
+   "h": "a part out of every hundred"
+  },
+  {
+   "w": "perfect",
+   "h": "having no flaws"
+  },
+  {
+   "w": "performance",
+   "h": "an act of presenting a show"
+  },
+  {
+   "w": "period",
+   "h": "a length of time"
+  },
+  {
+   "w": "permanent",
+   "h": "lasting forever, not temporary"
+  },
+  {
+   "w": "permission",
+   "h": "being allowed to do something"
+  },
+  {
+   "w": "personality",
+   "h": "the qualities that make someone who they are"
+  },
+  {
+   "w": "perspective",
+   "h": "a particular point of view"
+  },
+  {
+   "w": "persuade",
+   "h": "to convince someone to do something"
+  },
+  {
+   "w": "phenomenon",
+   "h": "a remarkable or unusual event"
+  },
+  {
+   "w": "physical",
+   "h": "relating to the body, not the mind"
+  },
+  {
+   "w": "picture",
+   "h": "an image or drawing"
+  },
+  {
+   "w": "pigeon",
+   "e": "🐦",
+   "h": "a common gray bird found in cities"
+  },
+  {
+   "w": "pillow",
+   "h": "a soft cushion for your head"
+  },
+  {
+   "w": "pioneer",
+   "h": "one of the first people to try something new"
+  },
+  {
+   "w": "planet",
+   "e": "🪐",
+   "h": "a large body that orbits a star"
+  },
+  {
+   "w": "plastic",
+   "h": "a light, moldable material"
+  },
+  {
+   "w": "platform",
+   "h": "a raised flat surface"
+  },
+  {
+   "w": "playground",
+   "h": "an outdoor area with equipment for kids to play"
+  },
+  {
+   "w": "poetry",
+   "h": "writing arranged with rhythm, often rhyming"
+  },
+  {
+   "w": "politics",
+   "h": "the activities of running a government"
+  },
+  {
+   "w": "popular",
+   "h": "liked by many people"
+  },
+  {
+   "w": "portion",
+   "h": "a part or share of something"
+  },
+  {
+   "w": "possess",
+   "h": "to own something"
+  },
+  {
+   "w": "postpone",
+   "h": "to move something to a later time"
+  },
+  {
+   "w": "potential",
+   "h": "the ability to develop in the future"
+  },
+  {
+   "w": "practice",
+   "h": "repeated activity to improve a skill"
+  },
+  {
+   "w": "precise",
+   "h": "exact and accurate"
+  },
+  {
+   "w": "predictable",
+   "h": "able to be known in advance"
+  },
+  {
+   "w": "preference",
+   "h": "a liking for one thing over another"
+  },
+  {
+   "w": "preparation",
+   "h": "getting ready for something"
+  },
+  {
+   "w": "presence",
+   "h": "the state of being in a place"
+  },
+  {
+   "w": "preserve",
+   "h": "to keep something safe from harm"
+  },
+  {
+   "w": "president",
+   "h": "the leader of a country or organization"
+  },
+  {
+   "w": "pressure",
+   "h": "a force pushing on something"
+  },
+  {
+   "w": "presume",
+   "h": "to assume something is true"
+  },
+  {
+   "w": "pretend",
+   "h": "to act as if something is true when it isn't"
+  },
+  {
+   "w": "privacy",
+   "h": "being free from others watching or knowing"
+  },
+  {
+   "w": "probable",
+   "h": "likely to happen"
+  },
+  {
+   "w": "probably",
+   "h": "most likely"
+  },
+  {
+   "w": "procedure",
+   "h": "a series of steps to do something"
+  },
+  {
+   "w": "process",
+   "h": "a series of actions to reach a result"
+  },
+  {
+   "w": "produce",
+   "h": "to make or create something"
+  },
+  {
+   "w": "product",
+   "h": "something that is made or grown"
+  },
+  {
+   "w": "profile",
+   "h": "a description of someone or something"
+  },
+  {
+   "w": "program",
+   "h": "a planned series of events, or software"
+  },
+  {
+   "w": "progress",
+   "h": "forward movement toward a goal"
+  },
+  {
+   "w": "prohibit",
+   "h": "to forbid something"
+  },
+  {
+   "w": "prominent",
+   "h": "important and noticeable"
+  },
+  {
+   "w": "promise",
+   "h": "a firm statement that you will do something"
+  },
+  {
+   "w": "promote",
+   "h": "to help something advance or become known"
+  },
+  {
+   "w": "pronounce",
+   "h": "to say a word out loud correctly"
+  },
+  {
+   "w": "pronunciation",
+   "h": "the way a word is spoken"
+  },
+  {
+   "w": "propel",
+   "h": "to push something forward"
+  },
+  {
+   "w": "proportion",
+   "h": "the relative size of one part to another"
+  },
+  {
+   "w": "propose",
+   "h": "to suggest an idea"
+  },
+  {
+   "w": "province",
+   "h": "a region or division of a country"
+  },
+  {
+   "w": "publish",
+   "h": "to prepare and issue a book or article"
+  },
+  {
+   "w": "purchase",
+   "h": "to buy something"
+  },
+  {
+   "w": "puzzle",
+   "h": "a game that challenges your thinking"
+  },
+  {
+   "w": "qualify",
+   "h": "to meet the requirements needed"
+  },
+  {
+   "w": "quality",
+   "h": "how good or bad something is"
+  },
+  {
+   "w": "question",
+   "h": "something asked to get information"
+  },
+  {
+   "w": "questionnaire",
+   "h": "a set of written questions to answer"
+  },
+  {
+   "w": "quotient",
+   "h": "the answer when you divide one number by another"
+  },
+  {
+   "w": "radiant",
+   "h": "shining brightly, glowing"
+  },
+  {
+   "w": "radiator",
+   "h": "a device that gives off heat"
+  },
+  {
+   "w": "radish",
+   "e": "🌶️",
+   "h": "a small crunchy red root vegetable"
+  },
+  {
+   "w": "random",
+   "h": "happening without a plan or pattern"
+  },
+  {
+   "w": "rather",
+   "h": "more willingly, or somewhat"
+  },
+  {
+   "w": "reaction",
+   "h": "a response to something that happens"
+  },
+  {
+   "w": "reality",
+   "h": "the way things actually are"
+  },
+  {
+   "w": "realize",
+   "h": "to become fully aware of something"
+  },
+  {
+   "w": "reasonable",
+   "h": "fair and sensible"
+  },
+  {
+   "w": "receive",
+   "h": "to get something that is given to you"
+  },
+  {
+   "w": "reception",
+   "h": "a welcome, or a gathering to celebrate"
+  },
+  {
+   "w": "recognition",
+   "h": "being noticed or remembered for something"
+  },
+  {
+   "w": "reduce",
+   "h": "to make something smaller or less"
+  },
+  {
+   "w": "reference",
+   "h": "a source you look to for information"
+  },
+  {
+   "w": "refrigerator",
+   "e": "🧊",
+   "h": "an appliance that keeps food cold"
+  },
+  {
+   "w": "region",
+   "h": "an area of a country or the world"
+  },
+  {
+   "w": "regular",
+   "h": "happening at the same time or rate; usual"
+  },
+  {
+   "w": "rehearse",
+   "h": "to practice for a performance"
+  },
+  {
+   "w": "reinforce",
+   "h": "to make something stronger"
+  },
+  {
+   "w": "relate",
+   "h": "to connect one thing to another"
+  },
+  {
+   "w": "reluctant",
+   "h": "not willing to do something"
+  },
+  {
+   "w": "remedy",
+   "h": "something that fixes a problem"
+  },
+  {
+   "w": "remember",
+   "h": "to keep something in your memory"
+  },
+  {
+   "w": "repeat",
+   "h": "to say or do something again"
+  },
+  {
+   "w": "replace",
+   "h": "to put a new thing in place of an old one"
+  },
+  {
+   "w": "report",
+   "h": "a written or spoken account of something"
+  },
+  {
+   "w": "represent",
+   "h": "to stand for or speak on behalf of someone"
+  },
+  {
+   "w": "reptile",
+   "e": "🦎",
+   "h": "a cold-blooded animal like a lizard or snake"
+  },
+  {
+   "w": "request",
+   "h": "to politely ask for something"
+  },
+  {
+   "w": "reservation",
+   "h": "an arrangement made ahead of time"
+  },
+  {
+   "w": "reserve",
+   "h": "to set something aside for later use"
+  },
+  {
+   "w": "resist",
+   "h": "to refuse to accept or give in"
+  },
+  {
+   "w": "resolve",
+   "h": "to find a solution to a problem"
+  },
+  {
+   "w": "restaurant",
+   "e": "🍽️",
+   "h": "a place where you go to eat a meal"
+  },
+  {
+   "w": "restore",
+   "h": "to bring something back to good condition"
+  },
+  {
+   "w": "revenue",
+   "h": "money that a business or government earns"
+  },
+  {
+   "w": "reversible",
+   "h": "able to be turned back the other way"
+  },
+  {
+   "w": "revive",
+   "h": "to bring back to life or strength"
+  },
+  {
+   "w": "rhinoceros",
+   "e": "🦏",
+   "h": "a large animal with a horn on its nose"
+  },
+  {
+   "w": "rhythm",
+   "h": "a regular repeated pattern of beats"
+  },
+  {
+   "w": "safety",
+   "h": "being free from danger"
+  },
+  {
+   "w": "salary",
+   "h": "money paid regularly for a job"
+  },
+  {
+   "w": "sanctuary",
+   "h": "a safe place, often for animals"
+  },
+  {
+   "w": "satellite",
+   "e": "🛰️",
+   "h": "an object that orbits a planet"
+  },
+  {
+   "w": "saucer",
+   "h": "a small dish placed under a cup"
+  },
+  {
+   "w": "scarce",
+   "h": "hard to find, in short supply"
+  },
+  {
+   "w": "scenery",
+   "h": "the natural features of a landscape"
+  },
+  {
+   "w": "schedule",
+   "h": "a plan for when things will happen"
+  },
+  {
+   "w": "secretary",
+   "h": "a person who handles office paperwork"
+  },
+  {
+   "w": "security",
+   "h": "safety from harm or danger"
+  },
+  {
+   "w": "sensation",
+   "h": "a feeling in your body, or a big excitement"
+  },
+  {
+   "w": "sensitive",
+   "h": "easily affected by things"
+  },
+  {
+   "w": "separate",
+   "h": "to divide into parts, or not joined"
+  },
+  {
+   "w": "sequence",
+   "h": "a series of things in a set order"
+  },
+  {
+   "w": "serious",
+   "h": "not joking, or important"
+  },
+  {
+   "w": "session",
+   "h": "a period of time spent on an activity"
+  },
+  {
+   "w": "several",
+   "h": "more than two but not very many"
+  },
+  {
+   "w": "shallow",
+   "h": "not deep"
+  },
+  {
+   "w": "shampoo",
+   "h": "soap used to wash your hair"
+  },
+  {
+   "w": "shelter",
+   "h": "a place that protects you from weather or danger"
+  },
+  {
+   "w": "shortage",
+   "h": "a situation where there isn't enough of something"
+  },
+  {
+   "w": "shovel",
+   "e": "🥄",
+   "h": "a tool for digging"
+  },
+  {
+   "w": "shrewd",
+   "h": "clever and sharp in judgment"
+  },
+  {
+   "w": "shrimp",
+   "e": "🦐",
+   "h": "a small sea creature you can eat"
+  },
+  {
+   "w": "shrink",
+   "h": "to become smaller"
+  },
+  {
+   "w": "shrivel",
+   "h": "to shrink and wrinkle up, like drying fruit"
+  },
+  {
+   "w": "siblings",
+   "h": "your brothers and sisters"
+  },
+  {
+   "w": "similar",
+   "h": "almost the same"
+  },
+  {
+   "w": "simplify",
+   "h": "to make something easier"
+  },
+  {
+   "w": "simultaneous",
+   "h": "happening at exactly the same time"
+  },
+  {
+   "w": "sincere",
+   "h": "honest and genuine"
+  },
+  {
+   "w": "slippery",
+   "h": "smooth and hard to hold or walk on"
+  },
+  {
+   "w": "sneakers",
+   "e": "👟",
+   "h": "soft athletic shoes"
+  },
+  {
+   "w": "solitary",
+   "h": "alone, without others"
+  },
+  {
+   "w": "solution",
+   "h": "the answer to a problem"
+  },
+  {
+   "w": "spaghetti",
+   "e": "🍝",
+   "h": "long thin pasta noodles"
+  },
+  {
+   "w": "species",
+   "h": "a group of similar living things"
+  },
+  {
+   "w": "spectator",
+   "h": "a person who watches an event"
+  },
+  {
+   "w": "squirrel",
+   "e": "🐿️",
+   "h": "a small furry animal that gathers nuts"
+  },
+  {
+   "w": "stadium",
+   "h": "a large arena for sports events"
+  },
+  {
+   "w": "stampede",
+   "h": "a sudden rush of a crowd or animals"
+  },
+  {
+   "w": "staple",
+   "h": "a small piece of wire used to fasten paper"
+  },
+  {
+   "w": "statistic",
+   "h": "a fact expressed in numbers"
+  },
+  {
+   "w": "statue",
+   "h": "a carved or molded figure of a person"
+  },
+  {
+   "w": "strength",
+   "h": "physical or mental power"
+  },
+  {
+   "w": "structure",
+   "h": "the way parts are arranged, or a building"
+  },
+  {
+   "w": "struggle",
+   "h": "to work hard against difficulty"
+  },
+  {
+   "w": "student",
+   "h": "a person who is learning at school"
+  },
+  {
+   "w": "stunning",
+   "h": "extremely impressive or beautiful"
+  },
+  {
+   "w": "submit",
+   "h": "to hand in or turn in something"
+  },
+  {
+   "w": "substitute",
+   "h": "a person or thing used in place of another"
+  },
+  {
+   "w": "subtract",
+   "h": "to take one number away from another"
+  },
+  {
+   "w": "succeed",
+   "h": "to achieve what you were trying to do"
+  },
+  {
+   "w": "sudden",
+   "h": "happening quickly, without warning"
+  },
+  {
+   "w": "support",
+   "h": "to help or hold something up"
+  },
+  {
+   "w": "suppose",
+   "h": "to think that something is probably true"
+  },
+  {
+   "w": "surgeon",
+   "h": "a doctor who performs operations"
+  },
+  {
+   "w": "surround",
+   "h": "to be all around something"
+  },
+  {
+   "w": "survey",
+   "h": "a set of questions to gather opinions"
+  },
+  {
+   "w": "swallow",
+   "h": "to make food go down your throat"
+  },
+  {
+   "w": "symbol",
+   "h": "a picture or sign that stands for something"
+  },
+  {
+   "w": "synonym",
+   "h": "a word that means almost the same as another"
+  },
+  {
+   "w": "tangible",
+   "h": "able to be touched or felt"
+  },
+  {
+   "w": "telephone",
+   "e": "☎️",
+   "h": "a device used to talk to someone far away"
+  },
+  {
+   "w": "television",
+   "e": "📺",
+   "h": "a device for watching shows"
+  },
+  {
+   "w": "tendency",
+   "h": "a likelihood to behave a certain way"
+  },
+  {
+   "w": "tennis",
+   "e": "🎾",
+   "h": "a sport played with rackets and a ball"
+  },
+  {
+   "w": "terrible",
+   "h": "very bad"
+  },
+  {
+   "w": "textile",
+   "h": "woven cloth or fabric"
+  },
+  {
+   "w": "theater",
+   "h": "a place where plays or movies are shown"
+  },
+  {
+   "w": "thousand",
+   "h": "the number 1,000"
+  },
+  {
+   "w": "thunderstorm",
+   "e": "⛈️",
+   "h": "a storm with thunder and lightning"
+  },
+  {
+   "w": "tolerance",
+   "h": "the ability to accept things different from you"
+  },
+  {
+   "w": "tomorrow",
+   "h": "the day after today"
+  },
+  {
+   "w": "tongue",
+   "h": "the muscle in your mouth used for tasting and talking"
+  },
+  {
+   "w": "tortoise",
+   "e": "🐢",
+   "h": "a slow-moving land turtle"
+  },
+  {
+   "w": "trailer",
+   "h": "a vehicle pulled behind a car, or a movie preview"
+  },
+  {
+   "w": "transform",
+   "h": "to change completely into something else"
+  },
+  {
+   "w": "translate",
+   "h": "to change words from one language to another"
+  },
+  {
+   "w": "transportation",
+   "h": "the system of moving people or goods"
+  },
+  {
+   "w": "treasure",
+   "h": "a collection of valuable things"
+  },
+  {
+   "w": "trouble",
+   "h": "a difficult or worrying situation"
+  },
+  {
+   "w": "turkey",
+   "e": "🦃",
+   "h": "a large bird often eaten at holiday meals"
+  },
+  {
+   "w": "turquoise",
+   "h": "a blue-green color"
+  },
+  {
+   "w": "tutorial",
+   "h": "a lesson that teaches you how to do something"
+  },
+  {
+   "w": "twilight",
+   "h": "the soft light after sunset"
+  },
+  {
+   "w": "typical",
+   "h": "usual, like most others of its kind"
+  },
+  {
+   "w": "unable",
+   "h": "not able to do something"
+  },
+  {
+   "w": "underneath",
+   "h": "below or beneath something"
+  },
+  {
+   "w": "undoubtedly",
+   "h": "certainly, without any doubt"
+  },
+  {
+   "w": "uneasy",
+   "h": "slightly worried or nervous"
+  },
+  {
+   "w": "unfamiliar",
+   "h": "not known or recognized"
+  },
+  {
+   "w": "unfortunate",
+   "h": "unlucky"
+  },
+  {
+   "w": "unique",
+   "h": "one of a kind, unlike anything else"
+  },
+  {
+   "w": "unlikely",
+   "h": "not expected to happen"
+  },
+  {
+   "w": "unusual",
+   "h": "not common or ordinary"
+  },
+  {
+   "w": "utensil",
+   "h": "a tool used for eating or cooking"
+  },
+  {
+   "w": "utilize",
+   "h": "to make use of something"
+  },
+  {
+   "w": "vacant",
+   "h": "empty, not occupied"
+  },
+  {
+   "w": "vaccine",
+   "e": "💉",
+   "h": "a medicine that protects you from a disease"
+  },
+  {
+   "w": "vacuum",
+   "e": "🧹",
+   "h": "a machine that sucks up dirt from floors"
+  },
+  {
+   "w": "valuable",
+   "h": "worth a lot"
+  },
+  {
+   "w": "variable",
+   "h": "likely to change, or a symbol that can change"
+  },
+  {
+   "w": "variety",
+   "h": "a range of different things"
+  },
+  {
+   "w": "vegetable",
+   "e": "🥕",
+   "h": "a plant food like carrots or peas"
+  },
+  {
+   "w": "village",
+   "e": "🏘️",
+   "h": "a small group of houses, smaller than a town"
+  },
+  {
+   "w": "vinegar",
+   "h": "a sour liquid used in cooking"
+  },
+  {
+   "w": "visitor",
+   "h": "a person who comes to see a place or person"
+  },
+  {
+   "w": "voluntary",
+   "h": "done by choice, not forced"
+  },
+  {
+   "w": "weather",
+   "e": "⛅",
+   "h": "the daily conditions like sun, rain, or wind"
+  },
+  {
+   "w": "weekday",
+   "h": "any day except Saturday and Sunday"
+  },
+  {
+   "w": "weekend",
+   "h": "Saturday and Sunday"
+  },
+  {
+   "w": "welcome",
+   "h": "a greeting to someone arriving"
+  },
+  {
+   "w": "whisper",
+   "h": "to speak very softly"
+  },
+  {
+   "w": "yesterday",
+   "h": "the day before today"
+  }
+ ]
+}
