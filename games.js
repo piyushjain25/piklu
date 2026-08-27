@@ -61,14 +61,17 @@ window.GAMES = [
     tagline: "Guess the hidden word, one letter at a time.",  skills: ["Spelling", "Vocabulary"] },
 
   { slug: "math-monsters", title: "Math Monsters",            emoji: "👾", accent: "leaf",   ageGroup: "5+",
-    tagline: "Feed the monster the right answer!",            skills: ["Arithmetic"],                             badge:"New"},
+    tagline: "Feed the monster the right answer!",            skills: ["Arithmetic"] },
 
   { slug: "shape-sorter",  title: "Shape Sorter",             emoji: "🔷", accent: "sky",    ageGroup: "4+",
-    tagline: "Find and tap the matching shapes.",             skills: ["Shapes"],                                 badge:"New"},
+    tagline: "Find and tap the matching shapes.",             skills: ["Shapes"] },
 
   { slug: "color-match",   title: "Color Match",              emoji: "🎨", accent: "coral",  ageGroup: "4+",
-    tagline: "Tap the colours that match.",                   skills: ["Colours"],                                badge:"New"},
+    tagline: "Tap the colours that match.",                   skills: ["Colours"] },
 
   { slug: "calendar-quest", title: "Calendar Quest",          emoji: "📅", accent: "grape",    ageGroup: "7+",
-    tagline: "Answer riddles about days, weeks, and months.", skills: ["Calendar", "Reasoning"],                  badge:"New"},
+    tagline: "Answer riddles about days, weeks, and months.", skills: ["Calendar", "Reasoning"] },
+
+  { slug: "sentence-doctor", title: "Sentence Doctor",        emoji: "🩺", accent: "coral",  ageGroup: "7+",
+    tagline: "Heal the sick sentence!",                       skills: ["Grammar", "Punctuation"],                 badge:"New"},
 ];

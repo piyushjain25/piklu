@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sentence Doctor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:640px;}
+  .title{font-size:clamp(24px,4.9vw,38px);}
+  .topbar{margin-bottom:14px;}
+
+  .dx-box{background:#F4F0FE; border-radius:14px; padding:9px 16px; margin:2px 0 12px; text-align:center;
+    font-weight:700; color:var(--grape-dark); font-size:14px;}
+
+  .sentence-wrap{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:16px 16px 14px; margin:0 0 10px;
+    transition:border-color .15s ease;}
+  .sentence-wrap:focus-within{border-color:var(--grape);}
+  .sentence{display:flex; flex-wrap:wrap; gap:9px 5px; justify-content:center; align-items:center;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(17px,4.4vw,24px); line-height:1.3;}
+  .tok-anchor{padding:4px 1px; color:var(--ink);}
+  .blank-slot{display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:32px; padding:0 10px;
+    border:3px dashed var(--grape); border-radius:9px; background:#F4F0FE; color:var(--grape-dark); font-weight:700;}
+  .cycle-chip{font-family:inherit; font-size:inherit; font-weight:700; color:var(--grape-dark); background:#F4F0FE;
+    border:none; border-bottom:3px dashed var(--grape); border-radius:9px 9px 3px 3px; padding:3px 10px 2px;
+    cursor:pointer; transition:transform .06s ease, background .15s ease; line-height:1.25;}
+  .cycle-chip:hover{background:#EAE1FB;}
+  .cycle-chip:active{transform:translateY(2px);}
+  .cycle-chip:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
+  .cycle-chip.blank{min-width:30px; height:30px; padding:0; border:3px dashed var(--grape); background:transparent; border-radius:8px;}
+  .edit-field{width:100%; display:block; background:transparent; border:none; outline:none; resize:none;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(17px,4.4vw,21px); color:var(--ink); line-height:1.45;}
+  .opt-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0 0;}
+  .opt-chip{font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px; color:var(--grape-dark); background:#fff;
+    border:3px solid var(--key-line); border-radius:12px; padding:8px 18px; cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, color .15s ease, transform .06s ease;}
+  .opt-chip:hover{border-color:var(--grape);}
+  .opt-chip:active{transform:translateY(2px);}
+  .opt-chip:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
+  .opt-chip[aria-pressed="true"]{background:var(--grape); color:#fff; border-color:var(--grape-dark);}
+
+  .stagewrap{margin-top:2px;}
+  .critter-host{position:relative; display:flex; justify-content:center; min-height:150px;}
+  svg.critter{width:min(180px,50vw); height:auto; display:block;
+    --c-body:#B7D19C; --c-belly:#DCEBC9; --c-line:#6E8F55;}
+  .critter .c-body{fill:var(--c-body); transition:fill .35s ease;}
+  .critter .c-belly{fill:var(--c-belly); transition:fill .35s ease;}
+  .critter .c-line{stroke:var(--c-line); transition:stroke .35s ease;}
+  .critter .c-tip{fill:var(--c-line); transition:fill .35s ease;}
+  .critter .eyelid{transition:opacity .3s ease;}
+  .critter .mouth-sad,.critter .mouth-happy,.critter .cheeks,.critter .thermo,.critter .sparkle{transition:opacity .3s ease;}
+  .critter .antenna-l,.critter .antenna-r,.critter .c-arm{transition:transform .35s ease;}
+  .critter.sneeze{animation:critterSneeze .45s ease;}
+  .critter.boop{animation:critterBoop .35s ease;}
+  .critter.cheer{animation:critterCheer .7s ease;}
+  @keyframes critterSneeze{0%,100%{transform:rotate(0)}20%{transform:rotate(-7deg) translateX(-3px)}45%{transform:rotate(6deg) translateX(3px)}70%{transform:rotate(-3deg)}}
+  @keyframes critterBoop{0%{transform:scale(1)}40%{transform:scale(1.12,.9)}100%{transform:scale(1)}}
+  @keyframes critterCheer{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-10px) rotate(-4deg)}50%{transform:translateY(0) rotate(4deg)}75%{transform:translateY(-6px) rotate(-2deg)}}
+  .float-icon{position:absolute; left:50%; top:12%; font-size:26px; pointer-events:none; animation:floatUp 1s ease forwards;}
+  @keyframes floatUp{0%{opacity:1; transform:translate(-50%,0) scale(.9);}100%{opacity:0; transform:translate(-50%,-60px) scale(1.15);}}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <!-- HOME -->
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          <!-- Doc Owl stethoscope -->
+          <path d="M18,21 Q13,30 19,37 Q25,41 26,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path d="M46,21 Q51,30 45,37 Q39,41 38,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path d="M26,47 Q32,53 38,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <circle cx="32" cy="50" r="4.5" fill="#E4DCF5" stroke="#33236B" stroke-width="1.6"/>
+          <circle cx="18" cy="20" r="2.6" fill="#33236B"/>
+          <circle cx="46" cy="20" r="2.6" fill="#33236B"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🩺 Help Doc Owl's helper heal the sick sentence!</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">pick the fix</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">tap to cycle</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">find & fix</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">fix a few</div></button>
+      </div>
+
+      <div class="howto">
+        🩺 <b>How to play:</b> A Word Critter has caught a sentence sickness! On <b>Easy</b>, pick the fix from the options
+        shown; on <b>Medium</b>, tap the sick word to cycle to the right fix. On <b>Hard</b> and <b>Expert</b>, the whole
+        sentence becomes editable — find what's wrong and fix it yourself (Expert may have a few things to treat). Hit
+        <b>Check</b> when you're ready — every cure
+        perks the critter up, and a full recovery is a celebration! 🎉
+      </div>
+
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+            <!-- Doc Owl stethoscope -->
+            <path d="M18,21 Q13,30 19,37 Q25,41 26,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <path d="M46,21 Q51,30 45,37 Q39,41 38,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <path d="M26,47 Q32,53 38,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <circle cx="32" cy="50" r="4.5" fill="#E4DCF5" stroke="#33236B" stroke-width="1.6"/>
+            <circle cx="18" cy="20" r="2.6" fill="#33236B"/>
+            <circle cx="46" cy="20" r="2.6" fill="#33236B"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="dx-box" id="dx-line"></div>
+
+      <div class="sentence-wrap">
+        <div class="sentence" id="sentence" role="group" aria-label="Sentence to fix"></div>
+        <textarea id="edit-field" class="edit-field hide" rows="2" spellcheck="false" autocomplete="off" aria-label="Edit the sentence"></textarea>
+      </div>
+      <div class="opt-row hide" id="opt-row" role="group" aria-label="Choose the fix"></div>
+
+      <div class="stagewrap">
+        <div class="critter-host" id="critter-host"></div>
+      </div>
+
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+      <div class="feedback" id="feedback"></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="reset-btn" class="tlink">↺ Reset</button>
+          <button id="hint-link" class="tlink">💡 Hint</button>
+          <button id="reveal-btn" class="tlink">👁 Reveal</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="check-btn" class="btn btn-go btn-lg">🩺 Check</button>
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const pickRandom = arr => arr[rnd(arr.length)];
+function lowerFirst(w){ return w.charAt(0).toLowerCase()+w.slice(1); }
+
+/* ===== engine (verified offline — see scratch node check) =====
+   Fully generative: a small hand-written vocabulary (verbs/objects/subjects/time words) plus
+   three sentence templates combine into thousands of distinct sentences. Each round assembles a
+   correct sentence, injects the level's error(s) into it, and lets the child restore it — Check
+   always compares against the one true correct string, so every puzzle is guaranteed fixable. */
+const VERBS = [
+  { base:"like",  s:"likes",  past:"liked",   ing:"liking",   takes:["food","things","activities"] },
+  { base:"eat",   s:"eats",   past:"ate",     ing:"eating",   takes:["food"] },
+  { base:"play",  s:"plays",  past:"played",  ing:"playing",  takes:["games","music"] },
+  { base:"read",  s:"reads",  past:"read",    ing:"reading",  takes:["reading"] },
+  { base:"draw",  s:"draws",  past:"drew",    ing:"drawing",  takes:["things"] },
+  { base:"want",  s:"wants",  past:"wanted",  ing:"wanting",  takes:["food","things"] },
+  { base:"kick",  s:"kicks",  past:"kicked",  ing:"kicking",  takes:["games"] },
+  { base:"wash",  s:"washes", past:"washed",  ing:"washing",  takes:["things"] },
+  { base:"find",  s:"finds",  past:"found",   ing:"finding",  takes:["things"] },
+  { base:"catch", s:"catches",past:"caught",  ing:"catching", takes:["games"] },
+  { base:"sing",  s:"sings",  past:"sang",    ing:"singing",  takes:["music"] },
+  { base:"ride",  s:"rides",  past:"rode",    ing:"riding",   takes:["rides"] },
+  { base:"paint", s:"paints", past:"painted", ing:"painting", takes:["things"] },
+  { base:"share", s:"shares", past:"shared",  ing:"sharing",  takes:["food","things"] },
+  { base:"lose",  s:"loses",  past:"lost",    ing:"losing",   takes:["games","things"] },
+];
+const OBJECTS = {
+  food:      ["apples","the cake","a sandwich","grapes","the soup"],
+  things:    ["the ball","a picture","the toy","her book","the box"],
+  activities:["football","the game","hopscotch"],
+  games:     ["the ball","football","the frisbee"],
+  music:     ["a song","the tune"],
+  reading:   ["a book","the story","comics"],
+  rides:     ["a bike","the pony","the bus"],
+};
+const SUBJECTS = [
+  { text:"She",num:"s" },{ text:"He",num:"s" },{ text:"The dog",num:"s" },{ text:"The cat",num:"s" },
+  { text:"My friend",num:"s" },{ text:"Grandpa",num:"s" },{ text:"Tom",num:"s" },{ text:"The baby",num:"s" },
+  { text:"They",num:"base" },{ text:"We",num:"base" },{ text:"The kids",num:"base" },{ text:"My friends",num:"base" },
+];
+const TIMEWORDS = { past:["Yesterday","Last week","This morning"], present:["Now","Today"], future:["Tomorrow","Soon","Next week"] };
+const TEMPLATES = [
+  { pattern:"{SUBJ} {VERB} {OBJ}.",        tense:"present" },
+  { pattern:"{TIME} {SUBJ} {VERB} {OBJ}.", tense:"fromTime" },
+  { pattern:"Does {SUBJ} {VERB} {OBJ}?",   tense:"question", forceBase:true },
+];
+// Subjects whose leading word is a proper noun and must stay capitalized mid-sentence
+// (everything else in SUBJECTS is a pronoun/common-noun phrase, lowercase mid-sentence).
+const PROPER_SUBJECTS = new Set(["Grandpa","Tom"]);
+function midSentenceCase(s){ return PROPER_SUBJECTS.has(s) ? s : lowerFirst(s); }
+
+function chooseVerbAndObject(){
+  const verb = pickRandom(VERBS);
+  const group = pickRandom(verb.takes);
+  const obj = pickRandom(OBJECTS[group]);
+  return { verb, group, obj };
+}
+function verbCandidates(verb){ return [verb.base, verb.s, verb.past, verb.ing, `will ${verb.base}`]; }
+function pickDistractors(verb, correct, n){
+  const pool = [...new Set(verbCandidates(verb))].filter(v=>v!==correct);
+  return shuffle(pool).slice(0,n);
+}
+// Template A has no time word, so it's a pure subject/verb-NUMBER agreement check — a past or
+// future form isn't wrong there, just a different (equally valid) tense, so it must never appear
+// as a distractor. Only the other present-tense form and the (always-ungrammatical-as-a-main-verb)
+// -ing form are genuine agreement mistakes.
+function agreementDistractors(verb, correct){
+  const pool = [verb.base, verb.s, verb.ing].filter(v=>v!==correct);
+  return shuffle(pool);
+}
+
+/* ===== template builders =====
+   Each returns { templateId, slots:{key:{kind,correct,broken,options?}}, assemble(vals), wordKinds(correctVals) }.
+   assemble() interpolates opaque slot values into the sentence string (works generically for both
+   real values and a spotlight sentinel — see spotlight()). wordKinds() maps each word position of
+   the CORRECT body (sentence minus its final punctuation mark) to the kind of fixable slot it
+   belongs to, or null for anchor (never-fixable) words. */
+function buildTemplateA(){
+  const {verb,obj} = chooseVerbAndObject();
+  const subj = pickRandom(SUBJECTS);
+  const correctVerb = subj.num==='s' ? verb.s : verb.base;
+  const [d1,d2] = agreementDistractors(verb, correctVerb);
+  const objWords = obj.split(' ');
+  const slots = {
+    capital:  { kind:'capital',     correct:subj.text,  broken:lowerFirst(subj.text) },
+    verbslot: { kind:'agreement',   correct:correctVerb, broken:d1, options:shuffle([d1,d2,correctVerb]), allForms:verbCandidates(verb) },
+    punct:    { kind:'punctuation', correct:'.',         broken:'', options:['.','?','!'] },
+  };
+  return {
+    templateId:'A', slots,
+    assemble(vals){ return `${vals.capital} ${vals.verbslot} ${objWords.join(' ')}${vals.punct}`; },
+    wordKinds(correctVals){
+      const vWords = correctVals.verbslot.split(' ').length;
+      return [ 'capital', ...Array(vWords).fill('agreement'), ...objWords.map(()=>null) ];
+    },
+  };
+}
+function buildTemplateB(){
+  const {verb,obj} = chooseVerbAndObject();
+  const subj = pickRandom(SUBJECTS);
+  const tenseGroup = pickRandom(['past','present','future']);
+  const timeWord = pickRandom(TIMEWORDS[tenseGroup]);
+  let correctVerb;
+  if(tenseGroup==='past') correctVerb = verb.past;
+  else if(tenseGroup==='future') correctVerb = `will ${verb.base}`;
+  else correctVerb = subj.num==='s' ? verb.s : verb.base;
+  const [d1,d2] = pickDistractors(verb, correctVerb, 2);
+  const midSubj = midSentenceCase(subj.text);
+  const objWords = obj.split(' ');
+  const slots = {
+    capital:  { kind:'capital',     correct:timeWord,    broken:lowerFirst(timeWord) },
+    verbslot: { kind:'tense',       correct:correctVerb,  broken:d1, options:shuffle([d1,d2,correctVerb]), allForms:verbCandidates(verb) },
+    punct:    { kind:'punctuation', correct:'.',          broken:'', options:['.','?','!'] },
+  };
+  return {
+    templateId:'B', slots,
+    assemble(vals){ return `${vals.capital} ${midSubj} ${vals.verbslot} ${objWords.join(' ')}${vals.punct}`; },
+    wordKinds(correctVals){
+      const vWords = correctVals.verbslot.split(' ').length;
+      const midWords = midSubj.split(' ').length;
+      return [ 'capital', ...Array(midWords).fill(null), ...Array(vWords).fill('tense'), ...objWords.map(()=>null) ];
+    },
+  };
+}
+function buildTemplateC(){
+  const {verb,obj} = chooseVerbAndObject();
+  const subj = pickRandom(SUBJECTS);
+  const aux = subj.num==='s' ? 'Does' : 'Do';
+  const midSubj = midSentenceCase(subj.text);
+  const objWords = obj.split(' ');
+  const slots = {
+    capital: { kind:'capital',     correct:aux, broken:lowerFirst(aux) },
+    punct:   { kind:'punctuation', correct:'?', broken:'', options:['.','?','!'] },
+  };
+  return {
+    templateId:'C', slots,
+    assemble(vals){ return `${vals.capital} ${midSubj} ${verb.base} ${objWords.join(' ')}${vals.punct}`; },
+    wordKinds(correctVals){
+      const midWords = midSubj.split(' ').length;
+      return [ 'capital', ...Array(midWords).fill(null), null, ...objWords.map(()=>null) ];
+    },
+  };
+}
+function buildFromTemplate(tpl){
+  if(tpl.tense==='present') return buildTemplateA();
+  if(tpl.tense==='fromTime') return buildTemplateB();
+  return buildTemplateC();
+}
+function spotlight(item, key){
+  const SENTINEL = " SLOT ";
+  const correctVals={}; Object.keys(item.slots).forEach(k=> correctVals[k]=item.slots[k].correct);
+  const vals = {...correctVals, [key]:SENTINEL};
+  const s = item.assemble(vals);
+  const idx = s.indexOf(SENTINEL);
+  return { prefix: s.slice(0,idx), suffix: s.slice(idx+SENTINEL.length) };
+}
+
+/* ===== generation ===== */
+function splitBodyPunct(s){
+  const trimmed=s.trim();
+  const last=trimmed.slice(-1);
+  if(last==='.'||last==='?'||last==='!') return { body:trimmed.slice(0,-1).trim(), punct:last };
+  return { body:trimmed, punct:'' };
+}
+function pickErrorCount(level, maxSlots){
+  if(level==='EXPERT') return Math.min(2+rnd(2), maxSlots); // 2 or 3
+  return 1;
+}
+function makeRecentTracker(cap){
+  const list=[];
+  return {
+    has:(s)=>list.includes(s),
+    push:(s)=>{ list.push(s); if(list.length>cap) list.shift(); },
+  };
+}
+function generateItem(level, recentTracker){
+  let result=null;
+  for(let attempt=0; attempt<30 && !result; attempt++){
+    const tpl = pickRandom(TEMPLATES);
+    const built = buildFromTemplate(tpl);
+    const slotKeys = Object.keys(built.slots);
+    const correctVals = {}; slotKeys.forEach(k=> correctVals[k]=built.slots[k].correct);
+    const correctSentence = built.assemble(correctVals);
+    if(recentTracker && recentTracker.has(correctSentence)) continue; // guard against repeating recent sentences
+
+    const wantCount = pickErrorCount(level, slotKeys.length);
+    const chosenKeys = shuffle([...slotKeys]).slice(0, wantCount);
+    if(chosenKeys.some(k=> built.slots[k].broken===built.slots[k].correct)) continue; // no-op fix guard
+
+    const brokenVals = {...correctVals};
+    chosenKeys.forEach(k=> brokenVals[k]=built.slots[k].broken);
+    const brokenSentence = built.assemble(brokenVals);
+    if(brokenSentence===correctSentence) continue; // ambiguity guard — must be a single unambiguous correction
+
+    const wordKinds = built.wordKinds(correctVals);
+    const { body:correctBody, punct:correctPunct } = splitBodyPunct(correctSentence);
+    if(wordKinds.length !== correctBody.split(' ').length) continue; // structural sanity guard
+
+    result = {
+      level, templateId:built.templateId,
+      correctSentence, brokenSentence,
+      correctBody, correctPunct, wordKinds,
+      slots: built.slots, chosenKeys, assemble: built.assemble,
+    };
+  }
+  if(!result) throw new Error(`generateItem: failed to produce a valid item for level ${level} after 30 attempts`);
+  if(recentTracker) recentTracker.push(result.correctSentence);
+  return result;
+}
+
+/* ===== checking — normalised, near-miss-forgiving comparison ===== */
+function normalize(s){
+  return s.replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/\s+/g,' ').trim();
+}
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=[]; for(let i=0;i<=m;i++) dp.push(new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0]=i;
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++){
+    dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  }
+  return dp[m][n];
+}
+function compareWord(user, correct, knownAlternates){
+  const nu=normalize(user), nc=normalize(correct);
+  if(nu===nc) return 'exact';
+  if(nu.toLowerCase()===nc.toLowerCase()) return 'case';
+  // A deliberately-wrong (but correctly-spelled) alternative word — e.g. an irregular verb's OTHER
+  // form, "ate" picked where "eat" belongs — is a real grammar miss, not a typo, even when the two
+  // strings happen to be edit-distance-close ("sing"/"sang").
+  if(knownAlternates && knownAlternates.some(alt=>normalize(alt)===nu)) return 'wrong';
+  // Too short for a meaningful "near miss" (a punctuation mark, or a blank/missing slot) — any
+  // edit distance there is trivial by length alone, not a genuine spelling slip.
+  if(nc.length<3 || nu.length<3) return 'wrong';
+  const dist = levenshtein(nu.toLowerCase(), nc.toLowerCase());
+  if(dist>=1 && dist<=2) return 'almost';
+  return 'wrong';
+}
+function checkFreeText(item, userText){
+  const userNorm = normalize(userText);
+  const correctNorm = normalize(item.correctSentence);
+  if(userNorm===correctNorm) return { cured:true };
+
+  const { body:userBody, punct:userPunct } = splitBodyPunct(userNorm);
+  const correctWords = item.correctBody.split(' ');
+  const userWords = userBody.split(' ');
+
+  if(userWords.length !== correctWords.length){
+    const remainingKinds = [...new Set(item.chosenKeys.map(k=>item.slots[k].kind))];
+    return { cured:false, structural:true, remainingKinds, count:remainingKinds.length };
+  }
+
+  const kindToAlternates = {};
+  Object.values(item.slots).forEach(s=>{ if(s.allForms||s.options) kindToAlternates[s.kind]=s.allForms||s.options; });
+
+  const problems=[];
+  for(let i=0;i<correctWords.length;i++){
+    const cw=correctWords[i], uw=userWords[i];
+    if(uw===cw) continue;
+    const kind = item.wordKinds[i];
+    const cmp = compareWord(uw, cw, kindToAlternates[kind]);
+    if(cmp==='almost') problems.push({ kind, severity:'almost' });
+    else problems.push({ kind: kind || 'capital', severity:'wrong' }); // 'case' also lands here — a case-only diff IS the capital problem
+  }
+  if(item.correctPunct !== userPunct) problems.push({ kind:'punctuation', severity:'wrong' });
+
+  if(problems.length===0) return { cured:true };
+  if(problems.length===1 && problems[0].severity==='almost'){
+    return { cured:false, almost:true, kind:problems[0].kind };
+  }
+  const remainingKinds = [...new Set(problems.map(p=>p.kind).filter(Boolean))];
+  return { cured:false, remainingKinds, count: remainingKinds.length || problems.length };
+}
+function checkSingleSlot(item, userValue){
+  const activeKey = item.chosenKeys[0];
+  const slot = item.slots[activeKey];
+  const cmp = compareWord(userValue, slot.correct, slot.allForms||slot.options);
+  if(cmp==='exact') return { cured:true };
+  if(cmp==='almost') return { cured:false, almost:true, kind:slot.kind };
+  return { cured:false, remainingKinds:[slot.kind], count:1 };
+}
+
+/* ===== personality lines ===== */
+const DIAGNOSES = {
+  capital:     ["A case of the lowercase sniffles! 🤧","Ooh, a shrinking-capital cold.","This word forgot its big-letter hat! 🎩","Symptoms: one letter feeling very small."],
+  punctuation: ["A missing full-stop cough. 😷","This sentence has the never-ending hiccups!","Looks like a lost-ending flu.","Its tail fell off — needs a new ending mark."],
+  agreement:   ["A verb-agreement fever! 🌡️","The doer and the verb had a little tiff.","The mismatch measles — verb doesn't match its subject.","Symptoms: the subject and its verb aren't holding hands."],
+  tense:       ["A tangled-time tummy ache. ⏰","This sentence is stuck in the wrong when!","A time-traveller's cold — the tense went wandering.","Symptoms: yesterday's word in today's clothes."],
+  MULTI:       ["Uh oh — this patient has a few things to treat!","A tricky one: more than one symptom here. 🩺","Multiple sniffles detected — take your time, Doctor.","This patient needs a thorough check-up!"],
+};
+const CURED_LINES = ["All better! 💚","Good as new — thanks, Doctor!","Cured! One happy patient. 🎉","Nice diagnosis! Feeling great now.","Healthy and hopping again! 🐾"];
+const OUCH_LINES  = ["Achoo! Not quite better yet…","Hmm, still feeling a bit poorly.","Almost — the patient needs a little more care.","So close! Check again, Doctor. 🔍"];
+
+function diagnosisFor(kinds){
+  const uniq=[...new Set(kinds)];
+  if(uniq.length>1) return pickRandom(DIAGNOSES.MULTI);
+  return pickRandom(DIAGNOSES[uniq[0]]);
+}
+const KIND_LABEL = { capital:'capital', punctuation:'ending', agreement:'verb agreement', tense:'tense' };
+function remainingMessage(kinds){
+  const labels = kinds.map(k=>KIND_LABEL[k]||k);
+  const n = labels.length;
+  const list = labels.length<=1 ? labels.join('') : labels.slice(0,-1).join(', ')+' and '+labels[labels.length-1];
+  return `${n} thing${n===1?'':'s'} still need${n===1?'s':''} care: ${list}!`;
+}
+const HINT_SYMPTOM = { capital:"a capital-letter symptom", punctuation:"an ending symptom", agreement:"a verb-agreement symptom", tense:"a tense symptom" };
+function hintMessage(kinds){
+  const uniq=[...new Set(kinds)];
+  const labels = uniq.map(k=>HINT_SYMPTOM[k]||k);
+  const list = labels.length<=1 ? labels.join('') : labels.slice(0,-1).join(', ')+' and '+labels[labels.length-1];
+  return `💡 Symptoms: ${list}.`;
+}
+
+if(typeof module!=="undefined") module.exports={
+  VERBS, OBJECTS, SUBJECTS, TIMEWORDS, TEMPLATES, PROPER_SUBJECTS,
+  midSentenceCase, chooseVerbAndObject, verbCandidates, pickDistractors,
+  buildTemplateA, buildTemplateB, buildTemplateC, buildFromTemplate, spotlight,
+  splitBodyPunct, generateItem, makeRecentTracker,
+  normalize, levenshtein, compareWord, checkFreeText, checkSingleSlot,
+  DIAGNOSES, CURED_LINES, OUCH_LINES, diagnosisFor, KIND_LABEL, remainingMessage, HINT_SYMPTOM, hintMessage,
+};
+
+const LEVELS = {
+  EASY:   { label:"🌱 Easy" },
+  MEDIUM: { label:"⭐ Medium" },
+  HARD:   { label:"🔥 Hard" },
+  EXPERT: { label:"🏆 Expert" },
+};
+
+/* ===== critter art (unchanged from the working version) ===== */
+const SICK  = { body:"#B7D19C", belly:"#DCEBC9", line:"#6E8F55" };
+const WELL  = { body:"#FFAFA0", belly:"#FFDCD2", line:"#E2495A" };
+function lerpColor(c1,c2,t){
+  const p=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const [r1,g1,b1]=p(c1),[r2,g2,b2]=p(c2);
+  const r=Math.round(r1+(r2-r1)*t), g=Math.round(g1+(g2-g1)*t), b=Math.round(b1+(b2-b1)*t);
+  return `#${[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('')}`;
+}
+function critterSVG(){
+  return `<svg class="critter" id="critter" viewBox="0 0 200 205" aria-hidden="true">
+    <ellipse cx="100" cy="192" rx="48" ry="9" fill="#000" opacity=".08"/>
+    <g class="antenna antenna-l" style="transform-origin:72px 55px;"><line x1="72" y1="55" x2="60" y2="24" stroke-width="6" stroke-linecap="round" class="c-line"/><circle cx="59" cy="20" r="7" class="c-tip"/></g>
+    <g class="antenna antenna-r" style="transform-origin:128px 55px;"><line x1="128" y1="55" x2="140" y2="24" stroke-width="6" stroke-linecap="round" class="c-line"/><circle cx="141" cy="20" r="7" class="c-tip"/></g>
+    <path class="c-arm" style="transform-origin:162px 118px;" d="M162,118 Q188,110 182,84" stroke-width="11" stroke-linecap="round" fill="none"/>
+    <path class="c-body" d="M100,40 C150,40 174,80 170,120 C167,158 138,182 100,182 C62,182 33,158 30,120 C26,80 50,40 100,40 Z"/>
+    <ellipse class="c-belly" cx="100" cy="134" rx="48" ry="36"/>
+    <circle class="cheeks" cx="65" cy="122" r="9" fill="#FF97A0" opacity="0"/>
+    <circle class="cheeks" cx="135" cy="122" r="9" fill="#FF97A0" opacity="0"/>
+    <g class="eye"><ellipse cx="76" cy="98" rx="15" ry="17" fill="#fff"/><circle class="pupil" cx="76" cy="101" r="7" fill="#3a2b4a"/><path class="eyelid" d="M61,90 Q76,80 91,90 L91,94 Q76,86 61,94 Z" fill="var(--paper)"/></g>
+    <g class="eye"><ellipse cx="124" cy="98" rx="15" ry="17" fill="#fff"/><circle class="pupil" cx="124" cy="101" r="7" fill="#3a2b4a"/><path class="eyelid" d="M109,90 Q124,80 139,90 L139,94 Q124,86 109,94 Z" fill="var(--paper)"/></g>
+    <path class="mouth-sad" d="M82,138 Q100,126 118,138" stroke="#3a2b4a" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path class="mouth-happy" d="M80,128 Q100,150 120,128" stroke="#3a2b4a" stroke-width="5" fill="none" stroke-linecap="round" opacity="0"/>
+    <g class="thermo"><rect x="112" y="106" width="7" height="26" rx="3.5" fill="#fff" stroke="#e24a5c" stroke-width="2" transform="rotate(25 115.5 119)"/><circle cx="115.5" cy="132" r="6" fill="#e24a5c" transform="rotate(25 115.5 119)"/></g>
+    <g class="sparkle" opacity="0"><path d="M38,58 l3,8 l8,3 l-8,3 l-3,8 l-3,-8 l-8,-3 l8,-3 Z" fill="#FFCF43"/></g>
+    <g class="sparkle" opacity="0"><path d="M164,64 l2.4,6.4 l6.4,2.4 l-6.4,2.4 l-2.4,6.4 l-2.4,-6.4 l-6.4,-2.4 l6.4,-2.4 Z" fill="#FFCF43"/></g>
+  </svg>`;
+}
+function updateCritterVisual(ratio){
+  const svg=$("critter"); if(!svg) return;
+  svg.style.setProperty('--c-body', lerpColor(SICK.body, WELL.body, ratio));
+  svg.style.setProperty('--c-belly', lerpColor(SICK.belly, WELL.belly, ratio));
+  svg.style.setProperty('--c-line', lerpColor(SICK.line, WELL.line, ratio));
+  svg.querySelectorAll('.eyelid').forEach(e=> e.style.opacity = ratio>=0.7 ? 0 : (ratio>=0.35 ? 0.45 : 1));
+  const sad=svg.querySelector('.mouth-sad'), happy=svg.querySelector('.mouth-happy');
+  if(sad) sad.style.opacity = ratio<0.5 ? 1 : 0;
+  if(happy) happy.style.opacity = ratio>=0.5 ? 1 : 0;
+  svg.querySelectorAll('.cheeks').forEach(c=> c.style.opacity = ratio>=0.75 ? 1 : 0);
+  const thermo=svg.querySelector('.thermo'); if(thermo) thermo.style.opacity = ratio<0.5 ? 1 : 0;
+  const droop = -28*(1-ratio);
+  const al=svg.querySelector('.antenna-l'), ar=svg.querySelector('.antenna-r');
+  if(al) al.style.transform = `rotate(${droop}deg)`;
+  if(ar) ar.style.transform = `rotate(${-droop}deg)`;
+  svg.querySelectorAll('.sparkle').forEach(s=> s.style.opacity = ratio>=1 ? 1 : 0);
+}
+function boopCritter(){ const c=$("critter"); if(!c) return; c.classList.remove('boop'); void c.offsetWidth; c.classList.add('boop'); }
+function sneezeCritter(){ const c=$("critter"); if(!c) return; c.classList.remove('sneeze'); void c.offsetWidth; c.classList.add('sneeze'); }
+function cheerCritter(){ const c=$("critter"); if(!c) return; c.classList.remove('cheer'); void c.offsetWidth; c.classList.add('cheer'); }
+function pointCritter(){ const c=$("critter"); if(!c) return; c.classList.add('point'); const arm=c.querySelector('.c-arm'); if(arm) arm.style.transform='rotate(-35deg)';
+  setTimeout(()=>{ c.classList.remove('point'); if(arm) arm.style.transform=''; }, 1500); }
+function spawnFloatIcon(emoji){
+  if(reduceMotion) return;
+  const host=$("critter-host"); if(!host) return;
+  const el=document.createElement('div'); el.className='float-icon'; el.textContent=emoji;
+  host.appendChild(el); setTimeout(()=>el.remove(), 1000);
+}
+
+/* ===== state ===== */
+let level="EASY", ITEM=null, solved=false, pickedValue=null, easyOptions=null, lastRemaining=0;
+const recentTracker = makeRecentTracker(8);
+
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(false); }
+wireLevelMenu();
+
+$("start-btn").onclick  = ()=> newPuzzle(true);
+$("home-btn").onclick   = goHome;
+$("skip-btn").onclick   = ()=> newPuzzle(false);
+$("next-btn").onclick   = ()=> newPuzzle(false);
+$("reset-btn").onclick  = resetPuzzle;
+$("check-btn").onclick  = checkPuzzle;
+$("hint-link").onclick  = giveHint;
+$("reveal-btn").onclick = revealAnswer;
+
+function isEditLevel(){ return level==='HARD' || level==='EXPERT'; }
+function promptText(){
+  if(level==='EASY') return "Pick the fix for the highlighted word, then hit Check!";
+  if(level==='MEDIUM') return "Tap the sick word to cycle to the fix, then hit Check!";
+  return "Find what's wrong and fix it right in the sentence, then hit Check!";
+}
+
+function newPuzzle(fromHome){
+  ITEM = generateItem(level, recentTracker);
+  solved=false; lastRemaining=ITEM.chosenKeys.length;
+  if(level==='EASY'){
+    const slot=ITEM.slots[ITEM.chosenKeys[0]];
+    pickedValue=null;
+    easyOptions = shuffle(slot.kind==='capital' ? [slot.broken, slot.correct] : [...slot.options]);
+  } else if(level==='MEDIUM'){
+    pickedValue = ITEM.slots[ITEM.chosenKeys[0]].broken; // starts visible on the word itself, tap to cycle
+    easyOptions=null;
+  } else { pickedValue=null; easyOptions=null; }
+
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  setLevel(level);
+  const kinds = ITEM.chosenKeys.map(k=>ITEM.slots[k].kind);
+  $("dx-line").textContent = diagnosisFor(kinds);
+  $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
+  $("check-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("edit-field").readOnly=false;
+  renderPuzzleUI();
+  $("critter-host").innerHTML = critterSVG();
+  updateCritterVisual(0);
+  setOwl('idle'); flash(promptText(), '');
+}
+function resetPuzzle(){
+  if(!ITEM || solved) return;
+  pickedValue = level==='MEDIUM' ? ITEM.slots[ITEM.chosenKeys[0]].broken : null;
+  lastRemaining=ITEM.chosenKeys.length;
+  renderPuzzleUI();
+  updateCritterVisual(0);
+  const c=$("critter"); if(c) c.classList.remove('cheer','boop','sneeze','point');
+  setOwl('idle'); flash(promptText(), '');
+}
+
+function renderPuzzleUI(){
+  const edit = isEditLevel();
+  $("sentence").classList.toggle('hide', edit);
+  $("edit-field").classList.toggle('hide', !edit);
+  $("opt-row").classList.toggle('hide', level!=='EASY');
+  if(edit){
+    $("edit-field").value = ITEM.brokenSentence;
+    setTimeout(()=> $("edit-field").focus(), 0);
+  } else {
+    renderSpotlight();
+  }
+}
+function renderSpotlight(){
+  const key = ITEM.chosenKeys[0];
+  const slot = ITEM.slots[key];
+  const {prefix,suffix} = spotlight(ITEM, key);
+  const el=$("sentence"); el.innerHTML='';
+  const pre=document.createElement('span'); pre.className='tok-anchor'; pre.textContent=prefix;
+  const suf=document.createElement('span'); suf.className='tok-anchor'; suf.textContent=suffix;
+
+  if(level==='EASY'){
+    const blank=document.createElement('span'); blank.className='blank-slot';
+    blank.textContent = pickedValue===null ? '' : pickedValue;
+    el.append(pre, blank, suf);
+    const optRow=$("opt-row"); optRow.innerHTML='';
+    easyOptions.forEach(opt=>{
+      const b=document.createElement('button'); b.type='button'; b.className='opt-chip';
+      b.textContent = opt; b.setAttribute('aria-pressed', String(opt===pickedValue));
+      b.onclick=()=>{ if(solved) return; pickedValue=opt; sound('tick'); renderSpotlight(); };
+      optRow.appendChild(b);
+    });
+    const active=optRow.querySelector('[aria-pressed="true"]'); if(active) active.focus();
+  } else { // MEDIUM: tap the word itself to cycle through fixes — no typing
+    const cycleOpts = slot.kind==='capital' ? [slot.broken, slot.correct] : slot.options;
+    const current = pickedValue===null ? slot.broken : pickedValue;
+    const isBlankPunct = current==='';
+    const chip=document.createElement('button'); chip.type='button';
+    chip.className='cycle-chip'+(isBlankPunct?' blank':'');
+    chip.textContent = current;
+    chip.setAttribute('aria-label', isBlankPunct ? 'missing end mark, tap to cycle through choices' : `${current}, tap to try the next fix`);
+    chip.onclick=()=>{
+      if(solved) return;
+      let idx=cycleOpts.indexOf(current); idx=(idx+1)%cycleOpts.length;
+      pickedValue=cycleOpts[idx]; sound('tick'); renderSpotlight();
+    };
+    el.append(pre, chip, suf);
+    chip.focus();
+  }
+}
+
+function checkPuzzle(){
+  if(!ITEM || solved) return;
+  const edit = isEditLevel();
+  if(!edit && pickedValue===null){ flash("Pick your fix first!", ''); return; }
+
+  const result = edit ? checkFreeText(ITEM, $("edit-field").value) : checkSingleSlot(ITEM, pickedValue);
+
+  if(result.cured){
+    solved=true;
+    $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+    $("skip-btn").classList.add("invisible"); $("check-btn").classList.add("hide");
+    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+    $("rlabel").textContent = pickRandom(CURED_LINES);
+    flash('', '');
+    updateCritterVisual(1); cheerCritter(); setOwl('win'); sound('win');
+    if(!reduceMotion){ miniConfetti(); spawnFloatIcon('💚'); }
+    return;
+  }
+
+  const total = ITEM.chosenKeys.length;
+  const remaining = result.almost ? 1 : (result.remainingKinds ? result.remainingKinds.length : total);
+  updateCritterVisual(Math.max(0, (total-remaining)/total));
+  setOwl('worried'); sound('bad');
+  if(remaining < lastRemaining){ boopCritter(); spawnFloatIcon('❤️'); } else { sneezeCritter(); spawnFloatIcon('🤧'); }
+  lastRemaining = remaining;
+
+  if(result.almost){
+    flash(`${pickRandom(OUCH_LINES)} Check the spelling!`, 'bad');
+  } else {
+    flash(`${pickRandom(OUCH_LINES)} ${remainingMessage(result.remainingKinds||[])}`, 'bad');
+  }
+}
+function giveHint(){
+  if(!ITEM || solved) return;
+  pointCritter();
+  const kinds = ITEM.chosenKeys.map(k=>ITEM.slots[k].kind);
+  flash(hintMessage(kinds), 'hint'); setOwl('think'); sound('hint');
+}
+function revealAnswer(){
+  if(!ITEM || solved) return;
+  solved=true; // the round is over — no more Check/Hint/Reset, just like a real cure
+  if(isEditLevel()){
+    $("edit-field").value = ITEM.correctSentence;
+    $("edit-field").readOnly = true;
+  } else {
+    pickedValue = ITEM.slots[ITEM.chosenKeys[0]].correct;
+    renderSpotlight();
+  }
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible"); $("check-btn").classList.add("hide");
+  $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  $("rlabel").textContent = "Here's the fix! 👁";
+  flash('', '');
+  updateCritterVisual(1); setOwl('idle'); sound('hint');
+}
+function goHome(){ stopConfetti(); ITEM=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+
+document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !ITEM) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if(e.key==='Enter'){
+    if(solved){ e.preventDefault(); newPuzzle(false); } else { e.preventDefault(); checkPuzzle(); }
+    return;
+  }
+  const inTextField = e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA');
+  if(inTextField) return; // let normal typing (including the letter "h") proceed unimpeded
+  if(e.key.toLowerCase()==='h' && !solved) giveHint();
+});
+
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
+function sound(kind){
+  if(kind==="tick") beep(500,.05,"square",0,.05);
+  else if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
+  else if(kind==="hint") beep(440,.08,"sine",0,.07);
+  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
+}
+function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
+
+initBouncyTitle("Sentence Doctor");
+setLevel("EASY");
+</script>
+</body>
+</html>
