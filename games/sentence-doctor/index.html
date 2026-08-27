@@ -15,6 +15,7 @@
 
   .dx-box{background:#F4F0FE; border-radius:14px; padding:9px 16px; margin:2px 0 12px; text-align:center;
     font-weight:700; color:var(--grape-dark); font-size:14px;}
+  .chip.tense{background:var(--sky);}
 
   .sentence-wrap{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:16px 16px 14px; margin:0 0 10px;
     transition:border-color .15s ease;}
@@ -144,6 +145,7 @@
       </div>
 
       <div class="dx-box" id="dx-line"></div>
+      <div class="stats-row hide" id="tense-row"></div>
 
       <div class="sentence-wrap">
         <div class="sentence" id="sentence" role="group" aria-label="Sentence to fix"></div>
@@ -288,7 +290,7 @@ function buildTemplateB(){
   const objWords = obj.split(' ');
   const slots = {
     capital:  { kind:'capital',     correct:timeWord,    broken:lowerFirst(timeWord) },
-    verbslot: { kind:'tense',       correct:correctVerb,  broken:d1, options:shuffle([d1,d2,correctVerb]), allForms:verbCandidates(verb) },
+    verbslot: { kind:'tense',       correct:correctVerb,  broken:d1, options:shuffle([d1,d2,correctVerb]), allForms:verbCandidates(verb), tenseGroup },
     punct:    { kind:'punctuation', correct:'.',          broken:'', options:['.','?','!'] },
   };
   return {
@@ -600,6 +602,15 @@ function promptText(){
   if(level==='MEDIUM') return "Tap the sick word to cycle to the fix, then hit Check!";
   return "Find what's wrong and fix it right in the sentence, then hit Check!";
 }
+function updateTenseRow(){
+  const row=$("tense-row");
+  const tenseKey = ITEM.chosenKeys.find(k=>ITEM.slots[k].kind==='tense');
+  if(!tenseKey){ row.innerHTML=''; row.classList.add('hide'); return; }
+  const g = ITEM.slots[tenseKey].tenseGroup;
+  const label = g.charAt(0).toUpperCase()+g.slice(1);
+  row.innerHTML = `<span class="chip tense">🕐 Expected tense: ${label}</span>`;
+  row.classList.remove('hide');
+}
 
 function newPuzzle(fromHome){
   ITEM = generateItem(level, recentTracker);
@@ -617,6 +628,7 @@ function newPuzzle(fromHome){
   setLevel(level);
   const kinds = ITEM.chosenKeys.map(k=>ITEM.slots[k].kind);
   $("dx-line").textContent = diagnosisFor(kinds);
+  updateTenseRow();
   $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("check-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
   $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
