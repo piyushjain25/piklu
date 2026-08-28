@@ -1,5 +1,95 @@
 {
- "MY": [],
+ "MY": [
+  {
+   "w": "apron",
+   "h": "you tie this on to keep your clothes clean while cooking"
+  },
+  {
+   "w": "basic",
+   "h": "simple and easy to understand"
+  },
+  {
+   "w": "cable",
+   "h": "a thick wire that carries electricity or signals"
+  },
+  {
+   "w": "radio",
+   "e": "📻",
+   "h": "a machine that plays music and voices through the air"
+  },
+  {
+   "w": "shaky",
+   "h": "wobbling or trembling instead of steady"
+  },
+  {
+   "w": "paper",
+   "e": "📄",
+   "h": "thin sheets you write or draw on"
+  },
+  {
+   "w": "agent",
+   "h": "a person who works or acts for someone else"
+  },
+  {
+   "w": "brake",
+   "h": "you press this to make a bike or car stop"
+  },
+  {
+   "w": "bravery",
+   "h": "being brave even when you feel scared"
+  },
+  {
+   "w": "chase",
+   "h": "to run after someone or something quickly"
+  },
+  {
+   "w": "crane",
+   "e": "🏗️",
+   "h": "a tall machine that lifts heavy things"
+  },
+  {
+   "w": "label",
+   "e": "🏷️",
+   "h": "a small tag that tells you what something is"
+  },
+  {
+   "w": "potato",
+   "e": "🥔",
+   "h": "a brown vegetable that grows underground"
+  },
+  {
+   "w": "maple",
+   "e": "🍁",
+   "h": "a tree with sweet syrup and colorful leaves"
+  },
+  {
+   "w": "table",
+   "h": "a piece of furniture you eat or work at"
+  },
+  {
+   "w": "erase",
+   "h": "to rub out a mistake"
+  },
+  {
+   "w": "fake",
+   "h": "not real; pretend"
+  },
+  {
+   "w": "flame",
+   "e": "🔥",
+   "h": "the bright hot part of a fire"
+  },
+  {
+   "w": "frame",
+   "e": "🖼️",
+   "h": "the border that holds a picture"
+  },
+  {
+   "w": "grape",
+   "e": "🍇",
+   "h": "a small round juicy fruit that grows in bunches"
+  }
+ ],
  "EASY": [
   {
    "w": "add",
