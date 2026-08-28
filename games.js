@@ -77,4 +77,7 @@ window.GAMES = [
 
   { slug: "spell-a-bee",    title: "Spell-a-Bee",             emoji: "🐝", accent: "sun",    ageGroup: "6+",
     tagline: "Listen to the word and spell it, letter by letter.", skills: ["Spelling", "Listening"],             badge:"New"},
+
+  { slug: "shape-math",      title: "Shape Math",             emoji: "🔷", accent: "grape",  ageGroup: "6+",
+    tagline: "Add and subtract shapes to find the answer!",  skills: ["Shapes", "Logic", "Spatial reasoning"],   badge:"New"},
 ];

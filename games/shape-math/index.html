@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shape Math</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:640px;}
+  .title{font-size:clamp(24px,4.9vw,38px);}
+  .topbar{margin-bottom:18px;}
+  .eqrow{display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;}
+  .eqcell{width:clamp(62px,17vw,86px); height:clamp(62px,17vw,86px); border-radius:16px; background:#fff;
+    border:3px solid var(--key-line); padding:9px; flex:0 0 auto;}
+  .eqcell.eqblank{border-style:dashed; border-color:var(--grape); background:#F4F0FE;}
+  .eqblank .qmark{display:flex; align-items:center; justify-content:center; height:100%;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(24px,6.5vw,32px); color:var(--grape);
+    animation:eqpulse 1.2s ease-in-out infinite;}
+  @keyframes eqpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .eqsym{font-family:'Fredoka',sans-serif; font-weight:800; font-size:clamp(22px,5.5vw,30px); color:var(--ink-soft);}
+  .shapeicon{width:100%; height:100%; display:block;}
+  .shapeicon .strokes line,.shapeicon .strokes path{fill:none; stroke:var(--grape-dark); stroke-width:.42;
+    stroke-linecap:round; stroke-linejoin:round;}
+  .optlabel{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft);
+    font-size:13px; text-transform:uppercase; letter-spacing:1px; margin:16px 0 10px;}
+  .options{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; max-width:420px; margin:0 auto;}
+  .opt{aspect-ratio:1; border-radius:16px; border:3px solid var(--key-line); background:#fff; cursor:pointer;
+    padding:10px; box-shadow:0 5px 0 #e7dff7; transition:transform .06s;}
+  .opt:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 #e7dff7;}
+  .opt:hover:not(:disabled){border-color:var(--grape);}
+  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .opt.wrong{animation:eqshake .35s ease; border-color:var(--coral);}
+  @keyframes eqshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .opt.correct{border-color:var(--leaf); background:#EAF9F1;}
+  .opt:disabled{cursor:default;}
+  .teachwrap{background:#F4F0FE; border-radius:16px; padding:12px 16px; margin:2px 0 10px; text-align:center;}
+  .teachwrap .teachlbl{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape-dark); font-size:13px; margin-bottom:8px;}
+  .teach-stage{width:92px; height:92px; margin:0 auto;}
+  .teach-svg .tk-b-in{opacity:0; transform:scale(.5); transform-origin:2px 2px; transition:opacity .55s ease, transform .55s ease;}
+  .teach-svg.run .tk-b-in{opacity:1; transform:scale(1);}
+  .teach-svg .tk-b-out{stroke:var(--coral); transition:opacity .5s ease .2s, stroke .2s ease;}
+  .teach-svg.run .tk-b-out{opacity:0;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🔷 Add and subtract shapes to find the answer!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">simple joins</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">add & subtract</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">trickier shapes</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">near-miss tricks</div></button>
+      </div>
+      <div class="howto">
+        🔷 <b>How to play:</b> A shape equation shows two shapes joined by <b>+</b> or <b>−</b>. Adding overlays their outlines
+        together; subtracting removes the second shape's lines from the first. Work out what's left, then <b>tap the matching
+        shape</b> below!
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="eqrow" id="eqrow">
+        <div class="eqcell" id="eq-a"></div>
+        <div class="eqsym" id="eq-op">+</div>
+        <div class="eqcell" id="eq-b"></div>
+        <div class="eqsym">=</div>
+        <div class="eqcell eqblank" id="eq-blank"><span class="qmark">?</span></div>
+      </div>
+
+      <div class="teachwrap hide" id="teachwrap">
+        <div class="teachlbl">💡 Watch them combine:</div>
+        <div class="teach-stage" id="teach-stage"></div>
+      </div>
+
+      <div id="play-view">
+        <div class="optlabel">Tap the matching shape</div>
+        <div class="options" id="options"></div>
+      </div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+
+      <div class="feedback" id="feedback"></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+/* ===== shape-math engine (verified offline — see games/shape-math tests) =====
+   Shapes are sets of named strokes on a 4x4 grid. A+B = union of stroke sets,
+   A-B = set difference. A computed result is only a valid puzzle if its stroke
+   set exactly equals another named SHAPES entry (or a documented alias). */
+const STROKES = {
+  top:[0,0,4,0], bottom:[0,4,4,4], left:[0,0,0,4], right:[4,0,4,4],
+  vmid:[2,0,2,4], hmid:[0,2,4,2],
+  fslash:[0,4,4,0], bslash:[0,0,4,4],
+  dTL:[2,0,0,2], dTR:[2,0,4,2], dBL:[0,2,2,4], dBR:[4,2,2,4],
+  roofL:[0,2,2,0], roofR:[2,0,4,2],
+  triL:[2,0,0,4], triR:[2,0,4,4], triB:[0,4,4,4],
+  q1:[1,0,1,4], q3:[3,0,3,4], q_top:[0,1,4,1], q_bot:[0,3,4,3],
+  houseL:[0,1,0,4], houseR:[4,1,4,4], houseB:[0,4,4,4], hroofL:[0,1,2,0], hroofR:[2,0,4,1],
+};
+const ARCS = {
+  arcL:"M2,0 A2,2 0 0 0 2,4", arcR:"M2,0 A2,2 0 0 1 2,4",
+  smallCircle:"M1,2 A1,1 0 1 0 3,2 A1,1 0 1 0 1,2",
+  heartL:"M2,4 C0,2 0.2,0 2,1", heartR:"M2,4 C4,2 3.8,0 2,1",
+};
+const SHAPES = {
+  square:["top","bottom","left","right"],
+  triangle:["triL","triR","triB"],
+  plus:["vmid","hmid"], vbar:["vmid"], hbar:["hmid"],
+  fslash:["fslash"], bslash:["bslash"],
+  diamond:["dTL","dTR","dBL","dBR"],
+  diamond_top:["dTL","dTR"], diamond_bottom:["dBL","dBR"],
+  circle:["arcL","arcR"], half_l:["arcL"], half_r:["arcR"],
+  small_circle:["smallCircle"],
+  circle_in_circle:["arcL","arcR","smallCircle"],
+  cross_in_circle:["arcL","arcR","vmid","hmid"],
+  grid:["top","bottom","left","right","vmid","hmid"],
+  fourbars:["left","q1","vmid","q3"],
+  threebars:["q_top","hmid","q_bot"],
+  heart:["heartL","heartR"],
+  heart_in_square:["top","bottom","left","right","heartL","heartR"],
+  house_walls:["houseL","houseR","houseB"], house_roof:["hroofL","hroofR"],
+  house:["houseL","houseR","houseB","hroofL","hroofR"],
+  cross_x:["fslash","bslash"],
+  chevron_l:["roofL"], chevron_r:["roofR"], chevron:["roofL","roofR"],
+};
+const HUMAN_NAME = {
+  square:"square", triangle:"triangle", plus:"plus", vbar:"vertical bar", hbar:"horizontal bar",
+  fslash:"forward slash", bslash:"backslash", diamond:"diamond", diamond_top:"top half diamond",
+  diamond_bottom:"bottom half diamond", circle:"circle", half_l:"left half circle", half_r:"right half circle",
+  small_circle:"small circle", circle_in_circle:"circle in a circle", cross_in_circle:"cross in a circle",
+  grid:"grid", fourbars:"four bars", threebars:"three bars", heart:"heart", heart_in_square:"heart in a square",
+  house_walls:"house walls", house_roof:"house roof", house:"house",
+  cross_x:"x mark", chevron_l:"left roof edge", chevron_r:"right roof edge", chevron:"chevron",
+};
+
+const sortedKey = ids => ids.slice().sort().join(",");
+const SHAPE_KEY_TO_NAME = {};
+for (const name in SHAPES) SHAPE_KEY_TO_NAME[sortedKey(SHAPES[name])] = name;
+
+function computeResult(aName, bName, op) {
+  const A = SHAPES[aName], B = SHAPES[bName];
+  const setB = new Set(B);
+  if (op === "+") {
+    const out = A.slice();
+    B.forEach(id => { if (!out.includes(id)) out.push(id); });
+    return out;
+  }
+  return A.filter(id => !setB.has(id));
+}
+// Only an EXACT stroke-set match counts — the rendered option for a name is
+// always that name's own literal SHAPES entry, so anything looser here would
+// show the player a shape that doesn't match what they actually built.
+function canonicalShapeFor(strokeIds) {
+  return SHAPE_KEY_TO_NAME[sortedKey(strokeIds)] || null;
+}
+
+/* ===== levels: candidate operand pools + allowed operators ===== */
+const LEVELS = {
+  EASY: {
+    pool:["half_l","half_r","vbar","hbar","house_walls","house_roof",
+          "diamond_top","diamond_bottom","fslash","bslash","chevron_l","chevron_r",
+          "small_circle","circle"],
+    ops:["+"], label:"🌱 Easy",
+  },
+  MEDIUM: {
+    pool:["half_l","half_r","vbar","hbar","plus","grid","square","house_walls","house_roof"],
+    ops:["+","-"], label:"⭐ Medium",
+  },
+  HARD: {
+    pool:["plus","circle","square","grid","cross_in_circle","circle_in_circle","small_circle",
+          "heart","heart_in_square","fourbars","threebars","half_l","half_r"],
+    ops:["+","-"], label:"🔥 Hard",
+  },
+  EXPERT: {
+    pool:["square","diamond","diamond_top","diamond_bottom","grid","plus","cross_in_circle",
+          "circle_in_circle","small_circle","heart_in_square","heart","fourbars","threebars",
+          "circle","triangle","house","house_walls","house_roof"],
+    ops:["+","-"], label:"🏆 Expert",
+  },
+};
+const isSubsetOf = (b, a) => SHAPES[b].every(id => SHAPES[a].includes(id));
+
+// Every valid (A, op, B) recipe for a pool: reject anything whose result doesn't
+// exactly match a named shape, AND reject a result that's just A or B unchanged
+// (mathematically consistent, but reads as a broken "nothing happened" equation).
+// For "-" specifically, only allow it when B is ENTIRELY contained in A — i.e.
+// B is a whole recognizable layer of A (like square inside heart_in_square) —
+// never a case where B merely happens to share SOME strokes with A while also
+// having strokes of its own that have nothing to do with A. That partial,
+// coincidental overlap is what made puzzles like "plus - fourbars = hbar" or
+// "grid - heart_in_square = plus" look nonsensical: nothing about the two
+// icons visually suggests one contains the other, so "removing" B just looks
+// arbitrary even though the stroke math checks out.
+function buildRecipes(pool, ops) {
+  const out = [];
+  for (const a of pool) for (const b of pool) {
+    if (a === b) continue;
+    for (const op of ops) {
+      if (op === "-" && !isSubsetOf(b, a)) continue;
+      const answer = canonicalShapeFor(computeResult(a, b, op));
+      if (!answer || answer === a || answer === b) continue;
+      out.push({ a, b, op, answer });
+    }
+  }
+  return out;
+}
+for (const key in LEVELS) LEVELS[key].recipes = buildRecipes(LEVELS[key].pool, LEVELS[key].ops);
+
+const sig = r => `${r.a}${r.op}${r.b}`;
+function genPuzzle(level, prevSig) {
+  const recipes = LEVELS[level].recipes;
+  let r = recipes[rnd(recipes.length)];
+  for (let a = 0; a < 30 && prevSig && sig(r) === prevSig && recipes.length > 1; a++) r = recipes[rnd(recipes.length)];
+  return r;
+}
+
+/* distance used to rank distractors: mainly "similar total stroke count",
+   refined by literal stroke-id overlap for shapes that share the same family
+   of strokes (e.g. square/grid/plus all built from top/bottom/left/right/vmid/hmid) */
+function symmetricDiff(a, b) {
+  const A = new Set(a), B = new Set(b);
+  let n = 0;
+  A.forEach(id => { if (!B.has(id)) n++; });
+  B.forEach(id => { if (!A.has(id)) n++; });
+  return n;
+}
+function distance(nameX, nameAnswer) {
+  const x = SHAPES[nameX], ans = SHAPES[nameAnswer];
+  return Math.abs(x.length - ans.length) * 10 + symmetricDiff(x, ans);
+}
+function generateOptions(a, b, answer) {
+  const names = Object.keys(SHAPES).filter(n => n !== answer);
+  // group by distance tier, then shuffle WITHIN each tier — keeps "closest
+  // first" but stops the same recipe from always drawing the same distractors
+  const tiers = new Map();
+  for (const n of names) { const d = distance(n, answer); if (!tiers.has(d)) tiers.set(d, []); tiers.get(d).push(n); }
+  const ranked = [...tiers.keys()].sort((x, y) => x - y).flatMap(d => shuffle(tiers.get(d)));
+  const opts = [answer];
+  const tryAdd = n => { if (n && n !== answer && !opts.includes(n)) opts.push(n); };
+  tryAdd(a); tryAdd(b);
+  for (const n of ranked) { if (opts.length >= 4) break; tryAdd(n); }
+  return shuffle(opts);
+}
+
+if (typeof module !== "undefined") module.exports = {
+  STROKES, ARCS, SHAPES, LEVELS, computeResult, canonicalShapeFor, genPuzzle, generateOptions, sig,
+};
+
+/* ===== rendering ===== */
+function strokeMarkup(id, cls) {
+  if (STROKES[id]) { const [x1,y1,x2,y2] = STROKES[id]; return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; }
+  return `<path class="${cls}" d="${ARCS[id]}"/>`;
+}
+function shapeInner(name) { return (SHAPES[name]||[]).map(id => strokeMarkup(id, '')).join(''); }
+function shapeSVG(name) {
+  return `<svg class="shapeicon" viewBox="-0.35 -0.35 4.7 4.7" role="img" aria-label="${HUMAN_NAME[name]||name}"><g class="strokes">${shapeInner(name)}</g></svg>`;
+}
+function teachMarkup(a, b, op) {
+  const A = SHAPES[a], B = SHAPES[b], setA = new Set(A), setB = new Set(B);
+  let html = '';
+  if (op === '+') {
+    A.forEach(id => html += strokeMarkup(id, 'tk-a'));
+    B.forEach(id => { if (!setA.has(id)) html += strokeMarkup(id, 'tk-b-in'); });
+  } else {
+    A.forEach(id => html += strokeMarkup(id, setB.has(id) ? 'tk-b-out' : 'tk-a'));
+  }
+  return `<svg class="shapeicon teach-svg" viewBox="-0.35 -0.35 4.7 4.7" aria-hidden="true"><g class="strokes">${html}</g></svg>`;
+}
+function renderTeachInto(container, a, b, op, answer) {
+  if (reduceMotion) { container.innerHTML = shapeSVG(answer); return; }
+  container.innerHTML = teachMarkup(a, b, op);
+  const svg = container.querySelector('.teach-svg');
+  requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.add('run')));
+  setTimeout(() => { if (container.querySelector('.teach-svg') === svg) container.innerHTML = shapeSVG(answer); }, 780);
+}
+
+/* ===== state ===== */
+let level="EASY", P=null, phase='play', prevSig=null;
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newRound(false); }
+wireLevelMenu();
+
+$("start-btn").onclick=()=>newRound(true); $("home-btn").onclick=goHome;
+$("skip-btn").onclick=()=>newRound(false); $("next-btn").onclick=()=>newRound(false);
+$("hint-link").onclick=giveHint;
+
+function newRound(fromHome){
+  const r = genPuzzle(level, prevSig); prevSig = sig(r);
+  P = { ...r, options: generateOptions(r.a, r.b, r.answer) };
+  phase='play';
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  setLevel(level);
+  $("play-view").classList.remove("hide"); $("result-view").classList.add("hide");
+  $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("teachwrap").classList.add("hide");
+  renderEquation(); renderOptions(); setOwl('idle'); flash("Work out the shape, then tap it below!", '');
+}
+function renderEquation(){
+  $("eq-a").innerHTML = shapeSVG(P.a);
+  $("eq-a").setAttribute("aria-label", HUMAN_NAME[P.a]||P.a);
+  $("eq-b").innerHTML = shapeSVG(P.b);
+  $("eq-b").setAttribute("aria-label", HUMAN_NAME[P.b]||P.b);
+  $("eq-op").textContent = P.op === '+' ? '+' : '−';
+  $("eq-blank").innerHTML = '<span class="qmark">?</span>';
+}
+function renderOptions(){
+  const el=$("options"); el.innerHTML="";
+  P.options.forEach(name=>{
+    const b=document.createElement('button'); b.className='opt'; b.dataset.name=name;
+    b.innerHTML=shapeSVG(name); b.setAttribute('aria-label', HUMAN_NAME[name]||name);
+    b.onclick=()=>choose(name,b); el.appendChild(b);
+  });
+}
+function choose(name, btn){
+  if(phase!=='play') return;
+  if(name===P.answer){
+    phase='done';
+    btn.classList.add('correct'); btn.disabled=true;
+    $("options").querySelectorAll('.opt').forEach(b=>b.disabled=true);
+    $("teachwrap").classList.add("hide");
+    renderTeachInto($("eq-blank"), P.a, P.b, P.op, P.answer);
+    $("play-view").classList.add("hide"); $("result-view").classList.remove("hide");
+    $("rlabel").textContent=`🎉 Yes — that's a ${HUMAN_NAME[P.answer]||P.answer}!`;
+    $("skip-btn").classList.add("invisible"); $("hint-link").classList.add("off");
+    $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
+    if(!reduceMotion) miniConfetti(); sound('win');
+  } else {
+    btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
+    flash(`Not quite — look at the equation again!`, 'bad'); setOwl('worried'); sound('bad');
+  }
+}
+function giveHint(){
+  if(phase!=='play') return;
+  $("teachwrap").classList.remove("hide");
+  renderTeachInto($("teach-stage"), P.a, P.b, P.op, P.answer);
+  flash("💡 Watch how the shapes combine, then find it below!", 'hint'); setOwl('think');
+}
+function goHome(){ stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+
+document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !P) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if(e.key==='Enter' && phase==='done'){ e.preventDefault(); newRound(false); }
+  if(e.key.toLowerCase()==='h' && phase==='play') giveHint();
+});
+
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
+function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
+
+initBouncyTitle("Shape Math");
+setLevel("EASY");
+</script>
+</body>
+</html>
