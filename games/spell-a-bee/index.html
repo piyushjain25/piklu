@@ -67,6 +67,7 @@
     cursor:pointer; box-shadow:0 4px 0 var(--key-line); transition:transform .05s ease;
   }
   .tile:active{transform:translateY(3px); box-shadow:0 1px 0 var(--key-line);}
+  .tile:disabled{opacity:.3; cursor:default; box-shadow:none;}
   .pool-empty{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:14px; text-align:center; padding:8px 0;}
 </style>
 </head>
@@ -174,8 +175,9 @@
       <div class="message" id="message" style="text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; min-height:22px; color:var(--grape); margin:0 0 6px;">Tap 🔊 to hear the word!</div>
 
       <div class="pool" id="pool" aria-label="Letter tiles"></div>
+      <div class="pool-empty hide" id="pool-note">Every tile is placed — hit Check!</div>
 
-      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div><div class="reveal-word" id="reveal-word" style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; letter-spacing:3px; color:var(--grape); margin-top:6px;"></div></div></div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
       <div id="serve-view">
         <div class="actions">
           <button id="reset-btn" class="tlink">↺ Reset</button>
@@ -183,8 +185,8 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="check-btn" class="btn btn-go btn-lg" disabled>✔️ Check</button>
-        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+        <button id="check-btn" class="btn btn-go" disabled>✔️ Check</button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
       </div>
     </section>
   </div>
@@ -309,34 +311,43 @@ function renderSlots(){
     s.type="button"; s.className="slot";
     s.setAttribute("aria-label", `Letter ${i+1}`);
     if(poolIdx!==null){
-      s.textContent = state.secret[poolIdx];
+      s.textContent = state.secret[poolIdx].toUpperCase();
       s.classList.add("filled");
       if(state.locked.has(i)) s.classList.add("locked");
     } else if(over){
-      s.textContent = state.secret[i];
+      s.textContent = state.secret[i].toUpperCase();
     }
     s.disabled = over || poolIdx===null || state.locked.has(i);
     s.onclick = ()=> removeFromSlot(i);
     box.appendChild(s);
   });
 }
+// Tiles are built once per word and stay in place for the whole puzzle —
+// placing one just disables it in place instead of removing it, so the rest
+// of the pool doesn't reflow and cause an accidental double-tap. The pool
+// also stays visible (tiles grayed out) once the round ends, same as the
+// keyboard in word-guess — hiding it would collapse a lot of height at once
+// and make the page jump right when the win banner appears.
 function renderPool(){
   const box=$("pool"); box.innerHTML="";
-  const over = state.status !== "playing";
-  const placed = new Set(state.slots.filter(v=>v!==null));
-  const remaining = state.order.filter(idx=>!placed.has(idx));
-  if(over){ box.innerHTML=""; return; }
-  if(!remaining.length){
-    const p=document.createElement("div"); p.className="pool-empty"; p.textContent="Every tile is placed — hit Check!";
-    box.appendChild(p); return;
-  }
-  remaining.forEach(idx=>{
+  state.order.forEach(idx=>{
     const t=document.createElement("button");
-    t.type="button"; t.className="tile"; t.textContent=state.secret[idx];
-    t.setAttribute("aria-label", `Place letter ${state.secret[idx]}`);
+    t.type="button"; t.className="tile"; t.textContent=state.secret[idx].toUpperCase();
+    t.dataset.idx=idx;
+    t.setAttribute("aria-label", `Place letter ${state.secret[idx].toUpperCase()}`);
     t.onclick = ()=> placeTile(idx);
     box.appendChild(t);
   });
+  updatePoolTileStates();
+}
+function updatePoolTileStates(){
+  const box=$("pool"), note=$("pool-note");
+  const placed = new Set(state.slots.filter(v=>v!==null));
+  box.querySelectorAll(".tile").forEach(t=>{
+    const isPlaced = placed.has(Number(t.dataset.idx));
+    t.disabled = isPlaced;
+  });
+  note.classList.toggle("hide", state.status !== "playing" || placed.size < state.order.length);
 }
 function updateCheckBtn(){
   const filled = state && state.slots.every(v=>v!==null);
@@ -358,14 +369,14 @@ function placeTile(poolIdx){
   const emptyPos = state.slots.indexOf(null);
   if(emptyPos===-1) return;
   state.slots[emptyPos] = poolIdx;
-  renderSlots(); renderPool(); updateCheckBtn();
+  renderSlots(); updatePoolTileStates(); updateCheckBtn();
 }
 function removeFromSlot(pos){
   if(!state || state.status!=="playing") return;
   if(state.locked.has(pos)) return;
   if(state.slots[pos]===null) return;
   state.slots[pos] = null;
-  renderSlots(); renderPool(); updateCheckBtn();
+  renderSlots(); updatePoolTileStates(); updateCheckBtn();
 }
 
 function speakWord(){
@@ -413,7 +424,7 @@ function giveHint(){
   if(sourceIdx===undefined) return; // shouldn't happen — tile counts always match the word
   state.slots[target] = sourceIdx;
   state.locked.add(target);
-  renderSlots(); renderPool(); updateCheckBtn();
+  renderSlots(); updatePoolTileStates(); updateCheckBtn();
   const clue = state.wordObj.h ? `${state.wordObj.h}. ` : "";
   setMessage(`💡 ${clue}The next letter is "${needChar.toUpperCase()}"!`, "hint");
   setMood("think");
@@ -424,18 +435,17 @@ function resetPuzzle(){
   if(!state || state.status!=="playing") return;
   state.slots = new Array(state.secret.length).fill(null);
   state.locked = new Set();
-  renderSlots(); renderPool(); updateCheckBtn();
+  renderSlots(); updatePoolTileStates(); updateCheckBtn();
   setMessage("Board cleared — spell it out again!", ""); setMood("idle");
 }
 $("reset-btn").onclick = resetPuzzle;
 
 function win(){
   state.status="won";
-  renderSlots(); renderPool();
+  renderSlots(); updatePoolTileStates();
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("rlabel").textContent = "🌟 Buzz-tastic! You spelled it!";
-  $("reveal-word").textContent = state.secret;
-  $("skip-btn").classList.add("invisible");
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("check-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setMessage("", "");
   setMood("win"); sound("win");
@@ -476,7 +486,6 @@ document.addEventListener("keydown", e=>{
     }
     return;
   }
-  if(e.key.toLowerCase()==="h" && !e.metaKey && !e.ctrlKey){ giveHint(); return; }
   const ch = e.key.toLowerCase();
   if(/^[a-z]$/.test(ch)){
     const placed = new Set(state.slots.filter(v=>v!==null));

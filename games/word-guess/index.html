@@ -81,7 +81,7 @@
   }
   .guess-input:focus{outline:none; border-color:var(--grape);}
   .result{padding:8px 4px 4px;}
-  .result .reveal-word{font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; letter-spacing:3px; color:var(--grape); margin-top:6px; word-break:break-word;}
+  .result .reveal-word{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; letter-spacing:2px; color:var(--grape); margin-top:6px; word-break:break-word;}
 </style>
 </head>
 <body class="game">
@@ -204,8 +204,8 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="word-guess-btn" class="btn btn-go btn-lg">Guess Word</button>
-        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+        <button id="word-guess-btn" class="btn btn-go">Guess Word</button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
       </div>
     </section>
   </div>
@@ -484,7 +484,6 @@ document.addEventListener("keydown", e=>{
   if($("screen-game").classList.contains("hide")) return;  // only when game visible
   if(e.key==='Escape'){ resetWord(); return; }
   if(document.activeElement===$("word-guess")) return;   // don't hijack word input
-  if(e.key.toLowerCase()==="h"){ giveHint(); return; }
   if(/^[a-zA-Z]$/.test(e.key)) guessLetter(e.key);
 });
 

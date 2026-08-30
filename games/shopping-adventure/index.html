@@ -162,8 +162,8 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="checkout-btn" class="btn btn-go btn-lg" disabled>🧾 Check out</button>
-        <button id="next-btn" class="btn btn-primary btn-lg hide">Next ▶</button>
+        <button id="checkout-btn" class="btn btn-go" disabled>🧾 Check out</button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
       </div>
     </section>
   </div>
@@ -291,7 +291,7 @@ function renderMeter(pop){
   const rEl=$("remain");
   if(sp===b){ rEl.innerHTML="🎯 BULLSEYE READY — check out!"; rEl.className='remain bull'; }
   else { rEl.innerHTML=`<b>₹${rem}</b> left to spend`; rEl.className='remain'; }
-  const co=$("checkout-btn"); co.disabled = cart.length===0; co.className='btn btn-lg '+(sp===b?'bull':'btn-go'); co.textContent = sp===b? '🎯 CHECK OUT — BULLSEYE!' : '🧾 Check out';
+  const co=$("checkout-btn"); co.disabled = cart.length===0; co.className='btn '+(sp===b?'bull':'btn-go'); co.textContent = sp===b? '🎯 CHECK OUT — BULLSEYE!' : '🧾 Check out';
 }
 function floatMsg(txt,good){
   const f=$("floater"); f.textContent=txt; f.style.color=good?'var(--leaf-dark)':'var(--coral-dark)';

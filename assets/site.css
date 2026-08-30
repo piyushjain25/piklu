@@ -198,9 +198,9 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 
 /* win/result banner + feedback line under the game */
 .result{text-align:center; padding:8px 4px 16px;}
-.result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px); color:var(--leaf-dark);}
-.result .stars{font-size:44px; letter-spacing:6px; margin:6px 0;}
-.result .rsub{font-weight:700; color:var(--ink-soft); margin-top:6px; font-size:16px;}
+.result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(17px,4vw,20px); color:var(--leaf-dark);}
+.result .stars{font-size:32px; letter-spacing:5px; margin:6px 0;}
+.result .rsub{font-weight:700; color:var(--ink-soft); margin-top:6px; font-size:14px;}
 .feedback{min-height:22px; text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; margin:14px 0 12px;
   display:flex; align-items:center; justify-content:center;}
 .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
