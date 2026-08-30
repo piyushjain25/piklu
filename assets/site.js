@@ -99,11 +99,11 @@ function pickVoice() {
   const voices = speechSynthesis.getVoices();
   if (!voices.length) return;
   // Chrome defaults to a low-quality local voice unless one is picked explicitly;
-  // prefer its higher-quality network voice, else any local/generic English voice.
-  ttsVoice = voices.find(v => /en-US/i.test(v.lang) && /Google US English/i.test(v.name))
-    || voices.find(v => /^en/i.test(v.lang) && v.localService)
-    || voices.find(v => /^en/i.test(v.lang))
-    || voices[0];
+  // pick its higher-quality network voice. Every other browser (Safari included)
+  // already uses its own best default voice when none is set explicitly — and
+  // Safari's `voice.default` flag isn't reliable enough to pick a substitute — so
+  // leave ttsVoice unset there and let the browser's own default choice stand.
+  ttsVoice = voices.find(v => /en-US/i.test(v.lang) && /Google US English/i.test(v.name)) || null;
 }
 if ("speechSynthesis" in window) {
   pickVoice();
