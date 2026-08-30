@@ -81,7 +81,7 @@
   }
   .guess-input:focus{outline:none; border-color:var(--grape);}
   .result{padding:8px 4px 4px;}
-  .result .reveal-word{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; letter-spacing:2px; color:var(--grape); margin-top:6px; word-break:break-word;}
+  .result .hear-word{margin-top:6px;}
 </style>
 </head>
 <body class="game">
@@ -196,7 +196,7 @@
         </div>
       </div>
 
-      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div><div class="reveal-word" id="reveal-word"></div></div></div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div><button type="button" class="tlink hear-word" id="hear-word-btn">🔊 Hear the word</button></div></div>
       <div id="serve-view">
         <div class="actions">
           <button id="reset-btn" class="tlink">↺ Reset</button>
@@ -331,6 +331,7 @@ $("start-btn").onclick = ()=>{
 };
 
 function startGame(secret){
+  stopSpeech();
   lastWord = secret;
   state = {
     secret,
@@ -519,7 +520,6 @@ function win(){
   state.status="won"; disableInputs(); renderWord(); renderLives();
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("rlabel").textContent = "🌟 You found the word!";
-  $("reveal-word").textContent = state.secret;
   $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("word-guess-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setMessage("", "");
@@ -530,7 +530,6 @@ function lose(){
   state.status="lost"; disableInputs(); renderWord(); renderLives();
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("rlabel").textContent = "🦉 So close!";
-  $("reveal-word").textContent = state.secret;
   $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("word-guess-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setMessage("", "");
@@ -542,6 +541,7 @@ $("home-btn").onclick = goHome;
 $("next-btn").onclick = startNext;
 $("reset-btn").onclick = resetWord;
 $("hint-link").onclick = giveHint;
+$("hear-word-btn").onclick = ()=>{ if(state) speak(state.secret, 0.82); };
 
 function startNext(){
   // In custom mode there's no fresh word to pick, so send them home to set one.
@@ -552,6 +552,7 @@ function startNext(){
 }
 function goHome(){
   stopConfetti();
+  stopSpeech();
   $("screen-game").classList.add("hide");
   $("screen-home").classList.remove("hide");
   setOwl("idle");

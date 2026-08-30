@@ -123,7 +123,7 @@ svg.monster.mini{width:100%; height:auto; display:block;}
   color:#fff; border-radius:16px; padding:13px 22px; position:relative;
   transition:transform .06s ease, filter .15s ease; box-shadow:0 5px 0 var(--btn-shadow,#0003); user-select:none;}
 .btn:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 var(--btn-shadow,#0003);}
-.btn:focus-visible{outline:none; box-shadow:0 5px 0 var(--btn-shadow,#0003), 0 0 0 3px #fff, 0 0 0 6px var(--ink);}
+.btn:focus-visible{outline:none;}
 .btn-primary{background:var(--grape); --btn-shadow:var(--grape-dark);}
 .btn-go{background:var(--leaf); --btn-shadow:var(--leaf-dark);}
 .btn-warn{background:var(--coral); --btn-shadow:var(--coral-dark);}
