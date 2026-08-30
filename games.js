@@ -80,4 +80,7 @@ window.GAMES = [
 
   { slug: "shape-math",      title: "Shape Math",             emoji: "🔷", accent: "grape",  ageGroup: "6+",
     tagline: "Add and subtract shapes to find the answer!",  skills: ["Shapes", "Logic", "Spatial reasoning"],   badge:"New"},
+
+  { slug: "what-am-i",       title: "What Am I?",             emoji: "🤔", accent: "grape",  ageGroup: "5+",
+    tagline: "Solve the riddle — what am I?",                skills: ["Riddles", "Logic"],                       badge:"New"},
 ];

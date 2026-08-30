@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What Am I?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:640px;}
+  .title{font-size:clamp(26px,5.2vw,40px);}
+  .topbar{margin-bottom:22px;}
+  .qbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:18px 18px; margin-bottom:16px; text-align:center;}
+  .qcat{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape); font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;}
+  #qline .rline{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink); font-size:clamp(17px,4.2vw,20px); line-height:1.55;}
+  .qask{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape-dark); font-size:clamp(18px,4.4vw,22px); margin-top:4px;}
+  .replay-row{margin-top:12px;}
+  .replay-btn{border:3px solid var(--grape); background:#fff; color:var(--grape); border-radius:999px; cursor:pointer;
+    padding:8px 18px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:15px; display:inline-flex; align-items:center; gap:8px; transition:all .12s ease;}
+  .replay-btn:hover{background:var(--grape); color:#fff;}
+  .replay-btn:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .replay-btn .ic{font-size:18px;}
+  .options{display:grid; grid-template-columns:1fr; gap:12px; margin:0 0 6px;}
+  @media(min-width:520px){.options{grid-template-columns:1fr 1fr;}}
+  .opt{border:3px solid var(--key-line); background:#fff; border-radius:16px; cursor:pointer; padding:14px 14px;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:var(--ink);
+    text-align:left; display:flex; align-items:center; gap:12px; transition:all .12s ease;}
+  .opt:hover:not(:disabled){border-color:var(--grape); transform:translateY(-1px);}
+  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .opt .num{font-family:'Fredoka',sans-serif; font-weight:600; background:#F1EDFA; color:var(--grape);
+    width:28px; height:28px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:14px; flex:0 0 auto;}
+  .opt .otxt{flex:1; line-height:1.3;}
+  .opt.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
+  .opt.correct .num{background:rgba(255,255,255,.3); color:#fff;}
+  .opt.wrong-flash{animation:shakeopt .35s ease;}
+  .opt.gone{background:#F2EEF9; border-color:#E0D8F0; color:#b7abd6; cursor:not-allowed; text-decoration:line-through;}
+  .opt.gone .num{background:#E0D8F0; color:#b7abd6;}
+  .opt:disabled{cursor:default;}
+  @keyframes shakeopt{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🤔 Listen to the riddle and tap what it's describing!</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">animals &amp; food</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">everyday objects</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">wordplay riddles</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">tricky &amp; abstract</div></button>
+      </div>
+
+      <div class="howto">
+        🦉 <b>How to play:</b> The owl reads you a riddle out loud — tap <b>🔊 Read it again</b> anytime you want to
+        hear it again. Then tap the answer you think fits. A wrong pick gets crossed out so you can try again — tap
+        <b>💡 Hint</b> if you'd like two wrong answers ruled out for you, leaving a 50/50 guess.
+      </div>
+
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="qbox">
+        <div class="qcat">🧐 Riddle me this…</div>
+        <div id="qline"></div>
+        <div class="qask">What am I?</div>
+        <div class="replay-row">
+          <button id="replay-btn" class="replay-btn"><span class="ic">🔊</span> Read it again</button>
+        </div>
+      </div>
+
+      <div class="options" id="options" role="group" aria-label="Choose the answer"></div>
+
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+      <div class="feedback" id="feedback"></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+// Data-driven game — one JSON file per level, loaded via loadGameData(). This game
+// only works when served (fetch() is blocked under file://); see CLAUDE.md.
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+const POOLS = { EASY: [], MEDIUM: [], HARD: [], EXPERT: [], MY: [] };
+const LEVELS = {
+  EASY:   { file:"easy.json",   label:"🌱 Easy" },
+  MEDIUM: { file:"medium.json", label:"⭐ Medium" },
+  HARD:   { file:"hard.json",   label:"🔥 Hard" },
+  EXPERT: { file:"expert.json", label:"🏆 Expert" },
+};
+function validRiddles(d){
+  return Array.isArray(d) ? d.filter(r => r && typeof r.q==="string" && r.q.trim()
+    && Array.isArray(r.options) && r.options.length===4
+    && new Set(r.options).size===4 && r.options.includes(r.answer)) : [];
+}
+Object.keys(LEVELS).forEach(k => {
+  loadGameData(LEVELS[k].file).then(d => { POOLS[k] = validRiddles(d); });
+});
+loadGameData("my.json").then(d => {
+  const my = validRiddles(d);
+  if(my.length){
+    POOLS.MY = my;
+    LEVELS.MY = { file:"my.json", label:"⭐ My riddles" };
+    buildLevelMenu();
+  }
+});
+
+/* ===== state ===== */
+let level="EASY", Q=null, phase='play', hintUsed=false, prevSig=null;
+const recent = {}; // level -> recently-served riddle texts, so we don't repeat too soon
+
+function pickRiddle(lvl){
+  const pool = POOLS[lvl] || [];
+  if(!pool.length) return null;
+  const seen = recent[lvl] || (recent[lvl] = []);
+  const cap = Math.max(1, Math.min(pool.length - 1, Math.floor(pool.length * 0.7)));
+  let choice, tries = 0;
+  do { choice = pool[rnd(pool.length)]; tries++; } while(pool.length>1 && seen.includes(choice.q) && tries<30);
+  seen.push(choice.q);
+  if(seen.length > cap) seen.shift();
+  return choice;
+}
+
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl && LEVELS[l]) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+// level switcher (tap the chip at the top to change difficulty mid-game)
+function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="${k===level}"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+}
+buildLevelMenu();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newRiddle(false); }
+wireLevelMenu();
+
+$("start-btn").onclick = ()=>newRiddle(true);
+$("home-btn").onclick  = goHome;
+$("skip-btn").onclick  = ()=>{ if(phase!=='play') return; newRiddle(false); };
+$("next-btn").onclick  = ()=>newRiddle(false);
+$("hint-link").onclick = giveHint;
+$("replay-btn").onclick = ()=>{ if(Q) speak(Q.clue, 0.9); };
+
+// "What am I?" is shown as its own fixed line (see .qask) instead of being part of
+// the spoken/wrapped clue text, so it's never read aloud and never gets broken mid-line
+function stripAsk(text){
+  return text.replace(/\s*what am i\?\s*$/i, '').trim();
+}
+const qSig = q => q.q;
+function newRiddle(fromHome){
+  let q; for(let a=0;a<15;a++){ q=pickRiddle(level); if(!q || !prevSig || qSig(q)!==prevSig) break; }
+  if(!q){
+    flash("Couldn't load the riddles. This game needs to be served over http(s), not opened as a local file.", 'bad');
+    return;
+  }
+  const opts = shuffle(q.options);
+  Q = { q:q.q, clue: stripAsk(q.q), answer:q.answer, options:opts, correctIdx: opts.indexOf(q.answer) };
+  prevSig=qSig(Q); phase='play'; hintUsed=false;
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  setLevel(level);
+  renderRiddle();
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  setOwl('idle'); flash("Tap the answer you think is right!", '');
+  speak(Q.clue, 0.9);
+}
+// breaks the clue after each comma/period so it's easier to read on screen —
+// the full, unbroken clue is still what gets spoken aloud
+function riddleLines(text){
+  return (text.match(/[^,.]+[,.]?/g) || [text]).map(s=>s.trim()).filter(Boolean);
+}
+function renderRiddle(){
+  $("qline").innerHTML = riddleLines(Q.clue).map(l=>`<div class="rline">${l}</div>`).join('');
+  const box=$("options"); box.innerHTML="";
+  Q.options.forEach((opt,idx)=>{
+    const b=document.createElement("button");
+    b.className="opt"; b.dataset.idx=idx; b.dataset.correct=String(idx===Q.correctIdx);
+    b.innerHTML=`<span class="num">${idx+1}</span><span class="otxt">${opt}</span>`;
+    b.onclick=()=>choose(idx,b);
+    box.appendChild(b);
+  });
+}
+function choose(idx, btn){
+  if(phase!=='play' || btn.disabled) return;
+  if(idx===Q.correctIdx){
+    phase='done';
+    btn.classList.add("correct"); btn.disabled=true;
+    document.querySelectorAll(".opt").forEach(b=>{ b.disabled=true; if(!b.classList.contains("correct")) b.classList.add("gone"); });
+    flash('', '');
+    $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+    $("rlabel").textContent = pickPraise();
+    $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
+    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+    setOwl('win'); sound('win'); if(!reduceMotion) miniConfetti();
+  } else {
+    btn.classList.remove("wrong-flash"); void btn.offsetWidth; btn.classList.add("wrong-flash");
+    setTimeout(()=>{ btn.classList.remove("wrong-flash"); btn.classList.add("gone"); btn.disabled=true; }, 300);
+    flash("Not quite — try again!", 'bad'); setOwl('worried'); sound('bad');
+  }
+}
+function giveHint(){
+  if(phase!=='play' || hintUsed) return;
+  hintUsed=true; $("hint-link").classList.add("off");
+  const wrongBtns=[...document.querySelectorAll(".opt")].filter(b=>b.dataset.correct==='false' && !b.classList.contains("gone"));
+  shuffle(wrongBtns).slice(0, Math.max(0, wrongBtns.length-1)).forEach(b=>{ b.classList.add("gone"); b.disabled=true; });
+  flash("💡 Two wrong answers are ruled out — down to a 50/50!", 'hint'); setOwl('think'); sound('tick');
+}
+function pickPraise(){
+  const p=["🎉 Correct!","🌟 Yes! Well done!","👏 That's right!","✨ Brilliant!","🙌 You got it!"];
+  return p[rnd(p.length)];
+}
+function goHome(){
+  stopConfetti(); stopSpeech(); Q=null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl('idle');
+}
+
+// keyboard: 1-4 pick an option, H hint, Enter/Space -> next when solved, Escape closes the level menu
+document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !Q) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if((e.key==="Enter"||e.key===" ") && phase==='done'){ e.preventDefault(); newRiddle(false); return; }
+  if(e.key.toLowerCase()==="h" && phase==='play'){ giveHint(); return; }
+  const n=parseInt(e.key,10);
+  if(!isNaN(n) && n>=1 && n<=Q.options.length && phase==='play'){
+    const btn=document.querySelectorAll(".opt")[n-1];
+    if(btn && !btn.disabled) btn.click();
+  }
+});
+
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle/speak/stopSpeech are shared in site.js) ===== */
+function sound(kind){
+  if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
+  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
+  else if(kind==="tick") beep(700,.08,"sine",0,.08);
+}
+function miniConfetti(){
+  const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
+}
+
+initBouncyTitle("What Am I?");
+setLevel("EASY");
+</script>
+</body>
+</html>
