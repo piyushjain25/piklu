@@ -147,6 +147,7 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 .diff[aria-pressed="true"]{border-color:var(--dc,var(--grape)); background:var(--dbg,#F4F0FE); transform:translateY(-2px); box-shadow:var(--shadow);}
 .diff.easy{--dc:var(--leaf); --dbg:#E8F8F0;} .diff.medium{--dc:var(--sky); --dbg:#E6F4FC;}
 .diff.hard{--dc:var(--sun-dark); --dbg:#FFF6DC;} .diff.expert{--dc:var(--coral); --dbg:#FFEAED;}
+.diff.my{grid-column:1 / -1;}
 
 /* row of small stat chips under the topbar (moves count, par/best, etc.) */
 .stats-row{display:flex; gap:8px; justify-content:center; align-items:center; margin-bottom:14px; flex-wrap:wrap; min-height:1px;}

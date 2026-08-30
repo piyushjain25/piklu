@@ -15,7 +15,6 @@
   .qbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:18px 18px; margin-bottom:16px; text-align:center;}
   .qcat{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape); font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;}
   #qline .rline{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink); font-size:clamp(17px,4.2vw,20px); line-height:1.55;}
-  .qask{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape-dark); font-size:clamp(18px,4.4vw,22px); margin-top:4px;}
   .replay-row{margin-top:12px;}
   .replay-btn{border:3px solid var(--grape); background:#fff; color:var(--grape); border-radius:999px; cursor:pointer;
     padding:8px 18px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:15px; display:inline-flex; align-items:center; gap:8px; transition:all .12s ease;}
@@ -67,6 +66,7 @@
         <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">everyday objects</div></button>
         <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">wordplay riddles</div></button>
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">tricky &amp; abstract</div></button>
+        <button class="diff my hide" id="diff-my" data-diff="MY" aria-pressed="false"><div class="d-name">📝 My Riddles</div><div class="d-range">your own set</div></button>
       </div>
 
       <div class="howto">
@@ -106,7 +106,6 @@
       <div class="qbox">
         <div class="qcat">🧐 Riddle me this…</div>
         <div id="qline"></div>
-        <div class="qask">What am I?</div>
         <div class="replay-row">
           <button id="replay-btn" class="replay-btn"><span class="ic">🔊</span> Read it again</button>
         </div>
@@ -156,7 +155,8 @@ loadGameData("my.json").then(d => {
   const my = validRiddles(d);
   if(my.length){
     POOLS.MY = my;
-    LEVELS.MY = { file:"my.json", label:"⭐ My riddles" };
+    LEVELS.MY = { file:"my.json", label:"📝 My Riddles" };
+    $("diff-my").classList.remove("hide");
     buildLevelMenu();
   }
 });
@@ -201,13 +201,8 @@ $("home-btn").onclick  = goHome;
 $("skip-btn").onclick  = ()=>{ if(phase!=='play') return; newRiddle(false); };
 $("next-btn").onclick  = ()=>newRiddle(false);
 $("hint-link").onclick = giveHint;
-$("replay-btn").onclick = ()=>{ if(Q) speak(Q.clue, 0.9); };
+$("replay-btn").onclick = ()=>{ if(Q) speak(Q.q, 0.9); };
 
-// "What am I?" is shown as its own fixed line (see .qask) instead of being part of
-// the spoken/wrapped clue text, so it's never read aloud and never gets broken mid-line
-function stripAsk(text){
-  return text.replace(/\s*what am i\?\s*$/i, '').trim();
-}
 const qSig = q => q.q;
 function newRiddle(fromHome){
   let q; for(let a=0;a<15;a++){ q=pickRiddle(level); if(!q || !prevSig || qSig(q)!==prevSig) break; }
@@ -216,7 +211,7 @@ function newRiddle(fromHome){
     return;
   }
   const opts = shuffle(q.options);
-  Q = { q:q.q, clue: stripAsk(q.q), answer:q.answer, options:opts, correctIdx: opts.indexOf(q.answer) };
+  Q = { q:q.q, answer:q.answer, options:opts, correctIdx: opts.indexOf(q.answer) };
   prevSig=qSig(Q); phase='play'; hintUsed=false;
   if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
   setLevel(level);
@@ -224,15 +219,15 @@ function newRiddle(fromHome){
   $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
   $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   setOwl('idle'); flash("Tap the answer you think is right!", '');
-  speak(Q.clue, 0.9);
+  speak(Q.q, 0.9);
 }
 // breaks the clue after each comma/period so it's easier to read on screen —
 // the full, unbroken clue is still what gets spoken aloud
 function riddleLines(text){
-  return (text.match(/[^,.]+[,.]?/g) || [text]).map(s=>s.trim()).filter(Boolean);
+  return (text.match(/[^,.]+[,.]?["'’”]*/g) || [text]).map(s=>s.trim()).filter(Boolean);
 }
 function renderRiddle(){
-  $("qline").innerHTML = riddleLines(Q.clue).map(l=>`<div class="rline">${l}</div>`).join('');
+  $("qline").innerHTML = riddleLines(Q.q).map(l=>`<div class="rline">${l}</div>`).join('');
   const box=$("options"); box.innerHTML="";
   Q.options.forEach((opt,idx)=>{
     const b=document.createElement("button");
