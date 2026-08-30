@@ -16,6 +16,7 @@
   .dx-box{background:#F4F0FE; border-radius:14px; padding:9px 16px; margin:2px 0 12px; text-align:center;
     font-weight:700; color:var(--grape-dark); font-size:14px;}
   .chip.tense{background:var(--sky);}
+  .chip.focus{background:#F4F0FE; color:var(--grape-dark);}
 
   .sentence-wrap{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:16px 16px 14px; margin:0 0 10px;
     transition:border-color .15s ease;}
@@ -25,13 +26,6 @@
   .tok-anchor{padding:4px 1px; color:var(--ink);}
   .blank-slot{display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:32px; padding:0 10px;
     border:3px dashed var(--grape); border-radius:9px; background:#F4F0FE; color:var(--grape-dark); font-weight:700;}
-  .cycle-chip{font-family:inherit; font-size:inherit; font-weight:700; color:var(--grape-dark); background:#F4F0FE;
-    border:none; border-bottom:3px dashed var(--grape); border-radius:9px 9px 3px 3px; padding:3px 10px 2px;
-    cursor:pointer; transition:transform .06s ease, background .15s ease; line-height:1.25;}
-  .cycle-chip:hover{background:#EAE1FB;}
-  .cycle-chip:active{transform:translateY(2px);}
-  .cycle-chip:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
-  .cycle-chip.blank{min-width:30px; height:30px; padding:0; border:3px dashed var(--grape); background:transparent; border-radius:8px;}
   .edit-field{width:100%; display:block; background:transparent; border:none; outline:none; resize:none;
     font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(17px,4.4vw,21px); color:var(--ink); line-height:1.45;}
   .opt-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0 0;}
@@ -94,18 +88,20 @@
 
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
-        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">pick the fix</div></button>
-        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">tap to cycle</div></button>
-        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">find & fix</div></button>
-        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">fix a few</div></button>
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">capitals &amp; punctuation</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">+ articles &amp; nouns</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">+ pronouns &amp; more</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">fix it yourself</div></button>
       </div>
 
       <div class="howto">
-        🩺 <b>How to play:</b> A Word Critter has caught a sentence sickness! On <b>Easy</b>, pick the fix from the options
-        shown; on <b>Medium</b>, tap the sick word to cycle to the right fix. On <b>Hard</b> and <b>Expert</b>, the whole
-        sentence becomes editable — find what's wrong and fix it yourself (Expert may have a few things to treat). Hit
-        <b>Check</b> when you're ready — every cure
-        perks the critter up, and a full recovery is a celebration! 🎉
+        🩺 <b>How to play:</b> A Word Critter has caught a sentence sickness! On <b>Easy</b>,
+        <b>Medium</b> and <b>Hard</b>, pick the fix from 4 choices — Easy covers capital letters,
+        punctuation and simple tense; Medium adds articles, nouns, contractions and prepositions;
+        Hard adds pronouns, gender &amp; number, adjectives, adverbs and conjunctions. On
+        <b>Expert</b>, the whole sentence becomes editable — find what's wrong (there may be a few
+        things!) and fix it yourself. Hit <b>Check</b> when you're ready — every cure perks the
+        critter up, and a full recovery is a celebration! 🎉
       </div>
 
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
@@ -145,7 +141,7 @@
       </div>
 
       <div class="dx-box" id="dx-line"></div>
-      <div class="stats-row hide" id="tense-row"></div>
+      <div class="stats-row" id="focus-row"></div>
 
       <div class="sentence-wrap">
         <div class="sentence" id="sentence" role="group" aria-label="Sentence to fix"></div>
@@ -184,10 +180,16 @@ const pickRandom = arr => arr[rnd(arr.length)];
 function lowerFirst(w){ return w.charAt(0).toLowerCase()+w.slice(1); }
 
 /* ===== engine (verified offline — see scratch node check) =====
-   Fully generative: a small hand-written vocabulary (verbs/objects/subjects/time words) plus
-   three sentence templates combine into thousands of distinct sentences. Each round assembles a
-   correct sentence, injects the level's error(s) into it, and lets the child restore it — Check
-   always compares against the one true correct string, so every puzzle is guaranteed fixable. */
+   Fully generative for capitalisation/punctuation/tense (a small hand-written vocabulary of
+   verbs/objects/subjects/time words combines with sentence templates into thousands of distinct
+   sentences); bank-based (a hand-authored, still-shuffled set of sentence frames — same spirit as
+   word-guess's/spell-a-bee's word banks) for the other eight grammar categories, since those need
+   real vocabulary/idiom fit rather than pure combinatorics. Every template returns the same
+   {slots, assemble, wordKinds} shape, so the rest of the engine (spotlight rendering, the 4-option
+   picker UI, EXPERT's free-edit checking, hint/reveal, multi-error selection) treats every
+   category identically. Each round assembles a correct sentence, injects the level's error(s) into
+   it, and lets the child restore it — Check always compares against the one true correct string,
+   so every puzzle is guaranteed fixable. */
 const VERBS = [
   { base:"like",  s:"likes",  past:"liked",   ing:"liking",   takes:["food","things","activities"] },
   { base:"eat",   s:"eats",   past:"ate",     ing:"eating",   takes:["food"] },
@@ -220,11 +222,6 @@ const SUBJECTS = [
   { text:"They",num:"base" },{ text:"We",num:"base" },{ text:"The kids",num:"base" },{ text:"My friends",num:"base" },
 ];
 const TIMEWORDS = { past:["Yesterday","Last week","This morning"], present:["Now","Today"], future:["Tomorrow","Soon","Next week"] };
-const TEMPLATES = [
-  { pattern:"{SUBJ} {VERB} {OBJ}.",        tense:"present" },
-  { pattern:"{TIME} {SUBJ} {VERB} {OBJ}.", tense:"fromTime" },
-  { pattern:"Does {SUBJ} {VERB} {OBJ}?",   tense:"question", forceBase:true },
-];
 // Subjects whose leading word is a proper noun and must stay capitalized mid-sentence
 // (everything else in SUBJECTS is a pronoun/common-noun phrase, lowercase mid-sentence).
 const PROPER_SUBJECTS = new Set(["Grandpa","Tom"]);
@@ -241,42 +238,48 @@ function pickDistractors(verb, correct, n){
   const pool = [...new Set(verbCandidates(verb))].filter(v=>v!==correct);
   return shuffle(pool).slice(0,n);
 }
-// Template A has no time word, so it's a pure subject/verb-NUMBER agreement check — a past or
-// future form isn't wrong there, just a different (equally valid) tense, so it must never appear
-// as a distractor. Only the other present-tense form and the (always-ungrammatical-as-a-main-verb)
-// -ing form are genuine agreement mistakes.
-function agreementDistractors(verb, correct){
-  const pool = [verb.base, verb.s, verb.ing].filter(v=>v!==correct);
-  return shuffle(pool);
+
+/* ===== shared slot helpers =====
+   Every slot (in every template, every level) carries exactly 4 options — one correct, three
+   unambiguously wrong — so EASY/MEDIUM/HARD's 4-chip picker always has a full, safe set to show,
+   and EXPERT's free-typed near-miss detection always has a full alternates list to compare against. */
+function capitalVariants(word){
+  const lower = lowerFirst(word);
+  const upper = word.toUpperCase();
+  const opts = new Set([word, lower]);
+  if(upper!==word) opts.add(upper);
+  // a third "silly" variant: flip the case of the first letter after position 0 that actually
+  // has a case (skips spaces/punctuation) — covers multi-word subjects like "The dog".
+  for(let i=1;i<word.length && opts.size<4;i++){
+    const ch=word[i];
+    if(/[a-zA-Z]/.test(ch)){
+      opts.add(lower.slice(0,i) + ch.toUpperCase() + lower.slice(i+1));
+      break;
+    }
+  }
+  // pad with doubled-letter variants for very short/all-caps-already words (e.g. "I") that ran
+  // out of real casing permutations — still 4 visually distinct options, only one ever correct.
+  let pad = lower;
+  while(opts.size<4){ pad = pad + pad.slice(-1); opts.add(pad); }
+  return { correct:word, options: shuffle([...opts]) };
+}
+const PUNCT_OPTIONS = ['.','?','!',','];
+function punctSlot(correct){
+  const wrongs = shuffle(PUNCT_OPTIONS.filter(p=>p!==correct));
+  return { kind:'punctuation', correct, broken:wrongs[0], options:shuffle([correct, ...wrongs]) };
+}
+function capitalSlot(word){
+  const cap = capitalVariants(word);
+  return { kind:'capital', correct:cap.correct, broken:lowerFirst(cap.correct), options:cap.options };
 }
 
 /* ===== template builders =====
-   Each returns { templateId, slots:{key:{kind,correct,broken,options?}}, assemble(vals), wordKinds(correctVals) }.
+   Each returns { templateId, slots:{key:{kind,correct,broken,options}}, assemble(vals), wordKinds(correctVals) }.
    assemble() interpolates opaque slot values into the sentence string (works generically for both
    real values and a spotlight sentinel — see spotlight()). wordKinds() maps each word position of
    the CORRECT body (sentence minus its final punctuation mark) to the kind of fixable slot it
    belongs to, or null for anchor (never-fixable) words. */
-function buildTemplateA(){
-  const {verb,obj} = chooseVerbAndObject();
-  const subj = pickRandom(SUBJECTS);
-  const correctVerb = subj.num==='s' ? verb.s : verb.base;
-  const [d1,d2] = agreementDistractors(verb, correctVerb);
-  const objWords = obj.split(' ');
-  const slots = {
-    capital:  { kind:'capital',     correct:subj.text,  broken:lowerFirst(subj.text) },
-    verbslot: { kind:'agreement',   correct:correctVerb, broken:d1, options:shuffle([d1,d2,correctVerb]), allForms:verbCandidates(verb) },
-    punct:    { kind:'punctuation', correct:'.',         broken:'', options:['.','?','!'] },
-  };
-  return {
-    templateId:'A', slots,
-    assemble(vals){ return `${vals.capital} ${vals.verbslot} ${objWords.join(' ')}${vals.punct}`; },
-    wordKinds(correctVals){
-      const vWords = correctVals.verbslot.split(' ').length;
-      return [ 'capital', ...Array(vWords).fill('agreement'), ...objWords.map(()=>null) ];
-    },
-  };
-}
-function buildTemplateB(){
+function buildTemplateB(){ // Simple Tense (present/past/future, incl. subject–verb number match)
   const {verb,obj} = chooseVerbAndObject();
   const subj = pickRandom(SUBJECTS);
   const tenseGroup = pickRandom(['past','present','future']);
@@ -285,13 +288,13 @@ function buildTemplateB(){
   if(tenseGroup==='past') correctVerb = verb.past;
   else if(tenseGroup==='future') correctVerb = `will ${verb.base}`;
   else correctVerb = subj.num==='s' ? verb.s : verb.base;
-  const [d1,d2] = pickDistractors(verb, correctVerb, 2);
+  const distractors = pickDistractors(verb, correctVerb, 3);
   const midSubj = midSentenceCase(subj.text);
   const objWords = obj.split(' ');
   const slots = {
-    capital:  { kind:'capital',     correct:timeWord,    broken:lowerFirst(timeWord) },
-    verbslot: { kind:'tense',       correct:correctVerb,  broken:d1, options:shuffle([d1,d2,correctVerb]), allForms:verbCandidates(verb), tenseGroup },
-    punct:    { kind:'punctuation', correct:'.',          broken:'', options:['.','?','!'] },
+    capital:  capitalSlot(timeWord),
+    verbslot: { kind:'tense', correct:correctVerb, broken:distractors[0], options:shuffle([correctVerb, ...distractors]), allForms:verbCandidates(verb), tenseGroup },
+    punct:    punctSlot('.'),
   };
   return {
     templateId:'B', slots,
@@ -303,30 +306,269 @@ function buildTemplateB(){
     },
   };
 }
-function buildTemplateC(){
+function buildTemplateC(){ // Capitalisation + Punctuation (question form)
   const {verb,obj} = chooseVerbAndObject();
   const subj = pickRandom(SUBJECTS);
   const aux = subj.num==='s' ? 'Does' : 'Do';
   const midSubj = midSentenceCase(subj.text);
   const objWords = obj.split(' ');
   const slots = {
-    capital: { kind:'capital',     correct:aux, broken:lowerFirst(aux) },
-    punct:   { kind:'punctuation', correct:'?', broken:'', options:['.','?','!'] },
+    capital: capitalSlot(aux),
+    punct:   punctSlot('?'),
   };
   return {
     templateId:'C', slots,
     assemble(vals){ return `${vals.capital} ${midSubj} ${verb.base} ${objWords.join(' ')}${vals.punct}`; },
-    wordKinds(correctVals){
+    wordKinds(){
       const midWords = midSubj.split(' ').length;
       return [ 'capital', ...Array(midWords).fill(null), null, ...objWords.map(()=>null) ];
     },
   };
 }
-function buildFromTemplate(tpl){
-  if(tpl.tense==='present') return buildTemplateA();
-  if(tpl.tense==='fromTime') return buildTemplateB();
-  return buildTemplateC();
+const ARTICLE_NOUNS = [
+  {word:"apple",art:"an"},{word:"orange",art:"an"},{word:"umbrella",art:"an"},{word:"elephant",art:"an"},{word:"egg",art:"an"},{word:"ant",art:"an"},
+  {word:"ball",art:"a"},{word:"dog",art:"a"},{word:"cat",art:"a"},{word:"book",art:"a"},{word:"banana",art:"a"},{word:"house",art:"a"},{word:"car",art:"a"},{word:"kite",art:"a"},
+];
+function buildTemplateD(){ // Articles
+  const noun = pickRandom(ARTICLE_NOUNS);
+  const subj = pickRandom(SUBJECTS);
+  const verb = subj.num==='s' ? 'wants' : 'want';
+  const wrongArt = noun.art==='a' ? 'an' : 'a';
+  const slots = {
+    capital: capitalSlot(subj.text),
+    article: { kind:'article', correct:noun.art, broken:wrongArt, options:shuffle([noun.art, wrongArt, 'the', 'some']) },
+    punct:   punctSlot('.'),
+  };
+  return {
+    templateId:'D', slots,
+    assemble(vals){ return `${vals.capital} ${verb} ${vals.article} ${noun.word}${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), null, 'article', null ];
+    },
+  };
 }
+const COUNT_NOUNS = ["cat","dog","book","apple","toy","ball","cup","box","bird","star","kite","cake"];
+const QTY_WORDS = { singular:["one"], plural:["two","three","four","five","many","some"] };
+function nounDistractors(sg, pl, correctForm){
+  const mutations = [sg+"ss", pl+"'s", sg+"'s", pl+"es"].filter(m=>m!==correctForm);
+  return shuffle(mutations).slice(0,3);
+}
+function buildTemplateE(){ // Nouns (singular/plural)
+  const noun = pickRandom(COUNT_NOUNS);
+  const sg = noun, pl = noun+"s";
+  const numGroup = pickRandom(['singular','plural']);
+  const qty = pickRandom(QTY_WORDS[numGroup]);
+  const correctForm = numGroup==='singular' ? sg : pl;
+  const distractors = nounDistractors(sg, pl, correctForm);
+  const subj = pickRandom(SUBJECTS);
+  const haveVerb = subj.num==='s' ? 'has' : 'have';
+  const slots = {
+    capital: capitalSlot(subj.text),
+    noun:    { kind:'noun', correct:correctForm, broken:distractors[0], options:shuffle([correctForm, ...distractors]) },
+    punct:   punctSlot('.'),
+  };
+  return {
+    templateId:'E', slots,
+    assemble(vals){ return `${vals.capital} ${haveVerb} ${qty} ${vals.noun}${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), null, null, 'noun' ];
+    },
+  };
+}
+function buildTemplateF(){ // Contractions
+  const {verb,obj} = chooseVerbAndObject();
+  const subj = pickRandom(SUBJECTS);
+  const correctContraction = subj.num==='s' ? "doesn't" : "don't";
+  const wrongNumber = subj.num==='s' ? "don't" : "doesn't";
+  const noApos = correctContraction.replace("'","");
+  const noAposWrongNum = wrongNumber.replace("'","");
+  const objWords = obj.split(' ');
+  const slots = {
+    capital:     capitalSlot(subj.text),
+    contraction: { kind:'contraction', correct:correctContraction, broken:noApos, options:shuffle([correctContraction, wrongNumber, noApos, noAposWrongNum]) },
+    punct:       punctSlot('.'),
+  };
+  return {
+    templateId:'F', slots,
+    assemble(vals){ return `${vals.capital} ${vals.contraction} like ${objWords.join(' ')}${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), 'contraction', null, ...objWords.map(()=>null) ];
+    },
+  };
+}
+const PREP_BANK = [
+  { subj:"She", verb:"arrived", correct:"on", wrongs:["in","at","of"], rest:"time" },
+  { subj:"He", verb:"is good", correct:"at", wrongs:["in","on","of"], rest:"maths" },
+  { subj:"They", verb:"live", correct:"in", wrongs:["at","on","of"], rest:"Delhi" },
+  { subj:"The cat", verb:"is hiding", correct:"under", wrongs:["at","on","of"], rest:"the bed" },
+  { subj:"We", verb:"waited", correct:"for", wrongs:["at","in","on"], rest:"the bus" },
+  { subj:"The book", verb:"is", correct:"on", wrongs:["in","at","of"], rest:"the table" },
+  { subj:"She", verb:"is afraid", correct:"of", wrongs:["from","at","in"], rest:"spiders" },
+  { subj:"He", verb:"walked", correct:"into", wrongs:["at","on","of"], rest:"the room" },
+  { subj:"The bird", verb:"flew", correct:"over", wrongs:["at","of","for"], rest:"the fence" },
+  { subj:"Grandpa", verb:"is proud", correct:"of", wrongs:["at","in","on"], rest:"you" },
+];
+function buildTemplateI(){ // Prepositions
+  const item = pickRandom(PREP_BANK);
+  const slots = {
+    capital:     capitalSlot(item.subj),
+    preposition: { kind:'preposition', correct:item.correct, broken:item.wrongs[0], options:shuffle([item.correct, ...item.wrongs]) },
+    punct:       punctSlot('.'),
+  };
+  return {
+    templateId:'I', slots,
+    assemble(vals){ return `${vals.capital} ${item.verb} ${vals.preposition} ${item.rest}${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      const verbWords = item.verb.split(' ').length;
+      const restWords = item.rest.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), ...Array(verbWords).fill(null), 'preposition', ...Array(restWords).fill(null) ];
+    },
+  };
+}
+const PRONOUN_SETS = [
+  { subjP:"She", objP:"her", verb:"likes" },
+  { subjP:"He", objP:"him", verb:"likes" },
+  { subjP:"They", objP:"them", verb:"like" },
+  { subjP:"We", objP:"us", verb:"like" },
+];
+function buildTemplateG(){ // Pronouns (subject vs. object case)
+  const set = pickRandom(PRONOUN_SETS);
+  const [o1,o2] = shuffle(PRONOUN_SETS.filter(s=>s!==set)).slice(0,2);
+  const slots = {
+    pronoun: { kind:'pronoun', correct:set.subjP, broken:set.objP, options:shuffle([set.subjP, set.objP, o1.subjP, o2.objP]) },
+    punct:   punctSlot('.'),
+  };
+  return {
+    templateId:'G', slots,
+    assemble(vals){ return `${vals.pronoun} ${set.verb} the game${vals.punct}`; },
+    wordKinds(){ return [ 'pronoun', null, null, null ]; },
+  };
+}
+const POSSESSIVE_ANTECEDENTS = [
+  { who:"Tom", poss:"his" },{ who:"Priya", poss:"her" },{ who:"The dog", poss:"its" },
+  { who:"The girls", poss:"their" },{ who:"The boys", poss:"their" },{ who:"Grandma", poss:"her" },
+  { who:"Grandpa", poss:"his" },{ who:"The kids", poss:"their" },
+];
+const POSSESSIVE_SET = ["his","her","its","their"];
+function buildTemplateH(){ // Gender & Number (possessive pronoun ↔ antecedent agreement)
+  const ant = pickRandom(POSSESSIVE_ANTECEDENTS);
+  const slots = {
+    capital:   capitalSlot(ant.who),
+    gendernum: { kind:'gendernum', correct:ant.poss, broken:POSSESSIVE_SET.find(p=>p!==ant.poss), options:shuffle([...POSSESSIVE_SET]) },
+    punct:     punctSlot('.'),
+  };
+  return {
+    templateId:'H', slots,
+    assemble(vals){ return `${vals.capital} lost ${vals.gendernum} ball${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), null, 'gendernum', null ];
+    },
+  };
+}
+const ADJ_BANK = [
+  { base:"big", comp:"bigger" },{ base:"small", comp:"smaller" },{ base:"tall", comp:"taller" },
+  { base:"fast", comp:"faster" },{ base:"happy", comp:"happier" },{ base:"good", comp:"better" },
+  { base:"bad", comp:"worse" },{ base:"strong", comp:"stronger" },
+];
+const NOUN_PAIRS = [["elephant","mouse"],["cheetah","turtle"],["mountain","hill"],["oak tree","sapling"],["lion","kitten"]];
+function buildTemplateJ(){ // Adjectives (comparative form)
+  const adj = pickRandom(ADJ_BANK);
+  const [n1,n2] = pickRandom(NOUN_PAIRS);
+  const wrong1 = `more ${adj.base}`, wrong2 = adj.base, wrong3 = `${adj.comp}er`;
+  const slots = {
+    capital:   capitalSlot("The"),
+    adjective: { kind:'adjective', correct:adj.comp, broken:wrong2, options:shuffle([adj.comp, wrong1, wrong2, wrong3]) },
+    punct:     punctSlot('.'),
+  };
+  return {
+    templateId:'J', slots,
+    assemble(vals){ return `${vals.capital} ${n1} is ${vals.adjective} than the ${n2}${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      const n1Words = n1.split(' ').length;
+      const adjWords = correctVals.adjective.split(' ').length;
+      const n2Words = n2.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), ...Array(n1Words).fill(null), null, ...Array(adjWords).fill('adjective'), null, null, ...Array(n2Words).fill(null) ];
+    },
+  };
+}
+const ADV_BANK = [
+  { adj:"quick", adv:"quickly" },{ adj:"slow", adv:"slowly" },{ adj:"quiet", adv:"quietly" },
+  { adj:"careful", adv:"carefully" },{ adj:"loud", adv:"loudly" },{ adj:"happy", adv:"happily" },
+  { adj:"good", adv:"well" },{ adj:"soft", adv:"softly" },
+];
+const MANNER_VERBS = [
+  { s:"sings", base:"sing" },{ s:"runs", base:"run" },{ s:"speaks", base:"speak" },
+  { s:"works", base:"work" },{ s:"dances", base:"dance" },{ s:"plays", base:"play" },
+];
+function buildTemplateK(){ // Adverbs (manner adverb vs. bare adjective form)
+  const adv = pickRandom(ADV_BANK);
+  const verb = pickRandom(MANNER_VERBS);
+  const subj = pickRandom(SUBJECTS);
+  const verbForm = subj.num==='s' ? verb.s : verb.base;
+  const wrong1 = adv.adj, wrong2 = `more ${adv.adj}`, wrong3 = `${adv.adv}ly`;
+  const slots = {
+    capital: capitalSlot(subj.text),
+    adverb:  { kind:'adverb', correct:adv.adv, broken:wrong1, options:shuffle([adv.adv, wrong1, wrong2, wrong3]) },
+    punct:   punctSlot('.'),
+  };
+  return {
+    templateId:'K', slots,
+    assemble(vals){ return `${vals.capital} ${verbForm} ${vals.adverb}${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), null, 'adverb' ];
+    },
+  };
+}
+const CONJ_BANK = [
+  { a:"I wanted to play outside", conj:"but", b:"it started raining", wrongs:["or","because","so"] },
+  { a:"She was tired", conj:"so", b:"she went to bed", wrongs:["or","because","and"] },
+  { a:"You can have juice", conj:"or", b:"you can have milk", wrongs:["and","because","so"] },
+  { a:"He was happy", conj:"because", b:"he won the game", wrongs:["but","or","so"] },
+  { a:"They packed umbrellas", conj:"and", b:"raincoats", wrongs:["but","or","because"] },
+  { a:"I like cats", conj:"but", b:"I am allergic to them", wrongs:["and","or","so"] },
+  { a:"We stayed inside", conj:"because", b:"it was too cold", wrongs:["and","or","but"] },
+  { a:"She practised every day", conj:"so", b:"she got much better", wrongs:["but","or","because"] },
+];
+function buildTemplateL(){ // Conjunctions
+  const item = pickRandom(CONJ_BANK);
+  const slots = {
+    capital:     capitalSlot(item.a),
+    conjunction: { kind:'conjunction', correct:item.conj, broken:item.wrongs[0], options:shuffle([item.conj, ...item.wrongs]) },
+    punct:       punctSlot('.'),
+  };
+  return {
+    templateId:'L', slots,
+    assemble(vals){ return `${vals.capital}, ${vals.conjunction} ${item.b}${vals.punct}`; },
+    wordKinds(correctVals){
+      const capWords = correctVals.capital.split(' ').length;
+      const bWords = item.b.split(' ').length;
+      return [ ...Array(capWords).fill('capital'), 'conjunction', ...Array(bWords).fill(null) ];
+    },
+  };
+}
+// tier 0 = Easy (Capitalisation, Punctuation, Simple Tense); tier 1 = + Medium's set;
+// tier 2 = + Hard's set. Expert reuses tier 2's full pool — same content, free-edit interaction.
+const TEMPLATES = [
+  { tier:0, build:buildTemplateB },
+  { tier:0, build:buildTemplateC },
+  { tier:1, build:buildTemplateD },
+  { tier:1, build:buildTemplateE },
+  { tier:1, build:buildTemplateF },
+  { tier:1, build:buildTemplateI },
+  { tier:2, build:buildTemplateG },
+  { tier:2, build:buildTemplateH },
+  { tier:2, build:buildTemplateJ },
+  { tier:2, build:buildTemplateK },
+  { tier:2, build:buildTemplateL },
+];
+const TIER_OF_LEVEL = { EASY:0, MEDIUM:1, HARD:2, EXPERT:2 };
 function spotlight(item, key){
   const SENTINEL = " SLOT ";
   const correctVals={}; Object.keys(item.slots).forEach(k=> correctVals[k]=item.slots[k].correct);
@@ -355,17 +597,25 @@ function makeRecentTracker(cap){
   };
 }
 function generateItem(level, recentTracker){
+  const tier = TIER_OF_LEVEL[level];
+  const pool = TEMPLATES.filter(t=>t.tier<=tier);
   let result=null;
   for(let attempt=0; attempt<30 && !result; attempt++){
-    const tpl = pickRandom(TEMPLATES);
-    const built = buildFromTemplate(tpl);
+    const entry = pickRandom(pool);
+    const built = entry.build();
     const slotKeys = Object.keys(built.slots);
     const correctVals = {}; slotKeys.forEach(k=> correctVals[k]=built.slots[k].correct);
     const correctSentence = built.assemble(correctVals);
     if(recentTracker && recentTracker.has(correctSentence)) continue; // guard against repeating recent sentences
 
-    const wantCount = pickErrorCount(level, slotKeys.length);
-    const chosenKeys = shuffle([...slotKeys]).slice(0, wantCount);
+    // Capitalisation/punctuation are only ever the tested error on EASY — at every other level
+    // they stay correct in the sentence (just anchor/context text) and the round always tests
+    // that level's actual grammar categories instead.
+    const eligibleKeys = level==='EASY' ? slotKeys : slotKeys.filter(k=>!['capital','punctuation'].includes(built.slots[k].kind));
+    if(eligibleKeys.length===0) continue; // this template has nothing else to test at this level
+
+    const wantCount = pickErrorCount(level, eligibleKeys.length);
+    const chosenKeys = shuffle([...eligibleKeys]).slice(0, wantCount);
     if(chosenKeys.some(k=> built.slots[k].broken===built.slots[k].correct)) continue; // no-op fix guard
 
     const brokenVals = {...correctVals};
@@ -466,8 +716,16 @@ function checkSingleSlot(item, userValue){
 const DIAGNOSES = {
   capital:     ["A case of the lowercase sniffles! 🤧","Ooh, a shrinking-capital cold.","This word forgot its big-letter hat! 🎩","Symptoms: one letter feeling very small."],
   punctuation: ["A missing full-stop cough. 😷","This sentence has the never-ending hiccups!","Looks like a lost-ending flu.","Its tail fell off — needs a new ending mark."],
-  agreement:   ["A verb-agreement fever! 🌡️","The doer and the verb had a little tiff.","The mismatch measles — verb doesn't match its subject.","Symptoms: the subject and its verb aren't holding hands."],
   tense:       ["A tangled-time tummy ache. ⏰","This sentence is stuck in the wrong when!","A time-traveller's cold — the tense went wandering.","Symptoms: yesterday's word in today's clothes."],
+  article:     ["A missing article ache! 📰","This noun forgot its little helper word.","An a/an mix-up fever.","Symptoms: the wrong little word up front."],
+  noun:        ["A singular-plural sniffle!","This noun can't decide how many there are.","Counting confusion detected. 🔢","Symptoms: the noun and its number disagree."],
+  contraction: ["A squished-word squeak! ✂️","This contraction lost its apostrophe.","Symptoms: two words stuck together the wrong way.","A shrink-mark hiccup."],
+  preposition: ["A lost-in-space wobble! 📍","This word isn't in the right place.","Symptoms: the wrong direction word.","A location mix-up limp."],
+  pronoun:     ["A pronoun mix-up! 🙋","This word is standing in the wrong spot.","Symptoms: he/him confusion.","A case of the swapped pronouns."],
+  gendernum:   ["A belongs-to bug! 🚻","This pronoun doesn't match its owner.","Symptoms: his/her/its/their mix-up.","A matching mishap."],
+  adjective:   ["A comparison cramp! 📏","This describing word took a wrong turn.","Symptoms: 'more bigger' trouble.","A comparative stumble."],
+  adverb:      ["An action-describing ache! 🏃","This word forgot its -ly.","Symptoms: describing the doing, not the thing.","An adverb wobble."],
+  conjunction: ["A joining-word jumble! 🔗","These two ideas aren't linked quite right.","Symptoms: the wrong connector word.","A logic-link hiccup."],
   MULTI:       ["Uh oh — this patient has a few things to treat!","A tricky one: more than one symptom here. 🩺","Multiple sniffles detected — take your time, Doctor.","This patient needs a thorough check-up!"],
 };
 const CURED_LINES = ["All better! 💚","Good as new — thanks, Doctor!","Cured! One happy patient. 🎉","Nice diagnosis! Feeling great now.","Healthy and hopping again! 🐾"];
@@ -478,28 +736,46 @@ function diagnosisFor(kinds){
   if(uniq.length>1) return pickRandom(DIAGNOSES.MULTI);
   return pickRandom(DIAGNOSES[uniq[0]]);
 }
-const KIND_LABEL = { capital:'capital', punctuation:'ending', agreement:'verb agreement', tense:'tense' };
+const KIND_LABEL = {
+  capital:'capital', punctuation:'ending', tense:'tense',
+  article:'article', noun:'noun form', contraction:'contraction', preposition:'preposition',
+  pronoun:'pronoun', gendernum:'gender/number agreement', adjective:'adjective form',
+  adverb:'adverb form', conjunction:'conjunction',
+};
 function remainingMessage(kinds){
   const labels = kinds.map(k=>KIND_LABEL[k]||k);
   const n = labels.length;
   const list = labels.length<=1 ? labels.join('') : labels.slice(0,-1).join(', ')+' and '+labels[labels.length-1];
   return `${n} thing${n===1?'':'s'} still need${n===1?'s':''} care: ${list}!`;
 }
-const HINT_SYMPTOM = { capital:"a capital-letter symptom", punctuation:"an ending symptom", agreement:"a verb-agreement symptom", tense:"a tense symptom" };
+const HINT_SYMPTOM = {
+  capital:"a capital-letter symptom", punctuation:"an ending symptom", tense:"a tense symptom",
+  article:"an article symptom", noun:"a noun-form symptom", contraction:"a contraction symptom",
+  preposition:"a preposition symptom", pronoun:"a pronoun symptom", gendernum:"a gender/number symptom",
+  adjective:"an adjective symptom", adverb:"an adverb symptom", conjunction:"a conjunction symptom",
+};
 function hintMessage(kinds){
   const uniq=[...new Set(kinds)];
   const labels = uniq.map(k=>HINT_SYMPTOM[k]||k);
   const list = labels.length<=1 ? labels.join('') : labels.slice(0,-1).join(', ')+' and '+labels[labels.length-1];
   return `💡 Symptoms: ${list}.`;
 }
+const FOCUS_LABEL = {
+  capital:"🔡 Fix: Capitalisation", punctuation:"❗ Fix: Punctuation",
+  article:"🔤 Fix: Articles", noun:"📦 Fix: Nouns", contraction:"✂️ Fix: Contractions",
+  preposition:"📍 Fix: Prepositions", pronoun:"🙋 Fix: Pronouns", gendernum:"🚻 Fix: Gender & number",
+  adjective:"📏 Fix: Adjectives", adverb:"🏃 Fix: Adverbs", conjunction:"🔗 Fix: Conjunctions",
+};
 
 if(typeof module!=="undefined") module.exports={
-  VERBS, OBJECTS, SUBJECTS, TIMEWORDS, TEMPLATES, PROPER_SUBJECTS,
+  VERBS, OBJECTS, SUBJECTS, TIMEWORDS, TEMPLATES, TIER_OF_LEVEL, PROPER_SUBJECTS,
   midSentenceCase, chooseVerbAndObject, verbCandidates, pickDistractors,
-  buildTemplateA, buildTemplateB, buildTemplateC, buildFromTemplate, spotlight,
-  splitBodyPunct, generateItem, makeRecentTracker,
+  capitalVariants, PUNCT_OPTIONS, punctSlot, capitalSlot,
+  buildTemplateB, buildTemplateC, buildTemplateD, buildTemplateE, buildTemplateF,
+  buildTemplateG, buildTemplateH, buildTemplateI, buildTemplateJ, buildTemplateK, buildTemplateL,
+  spotlight, splitBodyPunct, generateItem, makeRecentTracker,
   normalize, levenshtein, compareWord, checkFreeText, checkSingleSlot,
-  DIAGNOSES, CURED_LINES, OUCH_LINES, diagnosisFor, KIND_LABEL, remainingMessage, HINT_SYMPTOM, hintMessage,
+  DIAGNOSES, CURED_LINES, OUCH_LINES, diagnosisFor, KIND_LABEL, remainingMessage, HINT_SYMPTOM, hintMessage, FOCUS_LABEL,
 };
 
 const LEVELS = {
@@ -567,7 +843,7 @@ function spawnFloatIcon(emoji){
 }
 
 /* ===== state ===== */
-let level="EASY", ITEM=null, solved=false, pickedValue=null, easyOptions=null, lastRemaining=0;
+let level="EASY", ITEM=null, solved=false, pickedValue=null, pickOptions=null, lastRemaining=0;
 const recentTracker = makeRecentTracker(8);
 
 function setLevel(l){
@@ -596,39 +872,36 @@ $("check-btn").onclick  = checkPuzzle;
 $("hint-link").onclick  = giveHint;
 $("reveal-btn").onclick = revealAnswer;
 
-function isEditLevel(){ return level==='HARD' || level==='EXPERT'; }
+function isEditLevel(){ return level==='EXPERT'; }
 function promptText(){
-  if(level==='EASY') return "Pick the fix for the highlighted word, then hit Check!";
-  if(level==='MEDIUM') return "Tap the sick word to cycle to the fix, then hit Check!";
-  return "Find what's wrong and fix it right in the sentence, then hit Check!";
+  if(level==='EXPERT') return "Find what's wrong and fix it right in the sentence, then hit Check!";
+  return "Pick the fix for the highlighted word, then hit Check!";
 }
-function updateTenseRow(){
-  const row=$("tense-row");
-  const tenseKey = ITEM.chosenKeys.find(k=>ITEM.slots[k].kind==='tense');
-  if(!tenseKey){ row.innerHTML=''; row.classList.add('hide'); return; }
-  const g = ITEM.slots[tenseKey].tenseGroup;
-  const label = g.charAt(0).toUpperCase()+g.slice(1);
-  row.innerHTML = `<span class="chip tense">🕐 Expected tense: ${label}</span>`;
-  row.classList.remove('hide');
+function updateFocusRow(){
+  const row=$("focus-row");
+  const kinds = [...new Set(ITEM.chosenKeys.map(k=>ITEM.slots[k].kind))];
+  row.innerHTML = kinds.map(k=>{
+    if(k==='tense'){
+      const tenseKey = ITEM.chosenKeys.find(kk=>ITEM.slots[kk].kind==='tense');
+      const g = ITEM.slots[tenseKey].tenseGroup;
+      const label = g.charAt(0).toUpperCase()+g.slice(1);
+      return `<span class="chip tense">🕐 Expected tense: ${label}</span>`;
+    }
+    return `<span class="chip focus">${FOCUS_LABEL[k]||k}</span>`;
+  }).join('');
 }
 
 function newPuzzle(fromHome){
   ITEM = generateItem(level, recentTracker);
   solved=false; lastRemaining=ITEM.chosenKeys.length;
-  if(level==='EASY'){
-    const slot=ITEM.slots[ITEM.chosenKeys[0]];
-    pickedValue=null;
-    easyOptions = shuffle(slot.kind==='capital' ? [slot.broken, slot.correct] : [...slot.options]);
-  } else if(level==='MEDIUM'){
-    pickedValue = ITEM.slots[ITEM.chosenKeys[0]].broken; // starts visible on the word itself, tap to cycle
-    easyOptions=null;
-  } else { pickedValue=null; easyOptions=null; }
+  pickedValue=null;
+  pickOptions = isEditLevel() ? null : shuffle([...ITEM.slots[ITEM.chosenKeys[0]].options]);
 
   if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
   setLevel(level);
   const kinds = ITEM.chosenKeys.map(k=>ITEM.slots[k].kind);
   $("dx-line").textContent = diagnosisFor(kinds);
-  updateTenseRow();
+  updateFocusRow();
   $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("check-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
   $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
@@ -640,7 +913,7 @@ function newPuzzle(fromHome){
 }
 function resetPuzzle(){
   if(!ITEM || solved) return;
-  pickedValue = level==='MEDIUM' ? ITEM.slots[ITEM.chosenKeys[0]].broken : null;
+  pickedValue = null;
   lastRemaining=ITEM.chosenKeys.length;
   renderPuzzleUI();
   updateCritterVisual(0);
@@ -652,7 +925,7 @@ function renderPuzzleUI(){
   const edit = isEditLevel();
   $("sentence").classList.toggle('hide', edit);
   $("edit-field").classList.toggle('hide', !edit);
-  $("opt-row").classList.toggle('hide', level!=='EASY');
+  $("opt-row").classList.toggle('hide', edit);
   if(edit){
     $("edit-field").value = ITEM.brokenSentence;
     setTimeout(()=> $("edit-field").focus(), 0);
@@ -662,40 +935,22 @@ function renderPuzzleUI(){
 }
 function renderSpotlight(){
   const key = ITEM.chosenKeys[0];
-  const slot = ITEM.slots[key];
   const {prefix,suffix} = spotlight(ITEM, key);
   const el=$("sentence"); el.innerHTML='';
   const pre=document.createElement('span'); pre.className='tok-anchor'; pre.textContent=prefix;
   const suf=document.createElement('span'); suf.className='tok-anchor'; suf.textContent=suffix;
+  const blank=document.createElement('span'); blank.className='blank-slot';
+  blank.textContent = pickedValue===null ? '' : pickedValue;
+  el.append(pre, blank, suf);
 
-  if(level==='EASY'){
-    const blank=document.createElement('span'); blank.className='blank-slot';
-    blank.textContent = pickedValue===null ? '' : pickedValue;
-    el.append(pre, blank, suf);
-    const optRow=$("opt-row"); optRow.innerHTML='';
-    easyOptions.forEach(opt=>{
-      const b=document.createElement('button'); b.type='button'; b.className='opt-chip';
-      b.textContent = opt; b.setAttribute('aria-pressed', String(opt===pickedValue));
-      b.onclick=()=>{ if(solved) return; pickedValue=opt; sound('tick'); renderSpotlight(); };
-      optRow.appendChild(b);
-    });
-    const active=optRow.querySelector('[aria-pressed="true"]'); if(active) active.focus();
-  } else { // MEDIUM: tap the word itself to cycle through fixes — no typing
-    const cycleOpts = slot.kind==='capital' ? [slot.broken, slot.correct] : slot.options;
-    const current = pickedValue===null ? slot.broken : pickedValue;
-    const isBlankPunct = current==='';
-    const chip=document.createElement('button'); chip.type='button';
-    chip.className='cycle-chip'+(isBlankPunct?' blank':'');
-    chip.textContent = current;
-    chip.setAttribute('aria-label', isBlankPunct ? 'missing end mark, tap to cycle through choices' : `${current}, tap to try the next fix`);
-    chip.onclick=()=>{
-      if(solved) return;
-      let idx=cycleOpts.indexOf(current); idx=(idx+1)%cycleOpts.length;
-      pickedValue=cycleOpts[idx]; sound('tick'); renderSpotlight();
-    };
-    el.append(pre, chip, suf);
-    chip.focus();
-  }
+  const optRow=$("opt-row"); optRow.innerHTML='';
+  pickOptions.forEach(opt=>{
+    const b=document.createElement('button'); b.type='button'; b.className='opt-chip';
+    b.textContent = opt; b.setAttribute('aria-pressed', String(opt===pickedValue));
+    b.onclick=()=>{ if(solved) return; pickedValue=opt; sound('tick'); renderSpotlight(); };
+    optRow.appendChild(b);
+  });
+  const active=optRow.querySelector('[aria-pressed="true"]'); if(active) active.focus();
 }
 
 function checkPuzzle(){
