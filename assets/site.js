@@ -69,14 +69,59 @@ function wireLevelMenu() {
 
 /* ---------- WebAudio beep ---------- */
 let audioCtx = null;
+let beepBus = null; // shared compressor + makeup gain, tames clipping when tones overlap
 function beep(freq, dur, type = "sine", when = 0, gain = 0.12) {
   try {
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    const t = audioCtx.currentTime + when, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (!beepBus) {
+      const comp = audioCtx.createDynamicsCompressor();
+      const makeup = audioCtx.createGain();
+      makeup.gain.value = 1.4;
+      comp.connect(makeup); makeup.connect(audioCtx.destination);
+      beepBus = comp;
+    }
+    const t = audioCtx.currentTime + when, o = audioCtx.createOscillator(), g = audioCtx.createGain(), f = audioCtx.createBiquadFilter();
     o.type = type; o.frequency.value = freq;
-    g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + dur);
+    f.type = "lowpass"; f.frequency.value = Math.min(freq * 4, 6000); f.Q.value = 0.7;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.006); // short attack avoids a click on start
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(f); f.connect(g); g.connect(beepBus);
+    o.start(t); o.stop(t + dur + 0.02);
   } catch (e) {}
+}
+
+/* ---------- speech synthesis (read a word/phrase aloud) ---------- */
+let ttsVoice = null;
+function pickVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return;
+  // Chrome defaults to a low-quality local voice unless one is picked explicitly;
+  // prefer its higher-quality network voice, else any local/generic English voice.
+  ttsVoice = voices.find(v => /en-US/i.test(v.lang) && /Google US English/i.test(v.name))
+    || voices.find(v => /^en/i.test(v.lang) && v.localService)
+    || voices.find(v => /^en/i.test(v.lang))
+    || voices[0];
+}
+if ("speechSynthesis" in window) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice; // voice list loads asynchronously in Chrome
+}
+function speak(text, rate = 1) {
+  if (!("speechSynthesis" in window)) return;
+  try {
+    speechSynthesis.cancel();
+    if (!ttsVoice) pickVoice();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate; u.lang = "en-US"; u.volume = 1; u.pitch = 1;
+    if (ttsVoice) u.voice = ttsVoice;
+    speechSynthesis.speak(u);
+  } catch (e) { /* speech unsupported — caller should keep the game playable without it */ }
+}
+function stopSpeech() {
+  try { speechSynthesis.cancel(); } catch (e) {}
 }
 
 /* ---------- confetti canvas ---------- */

@@ -188,6 +188,12 @@ globals the game calls directly:
   of its own script and assigns into its own `let` variable, e.g.
   `loadGameData("words.json").then(d => { if (d) WORDS = d; })` — then validates the
   shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
+- `speak(text, rate)` — reads `text` aloud via `speechSynthesis`, picking the best
+  available English voice itself (Chrome defaults to a low-quality local voice unless one
+  is picked explicitly; this also handles the voice list loading asynchronously). No-op if
+  the browser lacks `speechSynthesis`. `rate` defaults to `1`; pass a lower value (e.g.
+  `0.82`) to read more slowly. `stopSpeech()` cancels any speech in progress — call it from
+  a game's `goHome()`/reset so speech doesn't keep playing after leaving the puzzle.
 
 A game's own script must not redeclare any of these names (that throws a `SyntaxError`
 at load) — if a game needs different behavior for one of them (e.g. `word-guess`'s

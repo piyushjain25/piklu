@@ -380,13 +380,8 @@ function removeFromSlot(pos){
 }
 
 function speakWord(){
-  if(!state || !("speechSynthesis" in window)) return;
-  try{
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(state.secret);
-    u.rate = 0.82; u.lang = "en-US";
-    speechSynthesis.speak(u);
-  }catch(e){ /* speech unsupported — game still fully playable via picture/hint */ }
+  if(!state) return;
+  speak(state.secret, 0.82);
 }
 $("hear-btn").onclick = speakWord;
 
@@ -463,7 +458,7 @@ function startNext(){
 }
 function goHome(){
   stopConfetti();
-  try{ speechSynthesis.cancel(); }catch(e){}
+  stopSpeech();
   state=null;
   $("screen-game").classList.add("hide");
   $("screen-home").classList.remove("hide");
