@@ -83,4 +83,7 @@ window.GAMES = [
 
   { slug: "what-am-i",       title: "What Am I?",             emoji: "🤔", accent: "grape",  ageGroup: "5+",
     tagline: "Solve the riddle — what am I?",                skills: ["Riddles", "Logic"],                       badge:"New"},
+
+  { slug: "mouse-maze",      title: "Mouse Maze",             emoji: "🐭", accent: "leaf",   ageGroup: "5+",
+    tagline: "Guide the mouse through the maze to the cheese!", skills: ["Logic", "Spatial reasoning"],           badge:"New"},
 ];

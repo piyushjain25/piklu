@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mouse Maze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:520px;}
+  .title{font-size:clamp(24px,5vw,38px);}
+  .topbar{margin-bottom:14px;}
+  .mazewrap{--wrapw:min(400px,90vw); --N:5; position:relative; width:var(--wrapw); aspect-ratio:1; margin:0 auto;}
+  svg.maze{position:absolute; inset:0; width:100%; height:100%; display:block; border-radius:14px;}
+  .hitgrid{position:absolute; inset:0; z-index:2; display:grid;}
+  .hitgrid .cell{position:relative; background:none; border:none; padding:0; margin:0; cursor:default;
+    display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;
+    font-size:clamp(11px, calc(var(--wrapw) / var(--N) * 0.55), 22px);}
+  .hitgrid .cell.startcell{box-shadow:inset 0 0 0 2px rgba(85,58,149,.4); border-radius:6px;}
+  .hitgrid .cell.visited::after{content:""; position:absolute; inset:18%; background:rgba(47,179,125,.16); border-radius:5px; pointer-events:none;}
+  .hitgrid .cell.reachable{cursor:pointer;}
+  .hitgrid .cell.reachable:empty::before{content:""; position:absolute; width:24%; height:24%; border-radius:50%; background:var(--leaf); opacity:.55;}
+  .hitgrid .cell.reachable:hover:empty::before{opacity:.85;}
+  .hitgrid .cell.reachable:focus-visible{outline:3px solid var(--leaf-dark); outline-offset:-3px; border-radius:6px;}
+  .hitgrid .cell.hintglow{animation:pulseglow 1.1s ease;}
+  .token{position:absolute; width:calc(100%/var(--N)); height:calc(100%/var(--N)); display:flex; align-items:center; justify-content:center;
+    font-size:clamp(14px, calc(var(--wrapw) / var(--N) * 0.62), 28px); transform:translate(-50%,-50%);
+    transition:left .18s ease, top .18s ease; z-index:3; pointer-events:none;}
+  .token.bonk{animation:bonk .3s ease;}
+  @keyframes bonk{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(-64%,-50%) rotate(-8deg)}75%{transform:translate(-36%,-50%) rotate(8deg)}}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🐭 Help the mouse find the cheese!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">5×5 maze</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">7×7 maze</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">9×9, a few loops</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">11×11, tricky loops</div></button>
+      </div>
+      <div class="howto">
+        🐭 <b>How to play:</b> Tap a glowing spot next to the mouse (or use the arrow keys) to move through the maze.
+        Hit a dead end? Just step back and try a different way! Reach the 🧀 cheese to win. Stuck? Tap <b>Hint</b> for a nudge.
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="mazewrap" id="mazewrap">
+        <svg class="maze" id="maze" aria-hidden="true"></svg>
+        <div class="hitgrid" id="hitgrid" role="group" aria-label="Maze"></div>
+        <div class="token" id="token">🐭</div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="reset-btn" class="tlink">🔄 Reset</button>
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+const rnd = n => Math.floor(Math.random()*n);
+
+/* ===== engine (verified offline — full connectivity, wall symmetry, spanning-tree edge
+   count, and hint-path legality checked for 200 trials per level) =====
+   A recursive-backtracker DFS carves a spanning tree of the N×N grid graph: every cell is
+   visited exactly once, discovered via the edge that reached it, so the carved passages
+   connect all cells with exactly one path between any two (a spanning tree is connected
+   and acyclic) — every maze is solvable with no separate check needed. Harder levels then
+   "braid" a fraction of dead ends open to add a few loops. */
+const DIRS = [
+  {d:'N', dr:-1, dc:0, o:'S'},
+  {d:'E', dr:0,  dc:1, o:'W'},
+  {d:'S', dr:1,  dc:0, o:'N'},
+  {d:'W', dr:0,  dc:-1,o:'E'},
+];
+function carveMaze(N){
+  const cells = Array.from({length:N},()=>Array.from({length:N},()=>({N:true,E:true,S:true,W:true})));
+  const visited = Array.from({length:N},()=>Array(N).fill(false));
+  const stack=[[0,0]]; visited[0][0]=true;
+  while(stack.length){
+    const [r,c]=stack[stack.length-1];
+    const opts=DIRS.filter(({dr,dc})=>{const nr=r+dr,nc=c+dc; return nr>=0&&nr<N&&nc>=0&&nc<N&&!visited[nr][nc];});
+    if(opts.length===0){ stack.pop(); continue; }
+    const {d,dr,dc,o}=opts[rnd(opts.length)];
+    const nr=r+dr,nc=c+dc;
+    cells[r][c][d]=false; cells[nr][nc][o]=false;
+    visited[nr][nc]=true; stack.push([nr,nc]);
+  }
+  return cells;
+}
+function braid(cells,N,frac){
+  if(frac<=0) return;
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const walls=DIRS.filter(({d})=>cells[r][c][d]);
+    if(walls.length<3) continue; // not a dead end
+    if(Math.random()>frac) continue;
+    const openable=walls.filter(({dr,dc})=>{const nr=r+dr,nc=c+dc; return nr>=0&&nr<N&&nc>=0&&nc<N;});
+    if(!openable.length) continue;
+    const {d,dr,dc,o}=openable[rnd(openable.length)];
+    const nr=r+dr,nc=c+dc;
+    cells[r][c][d]=false; cells[nr][nc][o]=false;
+  }
+}
+function bfs(cells,N,start){
+  const dist=Array.from({length:N},()=>Array(N).fill(-1));
+  const parent=Array.from({length:N},()=>Array(N).fill(null));
+  dist[start[0]][start[1]]=0;
+  const q=[start];
+  for(let h=0;h<q.length;h++){
+    const [r,c]=q[h];
+    for(const {d,dr,dc} of DIRS){
+      if(cells[r][c][d]) continue;
+      const nr=r+dr,nc=c+dc;
+      if(dist[nr][nc]!==-1) continue;
+      dist[nr][nc]=dist[r][c]+1; parent[nr][nc]=[r,c]; q.push([nr,nc]);
+    }
+  }
+  return {dist,parent};
+}
+function farthest(cells,N,from){
+  const {dist}=bfs(cells,N,from);
+  let best=from,bestD=-1;
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) if(dist[r][c]>bestD){bestD=dist[r][c]; best=[r,c];}
+  return best;
+}
+function nextStep(cells,N,from,goal){
+  const {parent,dist}=bfs(cells,N,from);
+  if(dist[goal[0]][goal[1]]<=0) return null;
+  let cur=goal;
+  while(true){ const p=parent[cur[0]][cur[1]]; if(p[0]===from[0]&&p[1]===from[1]) return cur; cur=p; }
+}
+const LEVELS={
+  EASY:  { N:5,  braid:0,    label:"🌱 Easy" },
+  MEDIUM:{ N:7,  braid:0,    label:"⭐ Medium" },
+  HARD:  { N:9,  braid:0.15, label:"🔥 Hard" },
+  EXPERT:{ N:11, braid:0.28, label:"🏆 Expert" },
+};
+function genMaze(level){
+  const cfg=LEVELS[level], N=cfg.N;
+  const cells=carveMaze(N);
+  braid(cells,N,cfg.braid);
+  const a=farthest(cells,N,[0,0]);
+  const b=farthest(cells,N,a);
+  return { level, N, cells, start:a, finish:b };
+}
+if(typeof module!=="undefined") module.exports={ carveMaze, braid, bfs, farthest, nextStep, genMaze, LEVELS, DIRS };
+
+/* ===== state ===== */
+let level="EASY", M=null, path=[], phase='play', prevSig=null;
+
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+// level switcher (tap the chip at the top to change difficulty mid-game)
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newMaze(false); }
+wireLevelMenu();
+$("start-btn").onclick=()=>newMaze(true); $("home-btn").onclick=goHome;
+$("skip-btn").onclick=()=>newMaze(false); $("next-btn").onclick=()=>newMaze(false);
+$("reset-btn").onclick=resetMaze; $("hint-link").onclick=giveHint;
+
+function promptText(){ return "Tap a glowing spot or use the arrow keys to explore!"; }
+
+const sig = m => `${m.level}:${m.N}:`+m.cells.map(row=>row.map(c=>(c.N?1:0)+(c.E?2:0)+(c.S?4:0)+(c.W?8:0)).join('')).join('|');
+function newMaze(fromHome){
+  // fresh maze, different from the one just shown (Skip/Next never repeat the current puzzle)
+  let m; for(let a=0;a<20;a++){ m=genMaze(level); if(!prevSig || sig(m)!==prevSig) break; }
+  M=m; prevSig=sig(M); path=[M.start]; phase='play';
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  setLevel(level);
+  $("mazewrap").style.setProperty('--N', M.N);
+  renderMazeSVG(); renderHitgrid(); updateCellStates(); renderToken();
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  setOwl('idle'); flash(promptText(), '');
+}
+
+/* ===== render ===== */
+function renderMazeSVG(){
+  const N=M.N; let walls='';
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const cell=M.cells[r][c];
+    if(cell.E) walls+=`<line x1="${c+1}" y1="${r}" x2="${c+1}" y2="${r+1}"/>`;
+    if(cell.S) walls+=`<line x1="${c}" y1="${r+1}" x2="${c+1}" y2="${r+1}"/>`;
+  }
+  const svg=$("maze"); svg.setAttribute('viewBox', `0 0 ${N} ${N}`);
+  svg.innerHTML = `<rect x="0" y="0" width="${N}" height="${N}" fill="var(--paper)"/>` +
+    `<g stroke="#8a6a3f" stroke-width="0.1" stroke-linecap="round">${walls}</g>` +
+    `<rect x="0.05" y="0.05" width="${N-0.1}" height="${N-0.1}" fill="none" stroke="#8a6a3f" stroke-width="0.1" rx="0.25"/>`;
+}
+function renderHitgrid(){
+  const N=M.N, grid=$("hitgrid");
+  grid.style.gridTemplateColumns=`repeat(${N},1fr)`; grid.style.gridTemplateRows=`repeat(${N},1fr)`;
+  grid.innerHTML='';
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const b=document.createElement('button');
+    b.type='button'; b.className='cell'; b.dataset.r=r; b.dataset.c=c;
+    b.setAttribute('aria-label', `row ${r+1}, column ${c+1}`);
+    b.tabIndex=-1;
+    if(r===M.start[0]&&c===M.start[1]) b.classList.add('startcell');
+    if(r===M.finish[0]&&c===M.finish[1]) b.textContent='🧀';
+    b.onclick=()=>attemptMove(r,c);
+    grid.appendChild(b);
+  }
+}
+function updateCellStates(){
+  const N=M.N, btns=$("hitgrid").children;
+  const visitedSet=new Set(path.map(([r,c])=>r+','+c));
+  for(let i=0;i<btns.length;i++){
+    const b=btns[i], r=+b.dataset.r, c=+b.dataset.c;
+    b.classList.toggle('visited', visitedSet.has(r+','+c));
+    b.classList.remove('reachable'); b.disabled=true; b.tabIndex=-1;
+  }
+  if(phase!=='play') return;
+  const [cr,cc]=path[path.length-1];
+  for(const {d,dr,dc} of DIRS){
+    if(M.cells[cr][cc][d]) continue;
+    const nr=cr+dr, nc=cc+dc;
+    const b=btns[nr*N+nc];
+    b.classList.add('reachable'); b.disabled=false; b.tabIndex=0;
+  }
+}
+function cellCenterPct(r,c){
+  const wrapRect=$("mazewrap").getBoundingClientRect();
+  const cellRect=$("hitgrid").children[r*M.N+c].getBoundingClientRect();
+  return [(cellRect.left+cellRect.width/2-wrapRect.left)/wrapRect.width*100,
+    (cellRect.top+cellRect.height/2-wrapRect.top)/wrapRect.height*100];
+}
+function renderToken(){
+  const [r,c]=path[path.length-1]; const [x,y]=cellCenterPct(r,c);
+  const tok=$("token"); tok.style.left=x+'%'; tok.style.top=y+'%';
+}
+
+/* ===== movement ===== */
+function attemptMove(r,c){
+  if(phase!=='play') return;
+  const [cr,cc]=path[path.length-1];
+  const dirEntry=DIRS.find(x=>x.dr===r-cr && x.dc===c-cc);
+  if(!dirEntry || M.cells[cr][cc][dirEntry.d]){ bump(); return; }
+  if(path.length>=2 && path[path.length-2][0]===r && path[path.length-2][1]===c) path.pop();
+  else path.push([r,c]);
+  renderToken(); updateCellStates(); sound('step');
+  if(r===M.finish[0] && c===M.finish[1]) winGame();
+  else { setOwl('idle'); if($("feedback").classList.contains('bad')) flash(promptText(), ''); }
+}
+const ARROWDELTA={ up:[-1,0], down:[1,0], left:[0,-1], right:[0,1] };
+function onArrow(dir){
+  if(!M || phase!=='play') return;
+  const [cr,cc]=path[path.length-1]; const [dr,dc]=ARROWDELTA[dir];
+  attemptMove(cr+dr, cc+dc);
+}
+function bump(){
+  const tok=$("token"); tok.classList.remove('bonk'); void tok.offsetWidth; tok.classList.add('bonk');
+  flash("🧱 That way is blocked — try another path!", 'bad'); setOwl('worried'); sound('bad');
+}
+function resetMaze(){
+  if(!M || phase!=='play') return;
+  path=[M.start]; renderToken(); updateCellStates();
+  setOwl('idle'); flash(promptText(), '');
+}
+function winGame(){
+  phase='done';
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
+  $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  $("rlabel").textContent="🎉 The mouse found the cheese!";
+  flash('', ''); setOwl('win'); sound('win');
+  if(!reduceMotion) miniConfetti();
+  updateCellStates();
+}
+function giveHint(){
+  if(!M || phase!=='play') return;
+  const cur=path[path.length-1];
+  const step=nextStep(M.cells, M.N, cur, M.finish);
+  if(!step) return;
+  const N=M.N, btn=$("hitgrid").children[step[0]*N+step[1]];
+  btn.classList.remove('hintglow'); void btn.offsetWidth; btn.classList.add('hintglow');
+  setTimeout(()=>btn.classList.remove('hintglow'), 1150);
+  const dr=step[0]-cur[0], dc=step[1]-cur[1];
+  const word = dr===-1?'up':dr===1?'down':dc===-1?'left':'right';
+  const ARROW={up:'⬆️',down:'⬇️',left:'⬅️',right:'➡️'};
+  flash(`💡 Try heading ${ARROW[word]} ${word}!`, 'hint'); setOwl('think');
+}
+function goHome(){ stopConfetti(); M=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+
+document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !M) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if(e.key==='Escape' && phase==='play'){ e.preventDefault(); resetMaze(); return; }
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+  if(map[e.key]){ e.preventDefault(); onArrow(map[e.key]); return; }
+  if(e.key==='Enter' && phase==='done'){ e.preventDefault(); newMaze(false); return; }
+  if(e.key.toLowerCase()==='h' && phase==='play'){ giveHint(); }
+});
+
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
+function sound(kind){ if(kind==="step") beep(520,.05,"square",0,.05);
+  else if(kind==="bad") beep(180,.16,"sawtooth",0,.10);
+  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
+
+initBouncyTitle("Mouse Maze");
+setLevel("EASY");
+</script>
+</body>
+</html>
