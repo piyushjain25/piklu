@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sneak Peek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:620px;}
+  .title{font-size:clamp(23px,4.7vw,36px);}
+  .topbar{margin-bottom:16px;}
+  .caption{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:clamp(14px,3.4vw,16px); margin-bottom:8px;}
+  .timerbar{height:10px; border-radius:6px; background:var(--key-line); overflow:hidden; margin:0 auto 14px; max-width:320px;}
+  .timerbar .fill{height:100%; width:100%; background:var(--leaf); border-radius:6px;}
+  .mgrid{display:grid; gap:10px; margin:0 auto 10px; max-width:420px;}
+  .mtile{position:relative; aspect-ratio:1/1; border-radius:16px; background:#fff; border:3px solid var(--key-line);
+    display:flex; align-items:center; justify-content:center; font-size:clamp(26px,7vw,38px); transition:transform .15s ease;}
+  .mtile.hidden{border-style:dashed; border-color:var(--grape); background:#F4F0FE; color:var(--grape); font-size:clamp(20px,5.5vw,28px);}
+  .mtile.reveal{border-color:var(--leaf-dark); box-shadow:0 0 0 4px rgba(47,179,125,.28) inset;}
+  .mtile .badge{position:absolute; top:3px; left:5px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:10.5px;
+    color:var(--ink-soft); background:var(--paper); border-radius:8px; padding:1px 5px; line-height:1.4;}
+  .prompt{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape-dark); font-size:clamp(16px,4vw,20px); margin:14px 0 12px;}
+  .optlabel{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:13px; text-transform:uppercase; letter-spacing:1px; margin:4px 0 8px;}
+  .options{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+  .opt{min-width:clamp(58px,16vw,74px); height:clamp(58px,16vw,72px); border-radius:16px; border:3px solid var(--key-line); background:#fff; cursor:pointer;
+    font-size:clamp(24px,6.5vw,30px); box-shadow:0 5px 0 #e7dff7; transition:transform .06s; display:flex; align-items:center; justify-content:center; padding:0 6px;}
+  .opt:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 #e7dff7;}
+  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .opt:hover:not(:disabled){border-color:var(--grape);}
+  .opt.wrong{animation:shake .35s ease; border-color:var(--coral);}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .opt.correct{border-color:var(--leaf); background:#EAF9F1;}
+  .opt:disabled{cursor:default;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">👀 Take a sneak peek, then remember what you saw!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">4 objects, 6s</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">6 objects, 5.5s</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">8 objects, 5s</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">9 objects, 4.5s</div></button>
+      </div>
+      <div class="howto">
+        👀 <b>How to play:</b> A row of objects appears — study them before they disappear! Then answer a question
+        about what you saw, like <b>which one wasn't there</b> or <b>what was in the 3rd spot</b>. Tap your answer!
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="caption" id="caption">👀 Watch closely — remember what you see!</div>
+      <div class="timerbar" id="timerbar"><div class="fill" id="timerfill"></div></div>
+      <div class="mgrid" id="mgrid"></div>
+      <div class="prompt hide" id="qprompt"></div>
+
+      <div id="play-view" class="hide">
+        <div class="optlabel">Tap your answer</div>
+        <div class="options" id="options"></div>
+      </div>
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
+
+      <div class="feedback" id="feedback"></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="hint-link" class="tlink">💡 Hint</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+const rnd = n => Math.floor(Math.random()*n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function ordinal(n){ const s=["th","st","nd","rd"]; const v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+
+const POOL=['🍎','🍌','🍉','🍇','🍓','🍒','🍍','🥕','🌽','🍕','🍩','🎈','🚗','🚲','✈️','⚽',
+  '🏀','🎸','🎁','📚','🐶','🐱','🐰','🦋','🌟','🌙','☀️','🌈','🍪','🧸','🚀','🐟'];
+
+/* ===== engine (verified offline) ===== */
+const LEVELS={
+  EASY:  { n:4, seconds:6,   kinds:['missing','position'],            label:"🌱 Easy" },
+  MEDIUM:{ n:6, seconds:5.5, kinds:['missing','position'],            label:"⭐ Medium" },
+  HARD:  { n:8, seconds:5,   kinds:['missing','position','order'],    label:"🔥 Hard" },
+  EXPERT:{ n:9, seconds:4.5, kinds:['missing','position','order'],    label:"🏆 Expert" },
+};
+const COLS={4:2,6:3,8:4,9:3};
+
+function genRound(level){
+  const cfg=LEVELS[level];
+  const shuffled=shuffle(POOL.slice());
+  const shown=shuffled.slice(0,cfg.n);
+  const rest=shuffled.slice(cfg.n);
+  const kind=pick(cfg.kinds);
+  if(kind==='missing'){
+    const shownPick=shuffle(shown.slice()).slice(0,3);
+    const distractor=rest[0];
+    const options=shuffle([...shownPick,distractor]);
+    return { level, n:cfg.n, shown, kind, options, answer:distractor, prompt:"Which of these wasn't there?" };
+  }
+  if(kind==='position'){
+    const pos=1+rnd(cfg.n);
+    const answer=shown[pos-1];
+    const wrongShown=shown.filter((_,i)=>i!==pos-1);
+    const distractors=shuffle(wrongShown).slice(0,3);
+    let ri=0; while(distractors.length<3){ distractors.push(rest[ri++]); }
+    const options=shuffle([answer,...distractors]);
+    return { level, n:cfg.n, shown, kind, options, answer, pos, prompt:`What was in the ${ordinal(pos)} spot?` };
+  }
+  // order
+  const refPos=1+rnd(cfg.n-1); // 1..n-1, answer is item at refPos (0-indexed refPos)
+  const refItem=shown[refPos-1];
+  const answer=shown[refPos];
+  const wrongShown=shown.filter((_,i)=>i!==refPos && i!==refPos-1);
+  const distractors=shuffle(wrongShown).slice(0,3);
+  let ri=0; while(distractors.length<3){ distractors.push(rest[ri++]); }
+  const options=shuffle([answer,...distractors]);
+  return { level, n:cfg.n, shown, kind, options, answer, refItem, prompt:`Which one came right after ${refItem}?` };
+}
+
+/* ===== state ===== */
+let level="EASY", R=null, phase='memorize', prevSig=null, memoTimer=null, peekTimer=null;
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+// level switcher (tap the chip at the top to change difficulty mid-game)
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newRound(false); }
+wireLevelMenu();
+
+$("start-btn").onclick=()=>newRound(true); $("home-btn").onclick=goHome;
+$("skip-btn").onclick=()=>newRound(false); $("next-btn").onclick=()=>newRound(false);
+$("hint-link").onclick=giveHint;
+
+const sig = r => r.shown.join(',')+'|'+r.kind+'|'+r.answer;
+function newRound(fromHome){
+  clearTimeout(memoTimer); clearTimeout(peekTimer);
+  let r; for(let a=0;a<15;a++){ r=genRound(level); if(!prevSig || sig(r)!==prevSig) break; }
+  R=r; prevSig=sig(R); phase='memorize';
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  setLevel(level);
+  $("caption").textContent="👀 Watch closely — remember what you see!"; $("caption").classList.remove("hide");
+  $("timerbar").classList.remove("hide");
+  $("qprompt").classList.add("hide"); $("qprompt").textContent="";
+  $("play-view").classList.add("hide"); $("options").innerHTML="";
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  renderGrid(true); startTimerBar(LEVELS[level].seconds);
+  setOwl('idle'); flash('','');
+  memoTimer=setTimeout(showQuestion, LEVELS[level].seconds*1000);
+}
+function startTimerBar(seconds){
+  const fill=$("timerfill");
+  fill.style.transition='none'; fill.style.width='100%';
+  if(reduceMotion) return; // no gratuitous animation — the timeout still fires on schedule
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ fill.style.transition=`width ${seconds}s linear`; fill.style.width='0%'; }); });
+}
+function renderGrid(visible){
+  const el=$("mgrid"); el.style.gridTemplateColumns=`repeat(${COLS[R.n]},1fr)`;
+  el.innerHTML=R.shown.map((emoji,i)=>
+    `<div class="mtile${visible?'':' hidden'}" data-i="${i}"><span class="badge">${i+1}</span><span class="face">${visible?emoji:'❓'}</span></div>`).join('');
+}
+function showQuestion(){
+  if(phase!=='memorize') return;
+  phase='question';
+  renderGrid(false);
+  $("caption").classList.add("hide"); $("timerbar").classList.add("hide");
+  $("qprompt").textContent=`🤔 ${R.prompt}`; $("qprompt").classList.remove("hide");
+  $("play-view").classList.remove("hide");
+  renderOptions();
+  setOwl('think'); flash('Think back to what you saw!','');
+}
+function renderOptions(){
+  const el=$("options"); el.innerHTML="";
+  R.options.forEach(v=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.value=v; b.textContent=v; b.onclick=()=>choose(v,b); el.appendChild(b); });
+}
+function choose(v, btn){
+  if(phase!=='question') return;
+  if(v===R.answer){
+    phase='done';
+    btn.classList.add('correct'); btn.disabled=true;
+    $("options").querySelectorAll('.opt').forEach(b=>b.disabled=true);
+    renderGrid(true);
+    if(R.kind!=='missing'){
+      const tile=$("mgrid").querySelector(`.mtile[data-i="${R.shown.indexOf(R.answer)}"]`);
+      if(tile) tile.classList.add('reveal');
+    }
+    $("play-view").classList.add("hide"); $("result-view").classList.remove("hide");
+    $("serve-view").classList.add("hide"); $("hint-link").classList.add("off");
+    $("rlabel").textContent=`🎉 Yes — that's right!`;
+    $("skip-btn").classList.add("invisible");   // Next takes its place; Skip keeps its slot so nothing shifts
+    $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
+    if(!reduceMotion) miniConfetti(); sound('win');
+  } else {
+    btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
+    flash("Not quite — think back to what you saw!", 'bad'); setOwl('worried'); sound('bad');
+  }
+}
+function giveHint(){
+  if(phase!=='question') return;
+  clearTimeout(peekTimer);
+  renderGrid(true); flash('💡 Quick peek!', 'hint'); setOwl('think');
+  peekTimer=setTimeout(()=>{ if(phase==='question') renderGrid(false); }, 1200);
+}
+function goHome(){ stopConfetti(); clearTimeout(memoTimer); clearTimeout(peekTimer); R=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+
+document.addEventListener("keydown", e=>{
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !R) return;
+  if(e.target && e.target.id==='hint-link') return;
+  if(e.key==='Enter' && phase==='done'){ e.preventDefault(); newRound(false); }
+  if(e.key.toLowerCase()==='h' && phase==='question') giveHint();
+});
+
+/* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
+function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
+
+initBouncyTitle("Sneak Peek");
+setLevel("EASY");
+</script>
+</body>
+</html>
