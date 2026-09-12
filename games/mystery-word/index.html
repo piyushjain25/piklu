@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mystery Word</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  :root{ --absent:#7d6f64; --absent-line:#5b4d42; }
+  .app{max-width:520px;}
+  .title{font-size:clamp(26px,5.2vw,40px);}
+  .topbar{margin-bottom:10px;}
+
+  .board{display:flex; flex-direction:column; gap:8px; align-items:center; margin:10px 0 16px;}
+  .row{display:flex; gap:8px;}
+  .row.shake{animation:shaketile .35s ease;}
+  .tile{
+    width:clamp(38px,10vw,56px); height:clamp(38px,10vw,56px);
+    border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5.5vw,28px);
+    background:#fff; border:3px solid var(--key-line); color:var(--ink);
+    transition:background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .tile.filled{border-color:var(--ink-soft); transform:scale(1.03);}
+  .tile.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
+  .tile.present{background:var(--sun); border-color:var(--sun-dark); color:var(--ink);}
+  .tile.absent{background:var(--absent); border-color:var(--absent-line); color:#fff;}
+
+  .message{text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; min-height:22px; color:var(--grape); margin:0 0 12px;}
+  .message.good{color:var(--leaf-dark);} .message.bad{color:var(--coral-dark);} .message.hint{color:var(--sun-dark);}
+
+  .keyboard{display:flex; flex-direction:column; gap:7px; align-items:center; margin:6px 0 14px;}
+  .krow{display:flex; gap:6px; justify-content:center;}
+  .key{
+    width:clamp(26px,7.2vw,40px); height:clamp(38px,9vw,48px);
+    border:none; border-radius:10px; background:var(--key,#fff); color:var(--ink);
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(14px,3.4vw,18px);
+    cursor:pointer; box-shadow:0 4px 0 var(--key-line); transition:transform .05s ease;
+  }
+  .key:active{transform:translateY(3px); box-shadow:0 1px 0 var(--key-line);}
+  .key:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .key.correct{background:var(--leaf); color:#fff; box-shadow:0 4px 0 var(--leaf-dark);}
+  .key.present{background:var(--sun); color:var(--ink); box-shadow:0 4px 0 var(--sun-dark);}
+  .key.wide{flex:0 0 auto; width:clamp(50px,13vw,70px); font-size:clamp(11px,2.6vw,14px); padding:0 4px;}
+  .key.hintglow{animation:pulseglow 1.1s ease;}
+
+  .result .rlabel.reveal{font-size:14px; color:var(--ink-soft); margin-top:4px;}
+  .hint-link.off{opacity:.45; pointer-events:none;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <!-- ===================== HOME ===================== -->
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🔍 Crack the secret 5-letter word in 6 tries!</p>
+
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">everyday words</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">trickier words</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">uncommon words</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">wild vocabulary</div></button>
+      </div>
+
+      <div class="howto">
+        🕵️ <b>How to play:</b> Type a 5-letter guess, letter by letter, then hit <b>Enter</b> or <b>Submit Guess</b> —
+        it has to be a real word! Each tile turns <b>green</b> (right letter, right spot), <b>yellow</b> (right
+        letter, wrong spot), or <b>brown</b> (not in the word) — use those clues to build your next guess! You've
+        got 6 tries. Stuck? <b>💡 Hint</b> tells you one letter (5 hints per word).
+      </div>
+
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+      <div class="hint err center hide" id="start-error">Couldn't load the word list. This game needs to be served over http(s), not opened as a local file.</div>
+    </section>
+
+    <!-- ===================== GAME ===================== -->
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="board" id="board" aria-label="Guess grid"></div>
+      <div class="message" id="message">Type a 5-letter word to begin!</div>
+
+      <div class="keyboard" id="keyboard" aria-label="Letter keyboard"></div>
+
+      <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div><div class="rlabel reveal" id="rreveal"></div></div></div>
+      <div id="serve-view">
+        <div class="actions">
+          <button id="reset-btn" class="tlink">↺ Reset</button>
+          <button id="hint-link" class="tlink hint-link">💡 Hint (5 left)</button>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="submit-btn" class="btn btn-go" disabled>Submit Guess</button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+const WORD_LEN = 5;
+const MAX_TRIES = 6;
+const MAX_HINTS = 5;
+
+const LEVELS = {
+  EASY:   { label:"🌱 Easy" },
+  MEDIUM: { label:"⭐ Medium" },
+  HARD:   { label:"🔥 Hard" },
+  EXPERT: { label:"🏆 Expert" },
+};
+const rnd = n => Math.floor(Math.random()*n);
+
+// This game only works when served (fetch() is blocked under file://) — no embedded
+// fallback word list, by design: see CLAUDE.md.
+let BANK = { EASY:[], MEDIUM:[], HARD:[], EXPERT:[] };
+let DICTIONARY = null; // Set of every word accepted as a guess, or null until loaded
+Promise.all([ loadGameData("words.json"), loadGameData("dictionary.json") ]).then(([words, dict]) => {
+  if(words){
+    for(const k of Object.keys(LEVELS)){
+      BANK[k] = Array.isArray(words[k]) ? words[k].filter(w => /^[A-Za-z]{5}$/.test(w)).map(w => w.toUpperCase()) : [];
+    }
+  }
+  if(Array.isArray(dict)){
+    DICTIONARY = new Set(dict.filter(w => /^[A-Za-z]{5}$/.test(w)).map(w => w.toUpperCase()));
+  }
+});
+
+/* ===== scoring engine (verified: handles duplicate letters like standard Wordle) ===== */
+function scoreGuess(guess, secret){
+  const res = new Array(WORD_LEN).fill("absent");
+  const left = {};
+  for(let i=0;i<WORD_LEN;i++){
+    if(guess[i]===secret[i]) res[i]="correct";
+    else left[secret[i]] = (left[secret[i]]||0) + 1;
+  }
+  for(let i=0;i<WORD_LEN;i++){
+    if(res[i]==="correct") continue;
+    const ch = guess[i];
+    if(left[ch] > 0){ res[i]="present"; left[ch]--; }
+  }
+  return res;
+}
+
+// ---------- state ----------
+let level = "EASY";
+let state = null;
+
+// Every word in a level's pool is served once (in shuffled order) before any
+// word repeats — a fresh shuffled queue is built each time the current one
+// runs out, so Skip/Next/level-switch cycle through the whole ~150-word pool
+// instead of just dodging the immediately-previous word.
+const queues = {};
+const lastServed = {};
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function poolFor(lvl){ return BANK[lvl] || []; }
+function pickWord(lvl){
+  const pool = poolFor(lvl);
+  if(!pool.length) return null;
+  if(!queues[lvl] || !queues[lvl].length){
+    let q = shuffle(pool);
+    if(pool.length>1 && q[0]===lastServed[lvl]){ [q[0],q[1]]=[q[1],q[0]]; } // don't reopen with the word that just closed the last cycle
+    queues[lvl] = q;
+  }
+  const w = queues[lvl].shift();
+  lastServed[lvl] = w;
+  return w;
+}
+
+// ---------- level select (home) ----------
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(btn=>{ btn.onclick = ()=>setLevel(btn.dataset.diff); });
+
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); startNext(); }
+wireLevelMenu();
+
+$("start-btn").onclick = ()=>{
+  $("start-error").classList.add("hide");
+  if(!DICTIONARY){ $("start-error").classList.remove("hide"); return; }
+  const w = pickWord(level);
+  if(!w){ $("start-error").classList.remove("hide"); return; }
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  startGame(w);
+};
+
+// ---------- gameplay ----------
+function startGame(secret){
+  state = {
+    secret,
+    guesses: [],       // {word, statuses}
+    current: new Array(WORD_LEN).fill(null),
+    hintedPositions: new Set(), // positions revealed by a *position* hint (tier 2, once every letter is known)
+    hintedLetters: new Set(),   // letters revealed by a *letter* hint (tier 1) — never re-announced
+    hintsUsed: 0,
+    keyStatus: {},     // letter -> "correct" | "present" | "absent"
+    status: "playing",
+  };
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===level));
+  $("q-level-label").textContent = LEVELS[level].label;
+  $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
+  $("submit-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible");
+  setMessage("Type a 5-letter word to begin!", "");
+  buildKeyboard();
+  renderBoard();
+  updateHintLink();
+  updateSubmitBtn();
+  setOwl("idle");
+}
+
+function renderBoard(){
+  const box = $("board"); box.innerHTML = "";
+  // once the round is over, don't show empty rows below the last guess — there's
+  // nothing left to fill in, so only the rows actually played stay on screen
+  const rowCount = state.status==="playing" ? MAX_TRIES : state.guesses.length;
+  for(let r=0; r<rowCount; r++){
+    const row = document.createElement("div"); row.className = "row";
+    for(let c=0; c<WORD_LEN; c++){
+      const t = document.createElement("div"); t.className = "tile";
+      if(r < state.guesses.length){
+        const g = state.guesses[r];
+        t.textContent = g.word[c];
+        t.classList.add(g.statuses[c]);
+      } else if(r === state.guesses.length){
+        const ch = state.current[c];
+        if(ch){ t.textContent = ch; t.classList.add("filled"); }
+      }
+      row.appendChild(t);
+    }
+    box.appendChild(row);
+  }
+  return box;
+}
+
+function buildKeyboard(){
+  const rows = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  const kb = $("keyboard"); kb.innerHTML = "";
+  rows.forEach((row,ri)=>{
+    const r = document.createElement("div"); r.className="krow";
+    if(ri===2){
+      const enter=document.createElement("button");
+      enter.className="key wide"; enter.textContent="Enter";
+      enter.setAttribute("aria-label","Submit guess");
+      enter.onclick=submitGuess;
+      r.appendChild(enter);
+    }
+    for(const ch of row){
+      const b=document.createElement("button");
+      b.className="key"; b.textContent=ch; b.dataset.letter=ch;
+      b.setAttribute("aria-label","Letter "+ch);
+      b.onclick=()=>typeLetter(ch);
+      r.appendChild(b);
+    }
+    if(ri===2){
+      const back=document.createElement("button");
+      back.className="key wide"; back.textContent="⌫";
+      back.setAttribute("aria-label","Backspace");
+      back.onclick=backspace;
+      r.appendChild(back);
+    }
+    kb.appendChild(r);
+  });
+}
+function renderKeyboard(){
+  document.querySelectorAll(".key[data-letter]").forEach(b=>{
+    const st = state.keyStatus[b.dataset.letter];
+    b.classList.remove("correct","present","invisible");
+    if(st==="correct") b.classList.add("correct");
+    else if(st==="present") b.classList.add("present");
+    else if(st==="absent") b.classList.add("invisible"); // "removed" — hidden but keeps its space so the keyboard doesn't reflow
+  });
+}
+
+function setMessage(txt, kind){
+  const m=$("message"); m.textContent=txt;
+  m.className="message"+(kind?(" "+kind):"");
+}
+function updateHintLink(){
+  const left = MAX_HINTS - state.hintsUsed;
+  const link = $("hint-link");
+  link.textContent = `💡 Hint (${left} left)`;
+  const distinctLetters = [...new Set(state.secret.split(""))];
+  const noFreshLetters = distinctLetters.every(ch => letterKnown(ch));
+  const noOpenPositions = [...Array(WORD_LEN).keys()].every(i => state.hintedPositions.has(i) || knownCorrect(i));
+  link.classList.toggle("off", state.status!=="playing" || left<=0 || (noFreshLetters && noOpenPositions));
+}
+function updateSubmitBtn(){
+  $("submit-btn").disabled = state.status!=="playing" || state.current.some(c=>c===null);
+}
+function knownCorrect(i){ return state.guesses.some(g => g.statuses[i]==="correct"); }
+function letterKnown(ch){ return state.hintedLetters.has(ch) || state.keyStatus[ch]==="correct" || state.keyStatus[ch]==="present"; }
+
+// ---------- typing ----------
+function typeLetter(ch){
+  if(!state || state.status!=="playing") return;
+  const i = state.current.indexOf(null);
+  if(i===-1) return;
+  state.current[i] = ch.toUpperCase();
+  renderBoard(); updateSubmitBtn();
+}
+function backspace(){
+  if(!state || state.status!=="playing") return;
+  for(let i=WORD_LEN-1;i>=0;i--){
+    if(state.current[i]!==null){ state.current[i]=null; break; }
+  }
+  renderBoard(); updateSubmitBtn();
+}
+function submitGuess(){
+  if(!state || state.status!=="playing") return;
+  if(state.current.some(c=>c===null)){
+    const box=$("board");
+    if(!reduceMotion){ const lastRow=box.children[state.guesses.length]; lastRow.classList.add("shake"); setTimeout(()=>lastRow.classList.remove("shake"),400); }
+    setMessage("Fill in all 5 letters first!", "");
+    return;
+  }
+  const word = state.current.join("");
+  if(DICTIONARY && word!==state.secret && !DICTIONARY.has(word)){
+    const box=$("board");
+    if(!reduceMotion){ const lastRow=box.children[state.guesses.length]; lastRow.classList.add("shake"); setTimeout(()=>lastRow.classList.remove("shake"),400); }
+    setMessage(`"${word}" isn't a word we know — try again!`, "bad");
+    setOwl("think"); sound("bad");
+    return; // not a real word — doesn't use up a try
+  }
+  const statuses = scoreGuess(word, state.secret);
+  state.guesses.push({ word, statuses });
+  for(let i=0;i<WORD_LEN;i++){
+    const ch=word[i], st=statuses[i];
+    const rank={absent:0,present:1,correct:2};
+    if(!(ch in state.keyStatus) || rank[st]>rank[state.keyStatus[ch]]) state.keyStatus[ch]=st;
+  }
+  renderKeyboard();
+
+  if(word===state.secret){ win(); renderBoard(); return; }
+  if(state.guesses.length>=MAX_TRIES){ lose(); renderBoard(); return; }
+
+  state.current = new Array(WORD_LEN).fill(null);
+  renderBoard(); updateSubmitBtn(); updateHintLink();
+  const anyCorrect = statuses.includes("correct"), anyPresent = statuses.includes("present");
+  setMessage(`Guess ${state.guesses.length} of ${MAX_TRIES} used — keep going!`, "");
+  setOwl(anyCorrect ? "happy" : anyPresent ? "think" : "worried");
+  sound(anyCorrect ? "good" : "bad");
+}
+$("submit-btn").onclick = submitGuess;
+
+function glowKey(letter){
+  if(reduceMotion) return;
+  const keyBtn = [...document.querySelectorAll(".key[data-letter]")].find(b=>b.dataset.letter===letter);
+  if(keyBtn){ keyBtn.classList.add("hintglow"); setTimeout(()=>keyBtn.classList.remove("hintglow"), 1100); }
+}
+function giveHint(){
+  if(!state || state.status!=="playing") return;
+  if(state.hintsUsed>=MAX_HINTS){ setMessage("No hints left — you can do this!", "hint"); return; }
+
+  // tier 1: reveal a letter that hasn't been identified yet (not by an earlier
+  // hint, and not already found present/correct through the player's own guesses)
+  const distinctLetters = [...new Set(state.secret.split(""))];
+  const freshLetters = distinctLetters.filter(ch => !letterKnown(ch));
+  if(freshLetters.length){
+    const letter = freshLetters[rnd(freshLetters.length)];
+    state.hintedLetters.add(letter);
+    state.hintsUsed++;
+    updateHintLink(); glowKey(letter);
+    setMessage(`💡 Try "${letter}" — it's in the word!`, "hint");
+    setOwl("think"); sound("hint");
+    return;
+  }
+
+  // tier 2: every letter is already identified — reveal where one of them goes
+  const openPositions = [];
+  for(let i=0;i<WORD_LEN;i++) if(!state.hintedPositions.has(i) && !knownCorrect(i)) openPositions.push(i);
+  if(!openPositions.length){ setMessage("You already know the whole word — go for it!", "hint"); return; }
+  const idx = openPositions[rnd(openPositions.length)];
+  const letter = state.secret[idx];
+  state.hintedPositions.add(idx);
+  state.hintsUsed++;
+  updateHintLink(); glowKey(letter);
+  setMessage(`💡 Letter ${idx+1} is "${letter}"!`, "hint");
+  setOwl("think"); sound("hint");
+}
+$("hint-link").onclick = giveHint;
+
+function resetPuzzle(){
+  if(!state || state.status!=="playing") return;
+  state.guesses = [];
+  state.current = new Array(WORD_LEN).fill(null);
+  state.hintedPositions = new Set();
+  state.hintedLetters = new Set();
+  state.hintsUsed = 0;
+  state.keyStatus = {};
+  renderBoard(); renderKeyboard(); updateSubmitBtn(); updateHintLink();
+  setMessage("Board reset — full tries and hints restored!", ""); setOwl("idle");
+}
+$("reset-btn").onclick = resetPuzzle;
+
+// ---------- end states ----------
+function disableInputs(){
+  document.querySelectorAll(".key").forEach(k=>k.disabled=true);
+  $("submit-btn").disabled=true;
+}
+function win(){
+  state.status="won"; disableInputs();
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("rlabel").textContent = "🌟 You cracked it!"; $("rreveal").textContent = "";
+  $("skip-btn").classList.add("invisible");
+  $("submit-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  setMessage("", "");
+  setOwl("win"); sound("win");
+  if(!reduceMotion) launchConfetti();
+}
+function lose(){
+  state.status="lost"; disableInputs();
+  $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
+  $("rlabel").textContent = "🦉 So close!"; $("rreveal").textContent = `The word was ${state.secret}.`;
+  $("skip-btn").classList.add("invisible");
+  $("submit-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  setMessage("", "");
+  setOwl("worried"); sound("lose");
+}
+
+$("skip-btn").onclick = ()=>{ if(!state || state.status!=="playing") return; startNext(); };
+$("home-btn").onclick = goHome;
+$("next-btn").onclick = startNext;
+
+function startNext(){
+  const w = pickWord(level);
+  if(!w){ goHome(); return; }
+  startGame(w);
+}
+function goHome(){
+  stopConfetti();
+  state=null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+// physical keyboard
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){ closeLevelMenu(); return; }
+  if(!state || $("screen-game").classList.contains("hide") || state.status!=="playing") return;
+  if(e.key==="Enter"){ e.preventDefault(); submitGuess(); return; }
+  if(e.key==="Backspace"){ e.preventDefault(); backspace(); return; }
+  if(/^[a-zA-Z]$/.test(e.key)) typeLetter(e.key);
+});
+
+// ---------- sound (beep/setOwl/stopConfetti shared in site.js) ----------
+function sound(kind){
+  if(kind==="good"){ beep(660,.12,"triangle"); beep(880,.14,"triangle",.08); }
+  else if(kind==="bad"){ beep(200,.18,"sawtooth",0,.10); }
+  else if(kind==="hint"){ beep(520,.14,"sine",0,.12); }
+  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.11)); }
+  else if(kind==="lose"){ [392,330,262].forEach((f,i)=>beep(f,.25,"sine",i*.16,.13)); }
+}
+
+function launchConfetti(){
+  const cv=$("confetti"); cv.style.display="block";
+  const ctx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#FF6B7A","#2FB37D","#FFCF43","#3FA7E0"];
+  const parts=Array.from({length:120},()=>({
+    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
+    r:5+Math.random()*7, c:colors[Math.floor(Math.random()*colors.length)],
+    vy:2+Math.random()*3, vx:-1.5+Math.random()*3, rot:Math.random()*6, vr:-.2+Math.random()*.4
+  }));
+  let frames=0;
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore();
+    });
+    frames++;
+    if(frames<220){ confettiRAF=requestAnimationFrame(draw); } else { stopConfetti(); }
+  })();
+}
+
+initBouncyTitle("Mystery Word");
+setLevel("EASY");
+</script>
+</body>
+</html>

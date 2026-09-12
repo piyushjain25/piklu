@@ -89,4 +89,7 @@ window.GAMES = [
 
   { slug: "sneak-peek",      title: "Sneak Peek",             emoji: "🧠", accent: "sun",    ageGroup: "5+",
     tagline: "Take a sneak peek, then remember what you saw!", skills: ["Memory", "Attention"],                   badge:"New"},
+
+  { slug: "mystery-word",    title: "Mystery Word",           emoji: "🔍", accent: "coral",  ageGroup: "7+",
+    tagline: "Crack the secret 5-letter word in 6 tries!",    skills: ["Spelling", "Logic", "Vocabulary"],        badge:"New"},
 ];
