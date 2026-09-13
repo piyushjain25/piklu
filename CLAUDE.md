@@ -223,7 +223,7 @@ robot-instructions · shopping-adventure · coin-counter · times-table-pop ·
 pizza-party · set-the-clock · what-comes-next ·
 word-guess · guess-the-capital · math-monsters · shape-sorter · color-match ·
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
-mouse-maze
+mouse-maze · sneak-peek · mystery-word · tick-tock-toe
 
 `word-guess`, `guess-the-capital`, and `spell-a-bee` are the **data-driven** games:
 each loads its data from a JSON file in its own folder (`word-guess/words.json`,
