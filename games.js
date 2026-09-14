@@ -95,4 +95,7 @@ window.GAMES = [
 
   { slug: "tick-tock-toe",   title: "Tick Tock Toe",          emoji: "⏳", accent: "sky",    ageGroup: "6+",
     tagline: "Three in a row — but your oldest mark fades away!", skills: ["Strategy", "Logic", "Memory"],      badge:"New"},
+
+  { slug: "tic-tac-trek",    title: "Tic Tac Trek",           emoji: "🧭", accent: "grape",  ageGroup: "7+",
+    tagline: "Nine boards in one — your move sends the owl!",  skills: ["Strategy", "Logic", "Planning ahead"], badge:"New"},
 ];
