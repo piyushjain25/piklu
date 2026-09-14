@@ -1,0 +1,11 @@
+{
+  "name": "piklu-tests",
+  "private": true,
+  "description": "Offline test suite for the piklu games site. Never deployed — see _tests/README.md.",
+  "scripts": {
+    "test": "./run.sh"
+  },
+  "dependencies": {
+    "jsdom": "^24.1.3"
+  }
+}

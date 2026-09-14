@@ -1,0 +1,20 @@
+# GitHub Pages build config.
+#
+# The site is plain static files — nothing here changes how a game is served. This file
+# exists for one reason: to keep everything that is NOT the site off the public web.
+#
+# Two mechanisms, on purpose:
+#   1. `_tests/` starts with an underscore, which Jekyll never copies into the built site.
+#   2. it is also listed in `exclude` below, so the suite stays private even if the
+#      underscore convention ever stops applying (e.g. someone adds a .nojekyll file).
+#
+# Anything added here that is developer-only — notes, fixtures, scratch work — belongs in
+# this list too. Verify after deploying with:  curl -I https://piklu.in/_tests/run.sh
+exclude:
+  - _tests          # the offline test suite — never part of the site
+  - CLAUDE.md       # internal project guide
+  - README.md       # internal readme
+  - node_modules    # (Jekyll excludes these by default; repeated because `exclude` replaces
+  - vendor          #  the default list rather than adding to it)
+  - Gemfile
+  - Gemfile.lock
