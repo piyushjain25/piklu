@@ -35,7 +35,10 @@ online toy store later. Read the rules below before changing anything.
    Load it with the shared `loadGameData(path)` helper from `assets/site.js` (see "Shared
    JS helpers") using a **relative** path (e.g. `loadGameData('words.json')`) — keep the
    data next to that game's `index.html` so the game stays portable. The only allowed
-   external network calls are Google Fonts and (for a couple of games) `cdnjs.cloudflare.com`.
+   external network calls are Google Fonts and, for `guess-the-capital` only, the flag images
+   from `flagcdn.com`. (`cdnjs.cloudflare.com` is allowed but no game currently uses it.)
+   `_tests/site/conventions.test.js` enforces this list — add a host there, with a reason, or
+   not at all.
 5. **Keep it kid-safe and ad-free.** Age-appropriate content and friendly tone only.
    No ads, no analytics/tracking, no third-party trackers, no data collection.
 
@@ -52,8 +55,17 @@ online toy store later. Read the rules below before changing anything.
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
+/_tests/                the offline test suite — Node + jsdom, NEVER deployed (see "Tests")
+/_config.yml            GitHub Pages build config; its only job is keeping non-site files
+                        (`_tests/`, CLAUDE.md, README.md) off the public web
 /CLAUDE.md              this file
 ```
+
+Anything that is not part of the website — tests, notes, fixtures, scratch work — goes in a
+folder whose name starts with `_` **and** gets listed in `_config.yml`'s `exclude:`. Jekyll
+skips `_`-prefixed paths, and the explicit `exclude` keeps them private even if that
+convention ever stops applying. Never put developer-only files at a plain path: GitHub Pages
+serves the repo, so `/whatever.js` is a public URL the moment it is pushed.
 
 ## Adding a new game (the ONLY supported way)
 
@@ -85,7 +97,11 @@ Two steps — never edit the hub's HTML or CSS to add a game:
    Field reference:
    - `slug` (required) — folder name; becomes the URL `/games/<slug>/`. Must be unique.
    - `title`, `tagline`, `emoji` (required) — shown on the card.
-   - `accent` (required) — one of `grape | coral | leaf | sun | sky`.
+   - `accent` (required) — one of `grape | coral | leaf | sun | sky`. Pick one that doesn't
+     match the entry 1, 2 or 3 places above it in this array: the hub grid is
+     `repeat(auto-fill,minmax(240px,1fr))` inside a 1080px wrap, so it renders as 1–4
+     columns and those are the cards that end up side by side or stacked. (4 apart can
+     repeat — forbidding that too leaves only a rigid 5-colour stripe.)
    - `ageGroup` (required) — recommended starting age, shown on the card as `Age: X+`.
      Must be one of exactly **five bands**: `"3+"`, `"6+"`, `"9+"`, `"12+"`, `"15+"` — no other
      value. The hub builds its age filter from whatever values appear here, so an off-scale
@@ -94,7 +110,10 @@ Two steps — never edit the hub's HTML or CSS to add a game:
      number work · `9+` fluent reading, times tables, multi-step logic · `12+` abstract
      reasoning and wide vocabulary · `15+` deep strategy.
      This is a **hub-only** label — never shown inside the game itself.
-   - `skills` (optional) — tags shown on the card and used by the hub's search.
+   - `skills` (optional) — **at most two** tags, shown on the card and used by the hub's
+     search. Reuse a tag that already appears in `games.js` rather than coining a near
+     synonym — every arithmetic/mental-math/place-value game is just `Math`, and the list
+     is short on purpose so the search stays useful.
    - `badge` (optional) — small ribbon like `"New"`; omit for none.
 
 The card, its link, and the search filter appear automatically.
@@ -219,14 +238,49 @@ at load) — if a game needs different behavior for one of them (e.g. `word-gues
 `#q-level` guard), call the lower-level helper instead of the all-in-one wrapper, as
 described above.
 
-## Quality bar (how games are verified)
+## Tests (`_tests/`) — how games are verified
 
-Existing games were built with a **pure-JS engine** (puzzle generation + solver) that is
-stress-tested with Node, plus a **jsdom headless play-through** that drives the DOM and
-asserts the game is winnable, wrong answers are rejected, and difficulty scales. When you
-add or change game logic, follow the same pattern: keep the generator/solver as a
-testable function and, if the environment has Node, add a quick check before shipping.
-Prefer correctness proofs (e.g. "greedy == optimal for all inputs") over spot checks.
+The suite lives in `/_tests/` and is **not part of the website**: it is excluded from the
+build, so it has no public URL, and nothing in it is needed to open, serve, or deploy the
+site. The site itself stays plain static files with no build step and no dependencies
+(rule 3). The suite's own dependency (jsdom) is confined to `_tests/package.json`.
+
+```sh
+./_tests/run.sh          # installs jsdom on first run, then runs every *.test.js
+```
+
+**The one rule: a test never keeps its own copy of a game's code.** `_tests/lib/harness.js`
+slices the engine out of the real `games/<slug>/index.html` at run time and boots the real
+page in jsdom, so a passing test is a statement about the file the site actually ships. A
+copied engine drifts from the game and silently stops proving anything — the same reason
+rule 4 forbids an inline copy of a data file.
+
+Layout:
+
+```
+_tests/lib/harness.js           loadEngine(), bootGame(), loadCatalog(), tally(), mulberry32()
+_tests/site/catalog.test.js     games.js + the hub — every game: real folder, valid accent,
+                                on-scale age band, renders as a card, findable by search
+_tests/site/conventions.test.js the structural rules of this file — every game: the three
+                                shared assets linked, no redeclared site.js global, no
+                                re-styled shared class, no stray host, no storage, JSON parses
+_tests/site/rules-sheet.test.js the shared rules sheet, in the games that use it
+_tests/games/<slug>/*.test.js   per-game engine stress tests and jsdom play-throughs
+```
+
+**When you add a game,** the `site/*` tests cover it automatically — run them, they catch
+most convention slips on their own. Add `_tests/games/<slug>/` when the game has real logic
+worth proving. Keep the generator/solver as a pure, DOM-free function and end the engine
+block with:
+
+```js
+if (typeof module !== "undefined") module.exports = { newGame, applyMove, /* … */ };
+```
+
+Harmless in a browser (`module` is undefined there); it is what lets `loadEngine()` reach the
+real code. Prefer correctness proofs over spot checks — "every generated board is solvable and
+the claimed minimum really clears it, across 10,000 boards" beats a handful of examples. If a
+game has no `module.exports` line, the play-through (`bootGame`) still works.
 
 ## Publishing (how changes go live)
 
@@ -242,7 +296,8 @@ robot-instructions · shopping-adventure · coin-counter · times-table-pop ·
 pizza-party · set-the-clock · what-comes-next ·
 word-guess · guess-the-capital · math-monsters · shape-sorter · color-match ·
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
-mouse-maze · sneak-peek · mystery-word · tick-tock-toe · tic-tac-trek
+mouse-maze · sneak-peek · mystery-word · tick-tock-toe · tic-tac-trek ·
+lights-out
 
 `word-guess`, `guess-the-capital`, and `spell-a-bee` are the **data-driven** games:
 each loads its data from a JSON file in its own folder (`word-guess/words.json`,

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lights Out</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  /* night-town theme — local vars only, the design system itself lives in site.css */
+  :root{
+    --night:#241a4d; --night-line:#160f33; --sky-glow:#3b2c78;
+    --win-off:#2e2560; --win-off-line:#463a86; --win-off-ink:#8f85c4;
+    --win-on:#FFCF43;  --win-on-line:#e6a800;  --win-on-ink:#6b4a00;
+  }
+  .app{max-width:520px;}
+  .title{font-size:clamp(28px,5.6vw,42px);}
+  .topbar{margin-bottom:10px;}
+
+  /* ---- the town ---- */
+  .townwrap{display:flex; flex-direction:column; align-items:center; gap:10px;}
+  /* no panel behind the board — the tiles themselves carry the whole picture */
+  .town{display:grid; gap:clamp(7px,2vw,10px); width:min(330px,84vw);}
+  .win{
+    aspect-ratio:1; border-radius:12px; border:3px solid var(--win-off-line);
+    background:var(--win-off); color:var(--win-off-ink);
+    font-family:'Fredoka',sans-serif; font-weight:700; cursor:pointer; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(17px,5.2vw,25px); line-height:1;
+    transition:background .16s, color .16s, border-color .16s, transform .1s, box-shadow .16s;
+    touch-action:manipulation;
+  }
+  .win.on{
+    background:var(--win-on); border-color:var(--win-on-line); color:var(--win-on-ink);
+    box-shadow:0 0 12px rgba(255,207,67,.55), 0 0 26px rgba(255,207,67,.28);
+  }
+  .win:active{transform:scale(.93);}
+  /* the faint outline that teaches the flip shape on the easier levels */
+  .win.pre{border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,.34);}
+  /* the hint ring — dashed, so it never reads as the solid .pre preview */
+  .win.hinted{outline:3px dashed var(--sun); outline-offset:3px; animation:hintpulse 1.1s ease-in-out infinite;}
+  @keyframes hintpulse{0%,100%{outline-color:var(--sun);} 50%{outline-color:#fff;}}
+  .win:focus-visible{outline:3px solid #fff; outline-offset:3px;}
+  .town.done .win{cursor:default;}
+
+  /* ---- the 3x3 glyph of the current flip shape ---- */
+  .shapebar{display:flex; align-items:center; justify-content:center; gap:10px;
+            font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:14px;}
+  .shapeglyph{display:grid; grid-template-columns:repeat(3,10px); gap:3px;}
+  .shapeglyph i{width:10px; height:10px; border-radius:3px; background:#DCD5F2;}
+  .shapeglyph i.f{background:var(--grape); opacity:.55;}
+  .shapeglyph i.c{background:var(--sun-dark); opacity:1;}
+
+  .lit-count{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:14px;}
+  .lit-count b{color:var(--grape);}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  /* no panel behind the diagrams either, so they match the real board */
+  .lgrid{display:grid; gap:4px;}
+  .lgrid i{width:20px; height:20px; border-radius:5px; background:var(--win-off);
+           border:2px solid var(--win-off-line);}
+  .lgrid i.on{background:var(--win-on); border-color:var(--win-on-line);}
+  .lgrid i.tap{box-shadow:0 0 0 2px #fff;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">💡 Tap the windows and put the whole town to sleep!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">2×2 town · full undo</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">3×3 town · 5 undos</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">4×4 town · 3 undos</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">5×5 town · 1 undo</div></button>
+      </div>
+      <div class="howto">
+        🌙 <b>How to play:</b> Every window is a house light. Tap one and it switches —
+        but <b>its neighbours switch too</b>! Turn <b>every light off</b> to put the town to sleep.
+        The bigger the town, the harder it gets — and the less you can take back.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="shapebar">
+        <span>A tap switches:</span>
+        <span class="shapeglyph" id="shape-glyph" aria-hidden="true"></span>
+      </div>
+
+      <div class="townwrap">
+        <div class="town" id="board" role="group" aria-label="The town"></div>
+        <div class="lit-count" id="lit-count"></div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button id="undo-btn" class="tlink">↩️ Undo</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Lights Out</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   Lights Out. Every cell is a light, 0 = off, 1 = on. Clicking cell i toggles i and its
+   neighbours — the "plus" neighbours on most levels, the four DIAGONAL ones on EXPERT.
+
+   Two facts make the whole game work, and both are why the engine is separated out here:
+
+   1. Boards are built BY CONSTRUCTION, never randomised directly. Start from the solved
+      board and apply k random clicks; the resulting board is solvable because those same k
+      clicks undo it (a click is its own inverse over GF(2)).
+
+   2. Clicking is commutative and self-inverse, so a solution is a SET of cells, not a
+      sequence. That turns "what is the shortest solution?" into a linear algebra problem
+      over GF(2), which solveMin() answers exactly — that is what the stars are scored on.
+
+   A board is a plain array of 0/1; a click set is a bitmask (size*size <= 25 bits).        */
+
+/* `k` is a RANGE of seed clicks, not a fixed count: on the 3x3 the solution is unique, so a
+   fixed k would make every Easy board need exactly the same number of taps. */
+/* The flip shape is the SAME on every level — a plus, always. Difficulty comes from the size
+   of the town, how deep the puzzle is, and how much undo you are allowed, never from changing
+   the rule underneath the player.
+
+   `k` is a RANGE of seed clicks, and `floor` is the shortest solution a level will accept.
+   Both are set from the measured depth each grid can actually reach: a 2x2 tops out at 4
+   clicks and a 3x3 at 9, while a 4x4 collapses back to 7 because its large null space turns
+   long solutions into shorter equivalent ones. So the floors, not the grid size, are what
+   keep the ladder rising. */
+const LEVELS = {
+  EASY:   { size:2, k:[2,4],  floor:2, label:"🌱 Easy",   undoLimit:Infinity, preview:true  },
+  MEDIUM: { size:3, k:[3,6],  floor:3, label:"⭐ Medium", undoLimit:5,        preview:true  },
+  HARD:   { size:4, k:[5,8],  floor:5, label:"🔥 Hard",   undoLimit:3,        preview:false },
+  EXPERT: { size:5, k:[7,12], floor:7, label:"🏆 Expert", undoLimit:1,        preview:false },
+};
+
+/* at most this many hints before the round drops to a single star */
+const HINT_MAX = 3;
+
+const DELTAS = [[-1,0],[1,0],[0,-1],[0,1]];
+
+/* the cells a click on i toggles — itself plus its up/down/left/right neighbours */
+function flipList(i, size){
+  const out = [i], r = (i / size) | 0, c = i % size;
+  for(const [dr,dc] of DELTAS){
+    const nr = r + dr, nc = c + dc;
+    if(nr >= 0 && nr < size && nc >= 0 && nc < size) out.push(nr * size + nc);
+  }
+  return out;
+}
+function flipMask(i, size){
+  let m = 0;
+  for(const t of flipList(i, size)) m |= 1 << t;
+  return m;
+}
+function applyClick(board, i, size){
+  const out = board.slice();
+  for(const t of flipList(i, size)) out[t] ^= 1;
+  return out;
+}
+const isSolved = board => board.every(v => v === 0);
+function popcount(x){ let n = 0; while(x){ x &= x - 1; n++; } return n; }
+
+/* ---- minimum solution over GF(2) -------------------------------------------------------
+   Cell e must end up off, so for every cell e:  XOR over clicks v that touch e  ==  board[e].
+   That is a linear system A x = b over GF(2). Row-reduce it, then walk the null space: every
+   solution is (particular XOR null-space vector), and the fewest clicks is the smallest
+   popcount among them. The null space is tiny for these sizes (nullity 0-8), and the walk is
+   capped so a pathological rule could never hang the page.                                 */
+const NULL_CAP = 1 << 14;
+
+function solveMask(board, size){
+  const n = size * size, RHS = 1 << n, VARS = RHS - 1;
+  const rows = [];
+  for(let e = 0; e < n; e++){
+    let row = 0;
+    for(let v = 0; v < n; v++) if(flipMask(v, size) & (1 << e)) row |= 1 << v;
+    if(board[e]) row |= RHS;
+    rows.push(row);
+  }
+  /* reduced row echelon form */
+  const pivotRow = new Array(n).fill(-1);
+  let r = 0;
+  for(let v = 0; v < n && r < n; v++){
+    let p = -1;
+    for(let i = r; i < n; i++) if(rows[i] & (1 << v)){ p = i; break; }
+    if(p < 0) continue;
+    const t = rows[r]; rows[r] = rows[p]; rows[p] = t;
+    for(let i = 0; i < n; i++) if(i !== r && (rows[i] & (1 << v))) rows[i] ^= rows[r];
+    pivotRow[v] = r; r++;
+  }
+  /* 0 = 1 anywhere means no solution exists (generated boards can never hit this) */
+  for(let i = 0; i < n; i++) if(!(rows[i] & VARS) && (rows[i] & RHS)) return -1;
+
+  const free = [];
+  for(let v = 0; v < n; v++) if(pivotRow[v] < 0) free.push(v);
+
+  /* pick the free variables, then read each pivot variable off its own row */
+  function solutionFor(bits){
+    let x = 0;
+    for(let i = 0; i < free.length; i++) if(bits >> i & 1) x |= 1 << free[i];
+    for(let v = 0; v < n; v++){
+      const row = pivotRow[v];
+      if(row < 0) continue;
+      const rest = rows[row] & VARS & ~(1 << v);       /* after RREF these are all free vars */
+      if((((rows[row] & RHS) ? 1 : 0) ^ (popcount(rest & x) & 1))) x |= 1 << v;
+    }
+    return x;
+  }
+  const combos = free.length >= 31 ? NULL_CAP : Math.min(1 << free.length, NULL_CAP);
+  let best = -1, bestN = Infinity;
+  for(let bits = 0; bits < combos; bits++){
+    const x = solutionFor(bits), w = popcount(x);
+    if(w < bestN){ bestN = w; best = x; }
+  }
+  return best;
+}
+/* the headline number: how few clicks this board can be cleared in */
+function solveMin(board, size){
+  const m = solveMask(board, size);
+  return m < 0 ? -1 : popcount(m);
+}
+
+/* ---- board generation ------------------------------------------------------------------
+   k distinct random clicks from the solved board. Rejected if it lands back on solved, if it
+   repeats the board being replaced (so Skip and Next always actually change something), or if
+   it is too shallow to be worth solving.                                                    */
+function genBoard(level, rand, avoid){
+  const cfg = LEVELS[level], n = cfg.size * cfg.size;
+  const pool = Array.from({length:n}, (_, i) => i);
+  const key = b => b.join("");
+  const avoidKey = avoid ? key(avoid) : null;
+  let loose = null;
+  for(let attempt = 0; attempt < 400; attempt++){
+    const k = cfg.k[0] + ((rand() * (cfg.k[1] - cfg.k[0] + 1)) | 0);
+    for(let i = 0; i < k; i++){                           /* partial Fisher-Yates: k distinct */
+      const j = i + ((rand() * (n - i)) | 0);
+      const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    let board = new Array(n).fill(0);
+    for(let i = 0; i < k; i++)
+      for(const t of flipList(pool[i], cfg.size)) board[t] ^= 1;
+
+    if(isSolved(board)) continue;
+    if(avoidKey && key(board) === avoidKey) continue;
+    if(solveMin(board, cfg.size) >= cfg.floor) return board;
+    loose = loose || board;          /* solvable and different, just shallow — keep as backup */
+  }
+  return loose || genBoard(level, rand, null);
+}
+
+/* Two gates, and the round gets the lower of them: how close to the shortest solution the
+   player finished, and how much help they asked for. Three stars means "no hints AND an
+   efficient solve" — a hint is free to use, it just cannot buy a perfect score. */
+function starsFor(clicks, min, hints){
+  const byClicks = clicks <= min + 2 ? 3 : clicks <= min + 5 ? 2 : 1;
+  const byHints  = !hints ? 3 : hints <= HINT_MAX ? 2 : 1;
+  return Math.min(byClicks, byHints);
+}
+
+if(typeof module !== "undefined") module.exports = { LEVELS, HINT_MAX, DELTAS, flipList, flipMask,
+  applyClick, isSolved, popcount, solveMask, solveMin, genBoard, starsFor };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+let level = "EASY";
+let board = [], stack = [], minClicks = 0, done = false, focusIdx = 0;
+/* `hints` caps the stars; `undoRun` is how many times the player has stepped back WITHOUT
+   tapping in between — that run, not a per-puzzle budget, is what each level limits. */
+let hints = 0, undoRun = 0;
+const cfg = () => LEVELS[level];
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "on")        beep(430, .07, "triangle", 0, .07);
+  else if(kind === "off")  beep(300, .07, "sine", 0, .06);
+  else if(kind === "chain"){ beep(520, .08, "triangle", 0, .08); beep(700, .10, "triangle", .07, .07); }
+  else if(kind === "undo") beep(240, .09, "sine", 0, .06);
+  else if(kind === "hint"){ beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "win")  [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+}
+
+/* ---- rendering ---- */
+function drawShapeGlyph(){
+  const on = [1,3,5,7];                       /* always a plus, on every level */
+  let h = "";
+  for(let i = 0; i < 9; i++) h += '<i class="' + (i === 4 ? "c" : on.indexOf(i) >= 0 ? "f" : "") + '"></i>';
+  $("shape-glyph").innerHTML = h;
+}
+function buildBoard(){
+  const size = cfg().size, b = $("board");
+  b.style.gridTemplateColumns = "repeat(" + size + ",1fr)";
+  b.innerHTML = "";
+  for(let i = 0; i < size * size; i++){
+    const cell = document.createElement("button");
+    cell.className = "win";
+    cell.dataset.i = i;
+    cell.type = "button";
+    cell.tabIndex = i === 0 ? 0 : -1;
+    cell.onclick = () => tap(i);
+    /* the faint outline that teaches the flip shape without a tutorial screen */
+    cell.onpointerenter = () => preview(i, true);
+    cell.onpointerleave = () => preview(i, false);
+    cell.onfocus = () => { focusIdx = i; preview(i, true); };
+    cell.onblur = () => preview(i, false);
+    b.appendChild(cell);
+  }
+}
+function paint(){
+  const cells = $("board").children;
+  for(let i = 0; i < cells.length; i++){
+    const on = board[i] === 1;
+    cells[i].classList.toggle("on", on);
+    /* shape carries the state too — never colour alone */
+    cells[i].textContent = on ? "✦" : "☾";
+    cells[i].setAttribute("aria-label", "Window " + (i + 1) + ", light " + (on ? "on" : "off"));
+    cells[i].setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  const lit = board.reduce((a, v) => a + v, 0);
+  $("lit-count").innerHTML = done ? "All lights out — the town is asleep 😴"
+    : "<b>" + lit + "</b> light" + (lit === 1 ? "" : "s") + " still on · <b>" + stack.length + "</b> tap" + (stack.length === 1 ? "" : "s");
+  const u = $("undo-btn"), left = cfg().undoLimit - undoRun;
+  const canUndo = stack.length > 0 && !done && left > 0;
+  /* every level has Undo; what changes is how far back you may step in one go */
+  u.textContent = cfg().undoLimit === Infinity ? "↩️ Undo" : "↩️ Undo (" + Math.max(0, left) + ")";
+  u.disabled = !canUndo;
+  u.style.opacity = canUndo ? "" : ".4";
+}
+function preview(i, on){
+  if(!cfg().preview || done) return;
+  const cells = $("board").children;
+  for(const t of flipList(i, cfg().size)) cells[t].classList.toggle("pre", on);
+}
+function clearPreview(){
+  for(const c of $("board").children) c.classList.remove("pre");
+}
+
+/* ---- play ---- */
+function tap(i){
+  if(done) return;
+  clearHint();
+  undoRun = 0;                                /* a new tap refills the step-back allowance */
+  const before = board.reduce((a, v) => a + v, 0);
+  board = applyClick(board, i, cfg().size);
+  stack.push(i);
+  const after = board.reduce((a, v) => a + v, 0);
+  paint();
+  if(isSolved(board)){ win(); return; }
+  /* a big chain reaction is the thing the game is teaching — make the owl notice */
+  if(before - after >= 3){ setOwl("happy"); sound("chain"); setTimeout(() => { if(!done) setOwl("think"); }, 700); }
+  else sound(after < before ? "off" : "on");
+}
+/* The hint points at one window from the CURRENT shortest solution, recomputed from the board
+   as it stands — so it stays correct no matter how far the player has wandered. Clicking a
+   window that belongs to a minimum solution always drops the minimum by exactly one, so a
+   hint can never send a child down a longer path. Ask for one as often as you like. */
+function hint(){
+  if(done) return;
+  clearHint();                                /* only ever one ring on the board */
+  const mask = solveMask(board, cfg().size);
+  if(mask <= 0) return;                       /* generated boards are always solvable */
+  const inSolution = [];
+  for(let i = 0; i < board.length; i++) if(mask >> i & 1) inSolution.push(i);
+  /* prefer a window that is lit — tapping a dark one first reads as a mistake to a child */
+  const pick = inSolution.find(i => board[i] === 1);
+  const i = pick === undefined ? inSolution[0] : pick;
+  hints++;
+  $("board").children[i].classList.add("hinted");
+  setOwl("think");
+  sound("hint");
+  flash("💡 Try the window with the dashed ring.", "hint");
+}
+function clearHint(){
+  for(const c of $("board").children) c.classList.remove("hinted");
+}
+
+function undo(){
+  if(done || !stack.length) return;
+  if(undoRun >= cfg().undoLimit) return;      /* the run is spent until they tap again */
+  const i = stack.pop();
+  undoRun++;
+  clearHint();
+  board = applyClick(board, i, cfg().size);   /* a click is its own inverse */
+  sound("undo");
+  paint();
+  const left = cfg().undoLimit - undoRun;
+  flash(cfg().undoLimit === Infinity ? "Undone — try a different window."
+      : left > 0 ? "Undone — you can step back " + left + " more before your next tap."
+      : "Undone — tap a window before you can undo again.", "hint");
+}
+function win(){
+  done = true;
+  clearPreview();
+  clearHint();
+  $("board").classList.add("done");
+  setOwl("win");
+  const n = starsFor(stack.length, minClicks, hints);
+  $("stars").textContent = "★".repeat(n) + "☆".repeat(3 - n);
+  $("rlabel").textContent = "Good night, town! 🌙";
+  $("rsub").textContent = "You did it in " + stack.length + " tap" + (stack.length === 1 ? "" : "s")
+    + " — the shortest way was " + minClicks + "."
+    + (hints ? "  (" + hints + " hint" + (hints === 1 ? "" : "s") + " used)" : "");
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+  flash("", "");
+  paint();
+  sound("win");
+  if(!reduceMotion) townConfetti();
+}
+
+/* ---- rounds ---- */
+function newRound(){
+  stopConfetti();
+  done = false;
+  stack = [];
+  hints = 0;
+  undoRun = 0;
+  $("board").classList.remove("done");
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("invisible");
+  $("skip-btn").classList.remove("invisible");
+  /* pass the outgoing board so Skip and Next can never hand back the same puzzle */
+  board = genBoard(level, Math.random, board.length === cfg().size * cfg().size ? board : null);
+  minClicks = solveMin(board, cfg().size);
+  buildBoard();
+  drawShapeGlyph();
+  clearPreview();
+  setOwl("think");
+  flash("", "");
+  paint();
+  focusIdx = 0;
+}
+function setLevel(l){
+  level = l;
+  $("q-level-label").textContent = LEVELS[l].label;
+  document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === l ? "true" : "false"));
+  const menu = $("level-menu");
+  menu.querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === l ? "true" : "false"));
+  board = [];
+}
+function goHome(){
+  stopConfetti();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- wiring ---- */
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = () => {
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  newRound();
+};
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => newRound();
+$("next-btn").onclick = () => newRound();
+$("undo-btn").onclick = undo;
+$("hint-link").onclick = hint;
+
+(function buildLevelMenu(){
+  const menu = $("level-menu");
+  menu.innerHTML = Object.entries(LEVELS).map(([k, v]) =>
+    '<button class="level-opt" role="menuitemradio" data-diff="' + k + '" aria-current="false">'
+    + '<span>' + v.label + '</span><span class="tick">✓</span></button>').join("");
+  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickLevel(b.dataset.diff));
+})();
+/* the level changes the grid and the flip shape, so it always starts a fresh puzzle */
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(); }
+wireLevelMenu();
+
+/* ---- keyboard: a focus ring that walks the grid ---- */
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){ closeLevelMenu(); return; }
+  if($("screen-game").classList.contains("hide") || done) return;
+  const size = cfg().size, n = size * size;
+  const d = { ArrowLeft:-1, ArrowRight:1, ArrowUp:-size, ArrowDown:size }[e.key];
+  if(d === undefined) return;
+  e.preventDefault();
+  let next = focusIdx + d;
+  if(e.key === "ArrowLeft"  && (focusIdx % size === 0)) next = focusIdx;
+  if(e.key === "ArrowRight" && (focusIdx % size === size - 1)) next = focusIdx;
+  if(next < 0 || next >= n) next = focusIdx;
+  const cells = $("board").children;
+  cells[focusIdx].tabIndex = -1;
+  focusIdx = next;
+  cells[focusIdx].tabIndex = 0;
+  cells[focusIdx].focus();
+});
+
+/* ---- the rules sheet ---- */
+function gridHTML(size, on, tap){
+  let h = '<div class="lgrid" style="grid-template-columns:repeat(' + size + ',20px)" aria-hidden="true">';
+  for(let i = 0; i < size * size; i++)
+    h += '<i class="' + (on.indexOf(i) >= 0 ? "on " : "") + (tap === i ? "tap" : "") + '"></i>';
+  return h + "</div>";
+}
+wireRulesSheet(function(){
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🌙 What you are trying to do</h3>'
+    + '<p>Every square is a <b>window</b> in a sleepy town. A bright window (<b>✦</b>) means the '
+    + 'light is <b>on</b>. A dark window (<b>☾</b>) means it is <b>off</b>. Turn <b>every light '
+    + 'off</b> and the whole town goes to sleep — that wins the round.</p>'
+    + '<div class="rrow">' + gridHTML(3, [1,3,4]) + '<span class="rarrow">➡️</span>' + gridHTML(3, []) + '</div>'
+    + '<span class="cap">All the windows dark — the town is asleep.</span></div>'
+
+    + '<div class="rule"><h3>💡 The big rule: neighbours change too</h3>'
+    + '<p>This is what makes the game tricky. When you tap a window, it switches — <b>and so do '
+    + 'the windows next to it</b>: up, down, left and right. One tap, five changes.</p>'
+    + '<div class="rrow">' + gridHTML(3, [], 4) + '<span class="rarrow">➡️</span>' + gridHTML(3, [1,3,4,5,7]) + '</div>'
+    + '<span class="cap">Tapping the middle window switched it <b>and</b> its four neighbours.</span>'
+    + '<p style="margin-top:10px;">Windows at the edges and corners have fewer neighbours, so they '
+    + 'switch fewer lights.</p></div>'
+
+    + '<div class="rule"><h3>🔁 Tapping twice undoes it</h3>'
+    + '<p>Tap the same window <b>two times</b> and everything goes back to how it was. So the '
+    + 'order you tap in never matters — only <b>which</b> windows you tap.</p>'
+    + '<div class="rrow">' + gridHTML(3, [1,3,4,5,7], 4) + '<span class="rarrow">➡️</span>' + gridHTML(3, []) + '</div>'
+    + '<span class="cap">A second tap on the middle puts it all back.</span></div>'
+
+    + '<div class="rule"><h3>🏙️ Bigger towns, shorter memory</h3>'
+    + '<p>The tapping rule is <b>exactly the same on every level</b> — always the plus shape. '
+    + 'What changes is how big the town is, and how far back <b>↩️ Undo</b> lets you step.</p>'
+    + '<div class="rrow">' + gridHTML(2, [1,2]) + '<span class="rarrow">➡️</span>' + gridHTML(4, [1,4,6,9,11,14]) + '</div>'
+    + '<span class="cap">🌱 Easy 2×2 · ⭐ Medium 3×3 · 🔥 Hard 4×4 · 🏆 Expert 5×5</span>'
+    + '<p style="margin-top:10px;">🌱 <b>Easy</b> — undo as much as you like.<br>'
+    + '⭐ <b>Medium</b> — up to 5 steps back.<br>'
+    + '🔥 <b>Hard</b> — up to 3 steps back.<br>'
+    + '🏆 <b>Expert</b> — only your very last tap.</p>'
+    + '<p>Every new tap fills the allowance up again — you can always take back what you just '
+    + 'did, you just cannot unwind the whole town.</p></div>'
+
+    + '<div class="rule"><h3>⭐ Stars</h3>'
+    + '<p>Every puzzle has a <b>shortest way</b> to solve it. Finish close to that and you get more '
+    + 'stars: <b>★★★</b> for within 2 extra taps, <b>★★</b> for within 5, <b>★</b> otherwise. '
+    + '<b>↩️ Undo</b> is free — a tap you take back does not count at all.</p>'
+    + '<p>Stuck? <b>💡 Hint</b> puts a dashed ring around one window that is part of the '
+    + 'shortest way to finish. Ask as often as you like — but <b>★★★ is only for solving it '
+    + 'with no hints at all</b>. One to three hints tops out at <b>★★</b>, and more than three '
+    + 'at <b>★</b>.</p></div>';
+});
+
+initBouncyTitle("Lights Out");
+
+function townConfetti(){
+  const cv = $("confetti"); cv.style.display = "block";
+  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ["#FFCF43", "#6C4AB6", "#3FA7E0", "#F4EEFF", "#2FB37D"];
+  const parts = Array.from({length:70}, () => ({ x:Math.random() * cv.width, y:cv.height * 0.32,
+    r:4 + Math.random() * 6, c:colors[(Math.random() * colors.length) | 0],
+    vy:-4 + Math.random() * 2, vx:-3 + Math.random() * 6, rot:Math.random() * 6, vr:.22 }));
+  let f = 0;
+  (function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += .2; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r); ctx.restore();
+    });
+    f++;
+    if(f < 76) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+
+setLevel("EASY");
+}
+</script>
+</body>
+</html>
