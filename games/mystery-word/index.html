@@ -29,6 +29,15 @@
   .tile.present{background:var(--sun); border-color:var(--sun-dark); color:var(--ink);}
   .tile.absent{background:var(--absent); border-color:var(--absent-line); color:#fff;}
 
+  /* mini guess-row for the rules sheet — reuses the .tile state colours above */
+  .rtile{display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;
+    border-radius:7px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px;
+    background:#fff; border:3px solid var(--key-line); color:var(--ink);}
+  .rtile.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
+  .rtile.present{background:var(--sun); border-color:var(--sun-dark); color:var(--ink);}
+  .rtile.absent{background:var(--absent); border-color:var(--absent-line); color:#fff;}
+  .rtiles{display:flex; gap:5px; justify-content:center;}
+
   .message{text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; min-height:22px; color:var(--grape); margin:0 0 12px;}
   .message.good{color:var(--leaf-dark);} .message.bad{color:var(--coral-dark);} .message.hint{color:var(--sun-dark);}
 
@@ -85,6 +94,7 @@
         it has to be a real word! Each tile turns <b>green</b> (right letter, right spot), <b>yellow</b> (right
         letter, wrong spot), or <b>brown</b> (not in the word) — use those clues to build your next guess! You've
         got 6 tries. Stuck? <b>💡 Hint</b> tells you one letter (5 hints per word).
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
       </div>
 
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
@@ -127,6 +137,7 @@
         <div class="actions">
           <button id="reset-btn" class="tlink">↺ Reset</button>
           <button id="hint-link" class="tlink hint-link">💡 Hint (5 left)</button>
+          <button id="rules-btn" class="tlink">📖 Rules</button>
         </div>
       </div>
       <div class="serve-row">
@@ -134,6 +145,17 @@
         <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
       </div>
     </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Mystery Word</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
   </div>
 </div>
 
@@ -229,6 +251,47 @@ document.querySelectorAll(".diff").forEach(btn=>{ btn.onclick = ()=>setLevel(btn
 })();
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); startNext(); }
 wireLevelMenu();
+
+/* ---- rules sheet (chrome + wiring live in site.css / site.js) ---- */
+function rtiles(word, marks){
+  let h='';
+  for(let i=0;i<word.length;i++) h+='<span class="rtile '+(marks[i]||'')+'">'+word[i]+'</span>';
+  return '<div class="rtiles" aria-hidden="true">'+h+'</div>';
+}
+wireRulesSheet(function(){
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>There is a secret <b>5-letter word</b>. You get <b>6 tries</b> to find it. Type a guess '
+    + 'and press <b>Enter</b> (or tap <b>Submit Guess</b>) — every guess has to be a <b>real word</b>.</p></div>'
+
+    + '<div class="rule"><h3>🎨 What the colours tell you</h3>'
+    + '<p>After each guess every letter is coloured in. That is your whole set of clues:</p>'
+    + '<div class="rrow">' + rtiles('CRANE', ['correct','absent','present','absent','absent']) + '</div>'
+    + '<p style="margin-top:10px;"><b>Green</b> — right letter, and it is in the <b>right spot</b>. '
+    + '(Above: the word really does start with <b>C</b>.)</p>'
+    + '<p><b>Yellow</b> — that letter <b>is</b> in the word, but <b>somewhere else</b>. '
+    + '(Above: there is an <b>A</b>, just not in the middle.)</p>'
+    + '<p><b>Brown</b> — that letter is <b>not in the word at all</b>. Don\'t use it again. '
+    + '(Above: no <b>R</b>, no <b>N</b>, no <b>E</b>.)</p></div>'
+
+    + '<div class="rule"><h3>🧠 Using the clues</h3>'
+    + '<p>Your next guess should <b>keep</b> the green letters where they are, <b>move</b> the yellow '
+    + 'ones somewhere new, and <b>avoid</b> the brown ones completely. The keyboard below the board '
+    + 'colours in too, so you can always see which letters are still possible.</p></div>'
+
+    + '<div class="rule"><h3>💡 Hints</h3>'
+    + '<p><b>💡 Hint</b> reveals one letter of the word. You get <b>5 hints per word</b>. '
+    + '<b>↺ Reset</b> clears your guesses but keeps the <b>same</b> secret word, so the clues you '
+    + 'already worked out still apply. <b>⏭ Skip</b> gives you a brand new word.</p></div>'
+
+    + '<div class="rule"><h3>🌱 The levels</h3>'
+    + '<p>The levels change how well-known the words are — <b>Easy</b> uses everyday words and '
+    + '<b>Expert</b> uses wild vocabulary. The rules are exactly the same at every level.</p></div>'
+
+    + '<div class="rule"><h3>💡 A tip to start</h3>'
+    + '<p>A good first guess uses <b>five different letters</b>, with a few vowels — something like '
+    + '<b>CRANE</b> or <b>SLATE</b>. It rules out a lot of the alphabet in one go!</p></div>';
+});
 
 $("start-btn").onclick = ()=>{
   $("start-error").classList.add("hide");
@@ -493,6 +556,7 @@ function goHome(){
 
 // physical keyboard
 document.addEventListener("keydown", e=>{
+  if(rulesSheetOpen()) return;          // don't type letters into the board behind the sheet
   if(e.key==="Escape"){ closeLevelMenu(); return; }
   if(!state || $("screen-game").classList.contains("hide") || state.status!=="playing") return;
   if(e.key==="Enter"){ e.preventDefault(); submitGuess(); return; }

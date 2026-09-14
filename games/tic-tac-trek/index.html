@@ -95,31 +95,7 @@
   .result.lose .rlabel{color:var(--coral-dark);}
   .result.tie .rlabel{color:var(--grape);}
 
-  /* ---- the rules sheet (opened from the start screen and from inside the game) ---- */
-  .overlay{position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center;
-    padding:16px; background:rgba(51,35,107,.5); backdrop-filter:blur(3px);}
-  .overlay.show{display:flex;}
-  .sheet{background:#fff; border-radius:24px; box-shadow:var(--shadow); width:100%; max-width:480px;
-    max-height:88vh; display:flex; flex-direction:column; overflow:hidden; animation:trekSheet .28s ease;}
-  @keyframes trekSheet{0%{transform:scale(.9); opacity:0}100%{transform:scale(1); opacity:1}}
-  .sheet-top{display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:16px 18px 12px; border-bottom:2px solid var(--key-line);}
-  .sheet-top h2{font-family:'Fredoka',sans-serif; font-weight:700; font-size:21px; margin:0; color:var(--grape);}
-  .sheet-x{font-family:'Fredoka',sans-serif; font-size:18px; line-height:1; color:var(--ink-soft);
-    background:#F4F0FE; border:none; border-radius:50%; width:34px; height:34px; cursor:pointer; flex:0 0 auto;}
-  .sheet-x:hover{background:#E8E0FA; color:var(--ink);}
-  .sheet-x:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
-  .sheet-body{overflow-y:auto; padding:14px 18px 6px; -webkit-overflow-scrolling:touch;}
-  .sheet-foot{padding:12px 18px 16px; display:flex; justify-content:center; border-top:2px solid var(--key-line);}
-  .rule{margin-bottom:16px;}
-  .rule h3{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; margin:0 0 5px; color:var(--ink);}
-  .rule p{font-weight:700; font-size:14px; line-height:1.5; color:var(--ink-soft); margin:0 0 6px;}
-  .rule p b{color:var(--grape);}
-  .rule .cap{display:block; text-align:center; font-size:12px; font-weight:700; color:var(--ink-soft); margin-top:6px;}
-
-  /* mini diagrams inside the rules sheet, built by miniHTML() */
-  .rrow{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:8px 0 2px;}
-  .rarrow{font-size:20px; color:var(--grape); font-weight:800;}
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
   .rbig{display:grid; grid-template-columns:repeat(3,1fr); gap:3px; width:118px; flex:0 0 auto;
     background:var(--grape); padding:3px; border-radius:9px;}
   .rbrd{position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
@@ -136,10 +112,6 @@
   .rclaim.d{color:var(--ink-soft); background:rgba(51,35,107,.14); font-size:11px;}
   .rtag{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-decoration:none;
     font-family:'Fredoka',sans-serif; font-weight:700; font-size:7.5px; color:var(--sun-dark); text-align:center;}
-  /* one lone small board, drawn larger */
-  .rsolo{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; width:74px; flex:0 0 auto;
-    background:#EDE7FA; border-radius:8px; padding:3px;}
-  .rsolo .rcell{font-size:17px; border-radius:4px;}
 </style>
 </head>
 <body class="game">
@@ -224,7 +196,7 @@
   </div>
 </div>
 
-<div class="overlay" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
   <div class="sheet">
     <div class="sheet-top">
       <h2 id="rules-h">📖 How to play Tic Tac Trek</h2>
@@ -753,15 +725,12 @@ function miniHTML(o){
   }
   return '<div class="rbig" aria-hidden="true">'+h+'</div>';
 }
-function soloHTML(marks){
+function soloHTML(marks){   // .rsolo lives in site.css
   let h='';
-  for(let c=0;c<9;c++) h+='<i class="rcell">'+(marks[c]||'')+'</i>';
+  for(let c=0;c<9;c++) h+='<i>'+(marks[c]||'')+'</i>';
   return '<div class="rsolo" aria-hidden="true">'+h+'</div>';
 }
-let rulesBuilt=false, rulesOpener=null;
-function buildRules(){
-  if(rulesBuilt) return;
-  rulesBuilt=true;
+wireRulesSheet(function(){
   $("rules-body").innerHTML =
     '<div class="rule"><h3>🎯 What you are trying to do</h3>'
     + '<p>There are <b>9 little boards</b> inside one big board. Win a little board and you '
@@ -804,33 +773,6 @@ function buildRules(){
     + '<p>Before you tap, ask yourself: <b>where will this send the owl?</b> Try not to send it '
     + 'to a board where it is about to get three in a row — and try not to hand it a free move, '
     + 'because then it can go anywhere it likes!</p></div>';
-}
-function openRules(opener){
-  buildRules();
-  rulesOpener = opener || null;
-  $("rules-ov").classList.add("show");
-  $("rules-body").scrollTop = 0;
-  $("rules-close").focus();
-}
-function closeRules(){
-  $("rules-ov").classList.remove("show");
-  if(rulesOpener && document.contains(rulesOpener)) rulesOpener.focus();
-  rulesOpener=null;
-}
-function rulesOpen(){ return $("rules-ov").classList.contains("show"); }
-$("rules-home").onclick=function(){ openRules(this); };
-$("rules-btn").onclick=function(){ openRules(this); };
-$("rules-close").onclick=closeRules;
-$("rules-ok").onclick=closeRules;
-$("rules-ov").onclick=e=>{ if(e.target===$("rules-ov")) closeRules(); };
-/* keep Tab inside the sheet while it is open */
-$("rules-ov").addEventListener("keydown", e=>{
-  if(e.key!=='Tab') return;
-  const f=$("rules-ov").querySelectorAll("button");
-  if(!f.length) return;
-  const first=f[0], last=f[f.length-1];
-  if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
-  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
 });
 
 $("start-btn").onclick=()=>newRound(true);
@@ -839,11 +781,8 @@ $("skip-btn").onclick=()=>newRound(false);
 $("next-btn").onclick=()=>newRound(false);
 
 document.addEventListener("keydown", e=>{
-  if(e.key==='Escape'){
-    if(rulesOpen()){ e.preventDefault(); closeRules(); return; }
-    closeLevelMenu();
-  }
-  if(rulesOpen()) return;
+  if(rulesSheetOpen()) return;          // the sheet owns the keyboard while it is up
+  if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide") || !S) return;
   if(e.key==='Enter' && S.over){ e.preventDefault(); newRound(false); }
 });

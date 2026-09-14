@@ -35,6 +35,11 @@
   @keyframes hpulseA{0%,100%{opacity:.5}50%{opacity:1}}
   @keyframes hpulseB{0%,100%{opacity:.3}50%{opacity:.9}}
   .controls{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;}
+  /* digit chart in the rules sheet — drawn from the same DIGIT_SEGS/DIGIT_ON the board uses */
+  .digitchart{display:grid; grid-template-columns:repeat(5,1fr); gap:6px; justify-items:center;
+    background:var(--wood-bg); border:3px solid var(--wood-line); border-radius:14px; padding:10px 6px; margin:8px 0 2px;}
+  .digitchart figure{margin:0; text-align:center;}
+  .digitchart figcaption{font-family:'Fredoka',sans-serif; font-weight:600; font-size:12px; color:var(--ink-soft); margin-top:2px;}
   .overlay{position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px;
     background:rgba(51,35,107,.45); backdrop-filter:blur(3px);}
   .overlay.show{display:flex;}
@@ -80,6 +85,7 @@
       <div class="howto">
         🧩 <b>How to play:</b> Tap a wooden stick to pick it up, then tap an empty glowing spot to place it.
         Make the equation <b>true</b> by moving exactly <b>one</b> stick. The <b>×</b> and <b>=</b> signs are glued down!
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
       </div>
 
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start Playing ▶</button></div>
@@ -122,12 +128,24 @@
         <div class="actions">
           <button id="reset-btn" class="tlink">🔄 Reset</button>
           <button id="hint-btn" class="tlink">💡 Hint</button>
+          <button id="rules-btn" class="tlink">📖 Rules</button>
         </div>
       </div>
       <div class="serve-row">
         <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
       </div>
     </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Matchstick Math</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
   </div>
 </div>
 
@@ -575,6 +593,61 @@ document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(); }
 wireLevelMenu();
 
+/* ---- rules sheet (chrome + wiring live in site.css / site.js) ----
+   The digit chart is drawn from the very same DIGIT_SEGS/DIGIT_ON the board uses, so it
+   can never drift out of step with how the puzzle actually renders its numbers. */
+function rulesDigit(d){
+  const on = DIGIT_ON[d] || '';
+  let p='';
+  for(const seg in DIGIT_SEGS){
+    const c = DIGIT_SEGS[seg], lit = on.indexOf(seg)>=0;
+    p += '<line x1="'+c[0]+'" y1="'+c[1]+'" x2="'+c[2]+'" y2="'+c[3]+'" stroke-linecap="round" '
+      + (lit ? 'stroke="#DB9A44" stroke-width="13"'
+             : 'stroke="#D8C6A8" stroke-width="5" stroke-dasharray="3 10"') + '/>';
+  }
+  return '<svg viewBox="-4 16 84 138" width="40" height="66" aria-hidden="true">'+p+'</svg>';
+}
+wireRulesSheet(function(){
+  let chart='';
+  for(let d=0; d<=9; d++) chart += '<figure>'+rulesDigit(String(d))+'<figcaption>'+d+'</figcaption></figure>';
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>You get a sum made of <b>matchsticks</b> — and it is <b>wrong</b>. Move exactly '
+    + '<b>one</b> stick to somewhere else on the board to make the sum <b>true</b>.</p></div>'
+
+    + '<div class="rule"><h3>🪵 How to move a stick</h3>'
+    + '<p>Tap a wooden stick to <b>pick it up</b>. Empty spots where it could go start '
+    + '<b>glowing</b> — tap one to <b>drop it in</b>. Changed your mind? Tap the stick again to put '
+    + 'it back, or use <b>🔄 Reset</b> to start the puzzle over.</p></div>'
+
+    + '<div class="rule"><h3>🔒 What you may not touch</h3>'
+    + '<p>The <b>×</b> and <b>=</b> signs are <b>glued down</b> — they are drawn in a paler wood, and '
+    + 'tapping them tells you so. You also have to move a stick to an <b>empty</b> spot: you can\'t '
+    + 'take one away, and you can\'t add a new one. The board always has the <b>same number of sticks</b> '
+    + 'when you are done.</p></div>'
+
+    + '<div class="rule"><h3>🔢 How the numbers are built</h3>'
+    + '<p>Every digit is made from the same <b>seven</b> stick positions. This is the whole trick — '
+    + 'look for two digits that are <b>one stick apart</b>:</p>'
+    + '<div class="digitchart">'+chart+'</div>'
+    + '<span class="cap">The faint dashes are the empty spots a stick could move into.</span>'
+    + '<p style="margin-top:10px;">For example <b>6</b> becomes <b>8</b> by <b>adding</b> one stick, and '
+    + '<b>9</b> becomes <b>3</b> by <b>taking one away</b> — so moving a single stick from a 9 into a 6 '
+    + 'turns <b>9</b> and <b>6</b> into <b>3</b> and <b>8</b>.</p></div>'
+
+    + '<div class="rule"><h3>➕ Signs count too</h3>'
+    + '<p>Don\'t only look at the numbers! A <b>+</b> is just a <b>−</b> with one extra stick standing '
+    + 'upright. Taking that stick away turns <b>+</b> into <b>−</b>, and that is often the whole answer.</p></div>'
+
+    + '<div class="rule"><h3>💡 Hints</h3>'
+    + '<p><b>💡 Hint</b> shows you one stick that could move and where it could go. '
+    + '<b>⏭ Skip</b> gives you a brand new puzzle. Every puzzle can <b>always</b> be solved in one move.</p></div>'
+
+    + '<div class="rule"><h3>🌱 The levels</h3>'
+    + '<p><b>Easy</b> is adding and taking away with small numbers, <b>Medium</b> uses bigger ones, '
+    + '<b>Hard</b> brings in <b>times tables</b>, and <b>Expert</b> mixes big and tricky.</p></div>';
+});
+
 $("start-btn").onclick = startSession;
 $("home-btn").onclick  = goHome;
 $("next-btn").onclick   = newPuzzle;
@@ -630,6 +703,7 @@ function goHome(){
 
 // keyboard: Escape reset, H hint, Enter/Space -> next (when solved), Escape also closes the level menu
 document.addEventListener("keydown", e=>{
+  if(rulesSheetOpen()) return;          // the sheet owns the keyboard while it is up
   if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide")) return;
   if(!game) return;

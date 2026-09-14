@@ -24,19 +24,19 @@ window.GAMES = [
   { slug: "matchstick-math",    title: "Matchstick Math",     emoji: "🔥", accent: "coral",  ageGroup: "6+",
     tagline: "Move one matchstick to make the sum true.",     skills: ["Arithmetic", "Logic"] },
 
-  { slug: "guess-the-capital",   title: "Guess the Capital",  emoji: "📌", accent: "sun",    ageGroup: "7+",
+  { slug: "guess-the-capital",   title: "Guess the Capital",  emoji: "📌", accent: "sun",    ageGroup: "9+",
     tagline: "Pick the right capital city.",                  skills: ["Geography"] },
 
   { slug: "number-detective",   title: "Number Detective",    emoji: "🕵️", accent: "grape",  ageGroup: "6+",
     tagline: "Crack the secret number from the clues.",       skills: ["Number sense", "Logic"] },
 
-  { slug: "number-builder",     title: "Number Builder",      emoji: "🧱", accent: "sky",    ageGroup: "5+",
+  { slug: "number-builder",     title: "Number Builder",      emoji: "🧱", accent: "sky",    ageGroup: "6+",
     tagline: "Build numbers with place-value blocks.",        skills: ["Place value"] },
 
-  { slug: "race-to-100",        title: "Race to 100",         emoji: "🏁", accent: "leaf",   ageGroup: "7+",
+  { slug: "race-to-100",        title: "Race to 100",         emoji: "🏁", accent: "leaf",   ageGroup: "9+",
     tagline: "Use + − × ÷ to land exactly on the target.",    skills: ["Mental math"] },
 
-  { slug: "robot-instructions", title: "Robot Instructions",  emoji: "🤖", accent: "sky",    ageGroup: "5+",
+  { slug: "robot-instructions", title: "Robot Instructions",  emoji: "🤖", accent: "sky",    ageGroup: "6+",
     tagline: "Program the robot to reach the treasure.",      skills: ["Coding", "Directions"] },
 
   { slug: "shopping-adventure", title: "Shopping Adventure",  emoji: "🛒", accent: "leaf",   ageGroup: "6+",
@@ -45,57 +45,57 @@ window.GAMES = [
   { slug: "coin-counter",       title: "Coin Counter",        emoji: "🪙", accent: "sun",    ageGroup: "6+",
     tagline: "Make the amount with the fewest coins.",        skills: ["Money"] },
 
-  { slug: "times-table-pop",    title: "Times Table Pop",     emoji: "🎈", accent: "sky",    ageGroup: "7+",
+  { slug: "times-table-pop",    title: "Times Table Pop",     emoji: "🎈", accent: "sky",    ageGroup: "9+",
     tagline: "Pop the balloons that equal the product.",      skills: ["Arithmetic"] },
 
   { slug: "pizza-party",        title: "Pizza Party",         emoji: "🍕", accent: "coral",  ageGroup: "6+",
     tagline: "Serve the right fraction of pizza.",            skills: ["Fractions"] },
 
-  { slug: "set-the-clock",      title: "Set the Clock",       emoji: "🕐", accent: "grape",  ageGroup: "5+",
+  { slug: "set-the-clock",      title: "Set the Clock",       emoji: "🕐", accent: "grape",  ageGroup: "6+",
     tagline: "Drag the hands to show the time.",              skills: ["Telling time"] },
 
-  { slug: "what-comes-next",    title: "What Comes Next",     emoji: "🧩", accent: "sun",    ageGroup: "4+",
+  { slug: "what-comes-next",    title: "What Comes Next",     emoji: "🧩", accent: "sun",    ageGroup: "3+",
     tagline: "Spot the pattern and finish it.",               skills: ["Patterns"] },
 
   { slug: "word-guess",   title: "Guess the Word",            emoji: "💭", accent: "sky",    ageGroup: "6+",
     tagline: "Guess the hidden word, one letter at a time.",  skills: ["Spelling", "Vocabulary"] },
 
-  { slug: "math-monsters", title: "Math Monsters",            emoji: "👾", accent: "leaf",   ageGroup: "5+",
+  { slug: "math-monsters", title: "Math Monsters",            emoji: "👾", accent: "leaf",   ageGroup: "6+",
     tagline: "Feed the monster the right answer!",            skills: ["Arithmetic"] },
 
-  { slug: "shape-sorter",  title: "Shape Sorter",             emoji: "🔷", accent: "sky",    ageGroup: "4+",
+  { slug: "shape-sorter",  title: "Shape Sorter",             emoji: "🔷", accent: "sky",    ageGroup: "3+",
     tagline: "Find and tap the matching shapes.",             skills: ["Shapes"] },
 
-  { slug: "color-match",   title: "Color Match",              emoji: "🎨", accent: "coral",  ageGroup: "4+",
+  { slug: "color-match",   title: "Color Match",              emoji: "🎨", accent: "coral",  ageGroup: "3+",
     tagline: "Tap the colours that match.",                   skills: ["Colours"] },
 
-  { slug: "calendar-quest", title: "Calendar Quest",          emoji: "📅", accent: "grape",    ageGroup: "7+",
+  { slug: "calendar-quest", title: "Calendar Quest",          emoji: "📅", accent: "grape",    ageGroup: "9+",
     tagline: "Answer riddles about days, weeks, and months.", skills: ["Calendar", "Reasoning"] },
 
-  { slug: "sentence-doctor", title: "Sentence Doctor",        emoji: "🩺", accent: "coral",  ageGroup: "7+",
-    tagline: "Heal the sick sentence!",                       skills: ["Grammar", "Punctuation"],                 badge:"New"},
+  { slug: "sentence-doctor", title: "Sentence Doctor",        emoji: "🩺", accent: "coral",  ageGroup: "9+",
+    tagline: "Heal the sick sentence!",                       skills: ["Grammar", "Punctuation"] },
 
   { slug: "spell-a-bee",    title: "Spell-a-Bee",             emoji: "🐝", accent: "sun",    ageGroup: "6+",
-    tagline: "Listen to the word and spell it, letter by letter.", skills: ["Spelling", "Listening"],             badge:"New"},
+    tagline: "Listen to the word and spell it, letter by letter.", skills: ["Spelling", "Listening"] },
 
   { slug: "shape-math",      title: "Shape Math",             emoji: "🔷", accent: "grape",  ageGroup: "6+",
-    tagline: "Add and subtract shapes to find the answer!",  skills: ["Shapes", "Logic", "Spatial reasoning"],   badge:"New"},
+    tagline: "Add and subtract shapes to find the answer!",  skills: ["Shapes", "Logic", "Spatial reasoning"] },
 
-  { slug: "what-am-i",       title: "What Am I?",             emoji: "🤔", accent: "grape",  ageGroup: "5+",
-    tagline: "Solve the riddle — what am I?",                skills: ["Riddles", "Logic"],                       badge:"New"},
+  { slug: "what-am-i",       title: "What Am I?",             emoji: "🤔", accent: "grape",  ageGroup: "6+",
+    tagline: "Solve the riddle — what am I?",                skills: ["Riddles", "Logic"] },
 
-  { slug: "mouse-maze",      title: "Mouse Maze",             emoji: "🐭", accent: "leaf",   ageGroup: "5+",
-    tagline: "Guide the mouse through the maze to the cheese!", skills: ["Logic", "Spatial reasoning"],           badge:"New"},
+  { slug: "mouse-maze",      title: "Mouse Maze",             emoji: "🐭", accent: "leaf",   ageGroup: "6+",
+    tagline: "Guide the mouse through the maze to the cheese!", skills: ["Logic", "Spatial reasoning"] },
 
-  { slug: "sneak-peek",      title: "Sneak Peek",             emoji: "🧠", accent: "sun",    ageGroup: "5+",
-    tagline: "Take a sneak peek, then remember what you saw!", skills: ["Memory", "Attention"],                   badge:"New"},
+  { slug: "sneak-peek",      title: "Sneak Peek",             emoji: "🧠", accent: "sun",    ageGroup: "6+",
+    tagline: "Take a sneak peek, then remember what you saw!", skills: ["Memory", "Attention"] },
 
-  { slug: "mystery-word",    title: "Mystery Word",           emoji: "🔍", accent: "coral",  ageGroup: "7+",
-    tagline: "Crack the secret 5-letter word in 6 tries!",    skills: ["Spelling", "Logic", "Vocabulary"],        badge:"New"},
+  { slug: "mystery-word",    title: "Mystery Word",           emoji: "🔍", accent: "coral",  ageGroup: "12+",
+    tagline: "Crack the secret 5-letter word in 6 tries!",    skills: ["Spelling", "Logic", "Vocabulary"] },
 
-  { slug: "tick-tock-toe",   title: "Tick Tock Toe",          emoji: "⏳", accent: "sky",    ageGroup: "6+",
+  { slug: "tick-tock-toe",   title: "Tick Tock Toe",          emoji: "⏳", accent: "sky",    ageGroup: "9+",
     tagline: "Three in a row — but your oldest mark fades away!", skills: ["Strategy", "Logic", "Memory"],      badge:"New"},
 
-  { slug: "tic-tac-trek",    title: "Tic Tac Trek",           emoji: "🧭", accent: "grape",  ageGroup: "7+",
+  { slug: "tic-tac-trek",    title: "Tic Tac Trek",           emoji: "🧭", accent: "grape",  ageGroup: "15+",
     tagline: "Nine boards in one — your move sends the owl!",  skills: ["Strategy", "Logic", "Planning ahead"], badge:"New"},
 ];

@@ -90,6 +90,7 @@
           <div class="fadestep"><div class="fc"><span>&nbsp;</span></div><span class="cap">Gone</span></div>
         </div>
         A <b>fading mark still counts</b> for three in a row — and still blocks the owl!
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
       </div>
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
     </section>
@@ -135,12 +136,26 @@
           <div class="rsub" id="rsub"></div>
         </div>
       </div>
+      <div class="actions">
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
       <div class="serve-row">
         <button id="next-btn" class="btn btn-primary hide">Play again ▶</button>
       </div>
     </section>
   </div>
 </div>
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Tick Tock Toe</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
 <canvas id="confetti"></canvas>
 
 <script src="../../assets/site.js"></script>
@@ -550,12 +565,60 @@ document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newRound(false); }
 wireLevelMenu();
 
+/* ---- rules sheet (chrome + wiring live in site.css / site.js) ---- */
+function soloHTML(cells){
+  let h='';
+  for(let c=0;c<9;c++){
+    const m=cells[c];
+    h += m ? '<i class="'+(m.o?'o ':'')+(m.fade?'fade':'')+'"><span>'+m.t+'</span></i>' : '<i></i>';
+  }
+  return '<div class="rsolo" aria-hidden="true">'+h+'</div>';
+}
+const mkX=()=>({t:'✕'}), mkXfade=()=>({t:'✕',fade:true});
+wireRulesSheet(function(){
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>You are <b>✕</b> and the owl is <b>◯</b>. Tap a square to place your mark. Get '
+    + '<b>three in a row</b> — across, down or corner to corner — and you win.</p>'
+    + '<div class="rrow">' + soloHTML({0:mkX(),4:mkX(),8:mkX()}) + '</div>'
+    + '<span class="cap">Three ✕ in a row wins the game.</span></div>'
+
+    + '<div class="rule"><h3>⏳ The twist: your marks don\'t stay</h3>'
+    + '<p>This is what makes Tick Tock Toe different. You only ever own <b>2 or 3 marks</b> '
+    + '(the level decides). When you already have all of them and you place another, your '
+    + '<b>oldest mark disappears</b> the moment the new one lands.</p>'
+    + '<div class="rrow">'
+    + soloHTML({0:mkXfade(),4:mkX()}) + '<span class="rarrow">➡️</span>' + soloHTML({4:mkXfade(),8:mkX()})
+    + '</div>'
+    + '<span class="cap">The <b>dashed</b> mark is the one about to go. Place again and it vanishes.</span></div>'
+
+    + '<div class="rule"><h3>👀 Spotting the fading mark</h3>'
+    + '<p>A mark that is about to disappear is drawn with a <b>dashed outline</b> and looks faded. '
+    + 'That is your warning: place one more mark and it is gone.</p></div>'
+
+    + '<div class="rule"><h3>⚡ A fading mark still counts!</h3>'
+    + '<p>This is the most important rule. A fading mark is <b>still on the board</b>. It still '
+    + 'completes three in a row, and it still <b>blocks the owl</b>. So you can win with a mark '
+    + 'that was about to vanish — the win is checked <b>first</b>.</p></div>'
+
+    + '<div class="rule"><h3>🌱 The levels</h3>'
+    + '<p><b>Easy</b> and <b>Medium</b> give you 2 marks each; <b>Hard</b> and <b>Expert</b> give '
+    + 'you 3. On <b>Medium</b> and <b>Expert</b> the owl\'s fading mark is <b>secret</b> — you have '
+    + 'to remember which of its marks is oldest!</p></div>'
+
+    + '<div class="rule"><h3>💡 A tip to win</h3>'
+    + '<p>Watch the owl\'s marks, not just your own. Get two of your marks onto a line whose third '
+    + 'square holds one of the <b>owl\'s</b> marks — then wait for that mark to fade away and take '
+    + 'the empty square!</p></div>';
+});
+
 $("start-btn").onclick=()=>newRound(true);
 $("home-btn").onclick=goHome;
 $("skip-btn").onclick=()=>newRound(false);
 $("next-btn").onclick=()=>newRound(false);
 
 document.addEventListener("keydown", e=>{
+  if(rulesSheetOpen()) return;          // the sheet owns the keyboard while it is up
   if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide") || !S) return;
   if(e.key==='Enter' && S.over){ e.preventDefault(); newRound(false); return; }

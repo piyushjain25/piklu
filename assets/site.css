@@ -206,5 +206,55 @@ svg.monster.mini{width:100%; height:auto; display:block;}
   display:flex; align-items:center; justify-content:center;}
 .feedback.good{color:var(--leaf-dark);} .feedback.bad{color:var(--coral-dark);} .feedback.hint{color:var(--sun-dark);}
 
+/* ============================================================
+   RULES SHEET — a scrollable "how to play" panel for the games
+   whose rules need more room than the start screen's .howto
+   block (tic-tac-trek, tick-tock-toe, mystery-word,
+   matchstick-math). A game links it from its start screen
+   (a "📖 Read the full rules" .tlink) and from its .actions row
+   during play (a "📖 Rules" .tlink), and supplies ONLY its own
+   rules copy — plus any diagram CSS unique to that game.
+   Everything here is the shared chrome; the open/close/Escape/
+   focus handling is wireRulesSheet() in site.js.
+   Named .sheet-ov, not .overlay, so it can't collide with a
+   game's own full-screen overlay.
+   ============================================================ */
+.sheet-ov{position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center;
+  padding:16px; background:rgba(51,35,107,.5); backdrop-filter:blur(3px);}
+.sheet-ov.show{display:flex;}
+.sheet{background:var(--card); border-radius:24px; box-shadow:var(--shadow); width:100%; max-width:480px;
+  max-height:88vh; display:flex; flex-direction:column; overflow:hidden; animation:sheetPop .28s ease;}
+@keyframes sheetPop{0%{transform:scale(.9); opacity:0}100%{transform:scale(1); opacity:1}}
+.sheet-top{display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:16px 18px 12px; border-bottom:2px solid var(--key-line);}
+.sheet-top h2{font-family:'Fredoka',sans-serif; font-weight:700; font-size:21px; margin:0; color:var(--grape);}
+.sheet-x{font-family:'Fredoka',sans-serif; font-size:18px; line-height:1; color:var(--ink-soft);
+  background:#F4F0FE; border:none; border-radius:50%; width:34px; height:34px; cursor:pointer; flex:0 0 auto;}
+.sheet-x:hover{background:#E8E0FA; color:var(--ink);}
+.sheet-x:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+.sheet-body{overflow-y:auto; padding:14px 18px 6px; -webkit-overflow-scrolling:touch;}
+.sheet-foot{padding:12px 18px 16px; display:flex; justify-content:center; border-top:2px solid var(--key-line);}
+.rule{margin-bottom:16px;}
+.rule h3{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; margin:0 0 5px; color:var(--ink);}
+.rule p{font-weight:700; font-size:14px; line-height:1.5; color:var(--ink-soft); margin:0 0 6px;}
+.rule p b{color:var(--grape);}
+.rule .cap{display:block; text-align:center; font-size:12px; font-weight:700; color:var(--ink-soft); margin-top:6px;}
+.rule .cap b{color:var(--grape);}
+/* one lone noughts-and-crosses board, for the games whose rules need to show a
+   three-in-a-row (tick-tock-toe, tic-tac-trek). Cells are plain <i> elements:
+   <div class="rsolo"><i>✕</i><i class="o">◯</i>...</div> */
+.rsolo{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; width:74px; flex:0 0 auto;
+  background:#EDE7FA; border-radius:8px; padding:3px;}
+.rsolo i{display:flex; align-items:center; justify-content:center; aspect-ratio:1/1; background:#fff;
+  border-radius:4px; font-family:'Fredoka',sans-serif; font-style:normal; font-weight:700;
+  font-size:17px; line-height:1; color:var(--coral);}
+.rsolo i.o{color:var(--sky);}
+.rsolo i.fade{border:2px dashed #CFC4EC;}   /* dashed, not just faint - never colour alone */
+.rsolo i.fade span{opacity:.3;}
+
+/* a row of little diagrams with arrows between them */
+.rrow{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:8px 0 2px;}
+.rarrow{font-size:20px; color:var(--grape); font-weight:800;}
+
 canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
 .hide{display:none !important;}

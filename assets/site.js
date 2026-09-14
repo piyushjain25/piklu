@@ -124,6 +124,69 @@ function stopSpeech() {
   try { speechSynthesis.cancel(); } catch (e) {}
 }
 
+/* ---------- rules sheet ----------
+   The "how to play" panel some games open from the start screen and from their
+   .actions row during play. A game supplies the standard markup (see site.css's
+   RULES SHEET section) plus a function that builds its own rules copy, then calls:
+
+     wireRulesSheet(() => { $("rules-body").innerHTML = "...this game's rules..."; });
+
+   The body is built lazily on first open, so a long rules panel costs nothing at
+   load. Openers are whichever of #rules-home (start screen) and #rules-btn (in
+   game) exist. Escape, the backdrop and both close buttons all close it; focus
+   moves into the sheet on open, is kept inside it while open, and returns to
+   whichever control opened it. A game's own keydown handler should start with
+   `if (rulesSheetOpen()) return;` so play keys do nothing while it is up. */
+let rulesBody = null, rulesBuilt = false, rulesOpener = null;
+function rulesSheetOpen() {
+  const o = $("rules-ov");
+  return !!o && o.classList.contains("show");
+}
+function openRulesSheet(opener) {
+  const o = $("rules-ov");
+  if (!o) return;
+  if (!rulesBuilt && rulesBody) { rulesBody(); rulesBuilt = true; }
+  rulesOpener = opener || null;
+  o.classList.add("show");
+  const body = $("rules-body");
+  if (body) body.scrollTop = 0;
+  const x = $("rules-close");
+  if (x) x.focus();
+}
+function closeRulesSheet() {
+  const o = $("rules-ov");
+  if (!o) return;
+  o.classList.remove("show");
+  // don't strand focus on a now-hidden button
+  if (rulesOpener && document.contains(rulesOpener)) rulesOpener.focus();
+  rulesOpener = null;
+}
+function wireRulesSheet(buildBody) {
+  const o = $("rules-ov");
+  if (!o) return;
+  rulesBody = buildBody || null;
+  ["rules-home", "rules-btn"].forEach(id => {
+    const b = $(id);
+    if (b) b.onclick = () => openRulesSheet(b);
+  });
+  ["rules-close", "rules-ok"].forEach(id => {
+    const b = $(id);
+    if (b) b.onclick = closeRulesSheet;
+  });
+  o.addEventListener("click", e => { if (e.target === o) closeRulesSheet(); });
+  o.addEventListener("keydown", e => {
+    if (e.key !== "Tab") return;
+    const f = o.querySelectorAll("button");
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && rulesSheetOpen()) { e.preventDefault(); closeRulesSheet(); }
+  });
+}
+
 /* ---------- confetti canvas ---------- */
 let confettiRAF = null;
 function stopConfetti() {

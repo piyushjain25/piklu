@@ -86,7 +86,13 @@ Two steps — never edit the hub's HTML or CSS to add a game:
    - `slug` (required) — folder name; becomes the URL `/games/<slug>/`. Must be unique.
    - `title`, `tagline`, `emoji` (required) — shown on the card.
    - `accent` (required) — one of `grape | coral | leaf | sun | sky`.
-   - `ageGroup` (required) — recommended starting age, shown on the card as `Age: X+` (e.g. `"6+"`).
+   - `ageGroup` (required) — recommended starting age, shown on the card as `Age: X+`.
+     Must be one of exactly **five bands**: `"3+"`, `"6+"`, `"9+"`, `"12+"`, `"15+"` — no other
+     value. The hub builds its age filter from whatever values appear here, so an off-scale
+     age silently adds a stray filter chip. The bands read as:
+     `3+` pre-reading recognition (colour, shape, pattern) · `6+` early reading and basic
+     number work · `9+` fluent reading, times tables, multi-step logic · `12+` abstract
+     reasoning and wide vocabulary · `15+` deep strategy.
      This is a **hub-only** label — never shown inside the game itself.
    - `skills` (optional) — tags shown on the card and used by the hub's search.
    - `badge` (optional) — small ribbon like `"New"`; omit for none.
@@ -188,6 +194,19 @@ globals the game calls directly:
   of its own script and assigns into its own `let` variable, e.g.
   `loadGameData("words.json").then(d => { if (d) WORDS = d; })` — then validates the
   shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
+- `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
+  panel for games whose rules need more room than the start screen's `.howto` block
+  (`tic-tac-trek`, `tick-tock-toe`, `mystery-word`, `matchstick-math`). The game supplies the
+  standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
+  `#rules-ok` — copy it from one of those games), a `📖 Read the full rules` `.tlink`
+  (`#rules-home`) on the start screen, a `📖 Rules` `.tlink` (`#rules-btn`) in the `.actions`
+  row, and a callback that fills `#rules-body` with that game's own copy. The body is built
+  lazily on first open. Escape, the backdrop and both buttons close it; focus moves in and
+  returns to the opener. A game's own `keydown` handler must start with
+  `if (rulesSheetOpen()) return;` so play keys do nothing while the sheet is up. The chrome
+  (`.sheet-ov`, `.sheet`, `.rule`, `.rrow`, `.rarrow`, `.rsolo`) is in `site.css` — never
+  copy it into a game; a game adds only diagram CSS unique to itself.
+  `rulesSheetOpen()` / `closeRulesSheet()` / `openRulesSheet(opener)` are available too.
 - `speak(text, rate)` — reads `text` aloud via `speechSynthesis`, picking the best
   available English voice itself (Chrome defaults to a low-quality local voice unless one
   is picked explicitly; this also handles the voice list loading asynchronously). No-op if
