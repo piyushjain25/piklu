@@ -138,10 +138,14 @@ The card, its link, and the search filter appear automatically.
   `<div class="d-name">EMOJI Name</div><div class="d-range">a few words</div>` — the emoji
   and name are **one line** (`🌱 Easy`, `⭐ Medium`, `🔥 Hard`, `🏆 Expert`; `site.css` keeps
   them on one line and shrinks them slightly on a narrow card, so never put the emoji on its
-  own line or add a `<br>`). The `d-range` is a **short one-line hint** — two or three
-  words, about 12 characters at most (`3 juices`, `lots of help`) — never a list of
-  details. If a card's hint wraps, the four cards stop lining up; the full explanation
-  belongs in the `.howto` block or the rules sheet, not on the card.
+  own line or add a `<br>`). The `d-range` is a **short hint** — two or three words
+  (`3 juices`, `lots of help`, `up to 20`) — never a list of details; the full explanation
+  belongs in the `.howto` block or the rules sheet, not on the card. Keep the four hints
+  about the same length. A hint may wrap on a narrow screen — that's fine: `site.css`
+  stacks each card's contents from the top and gives every card in the row the same
+  height, so the names and hints stay lined up across all four cards. Never override
+  `.diff`'s layout in a game (no `display`, alignment, or fixed heights) — that's what keeps
+  the cards in sync.
 - **Endless and score-free.** No points, no lives, and **no per-game streak** (a single
   combined streak across all games will be added at the site level later — do not add a
   🔥 streak inside a game). Reward with stars, confetti, and sounds. Exception:
