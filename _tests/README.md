@@ -28,7 +28,7 @@ site/rules-sheet.test.js    the shared rules sheet, in the games that use it
 games/<slug>/*.test.js      per-game: engine stress tests and jsdom play-throughs
 ```
 
-`site/*` covers all 26 games and is what catches a broken new game earliest — a missing
+`site/*` covers every game in the catalog and is what catches a broken new game earliest — a missing
 `site.css` link, an off-scale age band, a redeclared `site.js` global, a stray third-party
 host. Add to it rather than duplicating checks per game.
 
@@ -37,7 +37,7 @@ host. Add to it rather than duplicating checks per game.
 | helper | what it does |
 |---|---|
 | `loadEngine(slug)` | runs the game's inline script with no `document`, returns its `module.exports` |
-| `bootGame(slug, {reducedMotion, seed, onError})` | boots the real page in jsdom with the browser bits jsdom lacks stubbed in |
+| `bootGame(slug, {reducedMotion, seed, onError, data})` | boots the real page in jsdom with the browser bits jsdom lacks stubbed in; `data` (`{"words.json": parsed}`) answers a data-driven game's `loadGameData()` |
 | `loadCatalog()` | the `GAMES` array out of `games.js` |
 | `tally()` | `{ok, report, checks, fails}` — `report(name)` prints the count and sets the exit code |
 | `mulberry32(seed)` | deterministic RNG, so a failure can be reproduced from its seed |

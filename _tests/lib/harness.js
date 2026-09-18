@@ -37,7 +37,7 @@ function loadEngine(slug) {
    relative <script src>), Google Fonts dropped, and the browser bits jsdom lacks stubbed in
    BEFORE parse, because the page reads matchMedia and paints to canvas as it loads. */
 function bootGame(slug, opts = {}) {
-  const { reducedMotion = false, seed = null, url = "http://localhost/games/" + slug + "/", onError } = opts;
+  const { reducedMotion = false, seed = null, url = "http://localhost/games/" + slug + "/", onError, data = null } = opts;
   const html = gameHTML(slug)
     .replace('<script src="../../assets/site.js"></script>', "<script>" + read("assets/site.js") + "</script>")
     .replace(/<link[^>]*fonts\.googleapis[^>]*>/g, "");
@@ -56,6 +56,14 @@ function bootGame(slug, opts = {}) {
         addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
       /* beep() swallows this itself, so audio stays silent without the game noticing */
       w.AudioContext = function () { throw new Error("no audio in jsdom"); };
+      /* jsdom has no fetch(). `data` maps a game's relative data paths to their parsed JSON
+         (e.g. {"words.json": JSON.parse(read(...))}), so a data-driven game's loadGameData()
+         gets the real file; anything else rejects, the way file:// would. */
+      w.fetch = async p => {
+        if (data && Object.prototype.hasOwnProperty.call(data, p))
+          return { ok: true, json: async () => JSON.parse(JSON.stringify(data[p])) };
+        throw new Error("no fetch in jsdom: " + p);
+      };
       w.requestAnimationFrame = cb => setTimeout(() => cb(0), 0);
       w.cancelAnimationFrame = id => clearTimeout(id);
       /* jsdom has no canvas backend: getContext() returns null and the shared confetti code

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spot the Words</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:620px;}
+  .title{font-size:clamp(28px,5.6vw,42px);}
+  .topbar{margin-bottom:12px;}
+  /* phones: give the 11×11 grid every pixel the card can spare */
+  @media(max-width:420px){ .card{padding:18px 12px;} }
+
+  /* ---- theme picker (start screen) ---- */
+  .themes{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  @media(min-width:520px){ .themes{grid-template-columns:repeat(3,1fr);} }
+  .tcard{border:3px solid #EEE8FB; background:#fff; border-radius:18px; cursor:pointer; padding:12px 8px;
+    text-align:center; font-family:inherit; color:var(--ink); transition:all .15s ease;}
+  .tcard:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .tcard .t-emoji{font-size:30px; line-height:1;}
+  .tcard .t-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; margin-top:6px; line-height:1.15;}
+  .tcard .t-desc{font-size:12px; font-weight:700; color:var(--ink-soft); margin-top:3px;}
+  .tcard[aria-pressed="true"]{border-color:var(--mc,var(--grape)); background:var(--mbg,#F4F0FE);
+    transform:translateY(-2px); box-shadow:var(--shadow);}
+  .tcard.a0{--mc:var(--grape); --mbg:#F4F0FE;} .tcard.a1{--mc:var(--coral); --mbg:#FFEAED;}
+  .tcard.a2{--mc:var(--leaf); --mbg:#E8F8F0;}  .tcard.a3{--mc:var(--sun-dark); --mbg:#FFF6DC;}
+  .tcard.a4{--mc:var(--sky); --mbg:#E6F4FC;}
+  .loadmsg{text-align:center; font-weight:700; color:var(--ink-soft); padding:18px 6px;}
+  .loadmsg.bad{color:var(--coral-dark);}
+
+  /* ---- the theme chip: fourteen themes need a scrolling menu, and a long name must not
+     push Home/Skip off a phone-width top bar ---- */
+  #level-menu{max-height:min(60vh,380px); overflow-y:auto;}
+  #q-level-label{display:inline-block; max-width:clamp(60px, calc(100vw - 280px), 210px); overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom;}
+  #home-btn,#skip-btn{flex:0 0 auto; white-space:nowrap;}
+  @media(max-width:420px){ #owl-game{width:34px !important; height:34px !important;} }
+
+  /* ---- the letter grid ---- */
+  .board-frame{max-width:480px; margin:0 auto; padding:6px; background:#fff; border:3px solid var(--key-line);
+    border-radius:18px;}
+  .board-wrap{position:relative; width:100%; aspect-ratio:1; container-type:inline-size;
+    touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;}
+  .lines{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible;}
+  .lines line{stroke-linecap:round; stroke-width:.74; opacity:.38;}
+  .lines line.sel{opacity:.5;}
+  .wgrid{position:absolute; inset:0; display:grid;
+    grid-template-columns:repeat(var(--n),1fr); grid-template-rows:repeat(var(--n),1fr);}
+  .wcell{display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:8px;
+    font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink); line-height:1;
+    /* letter size follows the cell size: 100cqw is the board's own width */
+    font-size:clamp(12px, calc(100cqw / var(--n) * .58), 30px);}
+  .wcell:focus{outline:none;}
+  .wcell:focus-visible{box-shadow:inset 0 0 0 3px var(--grape);}
+  /* the first tap / keyboard anchor — a solid ring plus bold weight, never colour alone */
+  .wcell.anchor{box-shadow:inset 0 0 0 3px var(--ink); font-weight:700;}
+  /* the hint — a dashed ring so it can never be mistaken for the anchor */
+  .wcell.hint{outline:3px dashed var(--sun-dark); outline-offset:-3px; animation:hintpulse 1s ease-in-out 3;}
+  @keyframes hintpulse{0%,100%{transform:scale(1)} 50%{transform:scale(1.28)}}
+  .board-wrap.done .wcell{cursor:default;}
+
+  /* ---- the word list ---- */
+  .found-count{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft);
+    font-size:14px; margin:14px 0 8px;}
+  .found-count b{color:var(--grape);}
+  .wordlist{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
+  .wchip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; letter-spacing:1px; color:var(--ink);
+    background:#F4F0FE; border:2px solid #E4DCF5; padding:5px 12px; border-radius:999px;}
+  /* found = struck through AND faded AND ticked — three signals, none of them colour */
+  .wchip.found{text-decoration:line-through; text-decoration-thickness:2px; opacity:.45; background:#fff;}
+  .wchip.found::before{content:"✓ "; text-decoration:none;}
+
+  .feedback{margin:10px 0 4px;}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .mgrid{position:relative; display:grid; gap:0; background:#fff; border:2px solid var(--key-line);
+    border-radius:8px; padding:2px; flex:0 0 auto;}
+  .mgrid i{width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-style:normal;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px; color:var(--ink); border-radius:5px;}
+  .mgrid i.on{background:rgba(108,74,182,.22);}
+  .mgrid i.tap{box-shadow:inset 0 0 0 2px var(--ink); font-weight:700;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <!-- ===== START SCREEN: the theme picker ===== -->
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🔎 Find every hidden word in the letter grid!</p>
+
+      <div class="block-label">Choose a theme</div>
+      <div class="themes" id="themes" role="group" aria-label="Theme"></div>
+      <div class="loadmsg" id="loadmsg">Loading the word lists…</div>
+
+      <div class="howto">
+        🔎 <b>How to play:</b> The words in the list are hiding in the grid. <b>Drag</b> across a word
+        to circle it — or <b>tap its first letter, then its last</b>. The bigger themes hide words
+        <b>backwards</b> and <b>corner to corner</b> too!
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg" disabled>Start ▶</button></div>
+    </section>
+
+    <!-- ===== GAME ===== -->
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <!-- the shared level switcher, listing themes instead of levels -->
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change theme">
+              <span id="q-level-label">🐠 Ocean</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="board-frame">
+        <div class="board-wrap" id="board-wrap">
+          <svg class="lines" id="lines" aria-hidden="true"></svg>
+          <div class="wgrid" id="wgrid" role="group" aria-label="Letter grid"></div>
+        </div>
+      </div>
+
+      <div class="found-count" id="found-count"></div>
+      <div class="wordlist" id="wordlist" role="list" aria-label="Words to find"></div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <!-- no submit button: a word checks itself on release, so the bottom slot holds an
+           invisible Next that keeps its box during play and appears in place on the win -->
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Spot the Words</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   A themed word search. There are no difficulty levels: each theme in words.json carries its
+   own grid size and set of directions, and that is the whole difficulty ladder.
+
+   A grid is a flat array of N*N capital letters, index r*N + c.
+
+   The one property everything else leans on: after filling, EVERY target word appears in the
+   grid EXACTLY ONCE, read in any of the eight directions. Random filler letters can easily
+   spell a second copy of a short target (TEN, SUN, EYE...), and then a child who circles the
+   copy gets told "no" for a word that is plainly there. buildPuzzle() re-rolls fillers until
+   that can't happen. It also keeps the theme's OTHER words (the ones not in this round) out of
+   the grid, so the only real words to find are the ones on the list.                       */
+
+const DIRSETS = {
+  basic: [[0,1],[1,0]],                                           /* → ↓ */
+  back:  [[0,1],[1,0],[0,-1],[-1,0]],                             /* + ← ↑ */
+  all:   [[0,1],[1,0],[0,-1],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1]], /* + the four diagonals */
+};
+const ALL8 = DIRSETS.all;
+const ROUND_SIZE = { 8:5, 9:6, 10:6, 11:7 };
+const roundSize = grid => ROUND_SIZE[grid] || (grid < 9 ? 5 : grid > 10 ? 7 : 6);
+const reverse = s => s.split("").reverse().join("");
+const setKey = words => words.slice().sort().join(",");
+
+/* Keep only well-formed themes; a malformed entry is dropped rather than crashing the page. */
+function validateThemes(data){
+  if(!data || !Array.isArray(data.themes)) return [];
+  const out = [];
+  for(const t of data.themes){
+    if(!t || typeof t.name !== "string" || !t.name || typeof t.emoji !== "string" || !t.emoji) continue;
+    if(!Number.isInteger(t.grid) || t.grid < 8 || t.grid > 11 || !DIRSETS[t.dirs]) continue;
+    if(!Array.isArray(t.words)) continue;
+    const words = [];
+    for(const w of t.words)
+      if(typeof w === "string" && /^[A-Z]+$/.test(w) && w.length >= 2 && w.length <= t.grid && words.indexOf(w) < 0) words.push(w);
+    if(words.length < roundSize(t.grid)) continue;
+    out.push({ name:t.name, emoji:t.emoji, grid:t.grid, dirs:t.dirs, words });
+  }
+  return out;
+}
+
+function shuffle(a, rng){
+  a = a.slice();
+  for(let i = a.length - 1; i > 0; i--){ const j = (rng() * (i + 1)) | 0; const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+/* one word hiding inside another (RAIN in RAINBOW, or backwards) can never be told apart */
+const nests = (a, b) => a !== b && (b.indexOf(a) >= 0 || b.indexOf(reverse(a)) >= 0);
+
+/* ---- 1. pick the round's words ----------------------------------------------------------
+   A spread of lengths: the pool is bucketed by length and dealt round-robin, one word per
+   length at a time, so a round never comes out as five 3-letter words. A pool that is exactly
+   the round size (Days of the Week) is used whole. `avoidKey` is the outgoing round's word
+   set, so Skip and Next always bring different words when the pool allows it.            */
+function pickWords(theme, rng, avoidKey){
+  const n = roundSize(theme.grid);
+  const inPoolOrder = list => list.sort((a, b) => theme.words.indexOf(a) - theme.words.indexOf(b));
+  if(theme.words.length <= n) return inPoolOrder(theme.words.slice());
+  let pick = [];
+  for(let tries = 0; tries < 60; tries++){
+    const byLen = new Map();
+    for(const w of shuffle(theme.words, rng)){
+      if(!byLen.has(w.length)) byLen.set(w.length, []);
+      byLen.get(w.length).push(w);
+    }
+    const lens = shuffle([...byLen.keys()], rng);
+    pick = [];
+    let progress = true;
+    while(pick.length < n && progress){
+      progress = false;
+      for(const L of lens){
+        if(pick.length >= n) break;
+        const bucket = byLen.get(L);
+        while(bucket.length){
+          const w = bucket.shift();
+          if(!pick.some(p => nests(p, w) || nests(w, p))){ pick.push(w); progress = true; break; }
+        }
+      }
+    }
+    if(pick.length === n && setKey(pick) !== avoidKey) break;
+  }
+  return inPoolOrder(pick);
+}
+
+/* ---- 2. place them -----------------------------------------------------------------------
+   Longest first. Rather than firing random attempts at the board, every legal placement is
+   listed (at most 121 cells × 8 directions) and one is drawn at random — which is the capped
+   attempt with no wasted rolls. A placement is legal if each cell is empty or already holds
+   the same letter; placements that cross an earlier word are preferred, most of the time. A
+   word with nowhere to go returns null and the caller reshuffles and starts over.          */
+function placeAll(words, N, dirs, rng){
+  const grid = new Array(N * N).fill("");
+  const order = shuffle(words, rng).sort((a, b) => b.length - a.length);
+  const placed = {};
+  for(const w of order){
+    const all = [], crossing = [];
+    for(let r = 0; r < N; r++) for(let c = 0; c < N; c++) for(const [dr, dc] of dirs){
+      const r1 = r + dr * (w.length - 1), c1 = c + dc * (w.length - 1);
+      if(r1 < 0 || r1 >= N || c1 < 0 || c1 >= N) continue;
+      let overlap = 0, ok = true;
+      for(let k = 0; k < w.length; k++){
+        const ch = grid[(r + dr * k) * N + c + dc * k];
+        if(ch === "") continue;
+        if(ch !== w[k]){ ok = false; break; }
+        overlap++;
+      }
+      if(!ok) continue;
+      const p = { r0:r, c0:c, r1, c1, dr, dc };
+      all.push(p);
+      if(overlap) crossing.push(p);
+    }
+    if(!all.length) return null;
+    const from = crossing.length && rng() < 0.7 ? crossing : all;
+    const p = from[(rng() * from.length) | 0];
+    for(let k = 0; k < w.length; k++) grid[(p.r0 + p.dr * k) * N + p.c0 + p.dc * k] = w[k];
+    placed[w] = p;
+  }
+  return { grid, placed };
+}
+
+/* every distinct straight line in the grid that spells `word`, read in any of the 8
+   directions. A palindrome (EYE) read both ways over the same cells counts ONCE.         */
+function occurrences(grid, N, word){
+  const out = [], seen = {}, L = word.length;
+  for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){
+    if(grid[r * N + c] !== word[0]) continue;
+    for(const [dr, dc] of ALL8){
+      const r1 = r + dr * (L - 1), c1 = c + dc * (L - 1);
+      if(r1 < 0 || r1 >= N || c1 < 0 || c1 >= N) continue;
+      let k = 1;
+      while(k < L && grid[(r + dr * k) * N + c + dc * k] === word[k]) k++;
+      if(k < L) continue;
+      const a = r * N + c, b = r1 * N + c1, key = Math.min(a, b) + "-" + Math.max(a, b);
+      if(seen[key]) continue;
+      seen[key] = true;
+      out.push({ r0:r, c0:c, r1, c1, dr, dc });
+    }
+  }
+  return out;
+}
+const lineCells = (p, len, N) => Array.from({ length:len }, (_, k) => (p.r0 + p.dr * k) * N + p.c0 + p.dc * k);
+const sameLine = (a, b) => (a.r0 === b.r0 && a.c0 === b.c0 && a.r1 === b.r1 && a.c1 === b.c1)
+                        || (a.r0 === b.r1 && a.c0 === b.c1 && a.r1 === b.r0 && a.c1 === b.c0);
+
+/* ---- 3–5. fill, then prove it -------------------------------------------------------------
+   Fillers are drawn from the theme's OWN letters (every letter of every word in its pool), so
+   the real words don't stand out in a sea of Q, X and Z. Then the grid is scanned: any extra
+   copy of a target, or any other pool word, has its filler cells re-rolled and the scan runs
+   again. A stray copy made entirely of placed letters can't be fixed by fillers, so that
+   returns null and the whole placement starts over.                                        */
+function fillAndCheck(base, placed, targets, pool, N, rng){
+  const bag = pool.join("");
+  const grid = base.slice(), free = new Array(N * N).fill(false);
+  for(let i = 0; i < grid.length; i++) if(grid[i] === ""){ free[i] = true; grid[i] = bag[(rng() * bag.length) | 0]; }
+  const others = pool.filter(w => targets.indexOf(w) < 0);
+  for(let pass = 0; pass < 300; pass++){
+    const reroll = new Set();
+    let stuck = false;
+    const breakUp = (p, len) => {
+      const cells = lineCells(p, len, N).filter(i => free[i]);
+      if(!cells.length) stuck = true;
+      cells.forEach(i => reroll.add(i));
+    };
+    for(const w of targets)
+      for(const p of occurrences(grid, N, w)) if(!sameLine(p, placed[w])) breakUp(p, w.length);
+    for(const w of others)
+      for(const p of occurrences(grid, N, w)) breakUp(p, w.length);
+    if(stuck) return null;
+    if(!reroll.size) return grid;
+    reroll.forEach(i => { grid[i] = bag[(rng() * bag.length) | 0]; });
+  }
+  return null;
+}
+
+/* The whole pipeline. `avoid` ({key, gridKey}) is the outgoing puzzle, so Skip and Next never
+   hand back the same word set — or, for a pool with no spare words, the same grid.        */
+function buildPuzzle(theme, rng, avoid){
+  rng = rng || Math.random;
+  const N = theme.grid, dirs = DIRSETS[theme.dirs];
+  for(let round = 0; round < 60; round++){
+    const words = pickWords(theme, rng, avoid ? avoid.key : null);
+    for(let restart = 0; restart < 25; restart++){
+      const pl = placeAll(words, N, dirs, rng);
+      if(!pl) continue;
+      const grid = fillAndCheck(pl.grid, pl.placed, words, theme.words, N, rng);
+      if(!grid) continue;
+      if(avoid && avoid.gridKey === grid.join("")) continue;
+      return {
+        size:N, dirs:theme.dirs, grid, key:setKey(words),
+        words: words.map(w => Object.assign({ word:w }, pl.placed[w])),
+      };
+    }
+  }
+  throw new Error("could not build a puzzle for " + theme.name);
+}
+
+/* ---- selection ---------------------------------------------------------------------------
+   The lines a player may draw: the theme's directions AND their reverses, because a word can
+   be circled from either end ("in either reading direction").                              */
+function lineDirs(dirs){
+  const out = [];
+  for(const [dr, dc] of DIRSETS[dirs])
+    for(const d of [[dr, dc], [-dr, -dc]])
+      if(!out.some(o => o[0] === d[0] && o[1] === d[1])) out.push(d);
+  return out;
+}
+/* Snap a wobbly drag onto a legal line: from the anchor, pick the allowed direction closest
+   in angle to where the finger is, then the length that best matches how far it has gone
+   along that direction, clamped to the grid. Kids never drag straight — this is what makes
+   the game playable on a phone.                                                           */
+function snapLine(a, to, dirs, N){
+  const vr = to.r - a.r, vc = to.c - a.c;
+  if(!vr && !vc) return { r:a.r, c:a.c };
+  let best = null, bestCos = -Infinity;
+  for(const [dr, dc] of lineDirs(dirs)){
+    const cos = (vr * dr + vc * dc) / (Math.hypot(vr, vc) * Math.hypot(dr, dc));
+    if(cos > bestCos + 1e-9){ bestCos = cos; best = [dr, dc]; }
+  }
+  const [dr, dc] = best;
+  let k = Math.round((vr * dr + vc * dc) / (dr * dr + dc * dc));
+  k = Math.max(0, k);
+  while(k > 0){
+    const r = a.r + dr * k, c = a.c + dc * k;
+    if(r >= 0 && r < N && c >= 0 && c < N) break;
+    k--;
+  }
+  return { r:a.r + dr * k, c:a.c + dc * k };
+}
+/* true if b sits exactly on one of the theme's lines through a (for tap-tap) */
+function onLine(a, b, dirs){
+  const vr = b.r - a.r, vc = b.c - a.c;
+  if(!vr && !vc) return false;
+  const k = Math.max(Math.abs(vr), Math.abs(vc));
+  if(vr % k || vc % k) return false;
+  return lineDirs(dirs).some(([dr, dc]) => dr === vr / k && dc === vc / k);
+}
+function readLine(grid, N, a, b){
+  const vr = b.r - a.r, vc = b.c - a.c, k = Math.max(Math.abs(vr), Math.abs(vc));
+  if(k && ((vr && Math.abs(vr) !== k) || (vc && Math.abs(vc) !== k))) return "";   /* not straight */
+  const dr = k ? vr / k : 0, dc = k ? vc / k : 0;
+  let s = "";
+  for(let i = 0; i <= k; i++) s += grid[(a.r + dr * i) * N + a.c + dc * i];
+  return s;
+}
+/* the index of the target word the selection spells (either way round), or -1. Every target
+   appears exactly once, so spelling it IS finding it. */
+function matchSelection(puzzle, a, b){
+  const s = readLine(puzzle.grid, puzzle.size, a, b);
+  if(s.length < 2) return -1;
+  const r = reverse(s);
+  return puzzle.words.findIndex(w => w.word === s || w.word === r);
+}
+
+/* a per-round reward, never a score: fewer hints, more stars */
+const starsFor = hints => hints === 0 ? 3 : hints <= 2 ? 2 : 1;
+
+if(typeof module !== "undefined") module.exports = { DIRSETS, ROUND_SIZE, roundSize, validateThemes,
+  pickWords, placeAll, occurrences, fillAndCheck, buildPuzzle, lineDirs, snapLine, onLine, readLine,
+  matchSelection, starsFor, setKey };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+/* This game only works when served (fetch() is blocked under file://) — no embedded
+   fallback data, by design: see CLAUDE.md. */
+let THEMES = [];
+loadGameData("words.json").then(d => {
+  THEMES = validateThemes(d);
+  if(THEMES.length) buildPicker();
+  else {
+    $("loadmsg").textContent = "Couldn't load the word lists. This game needs to be served over http(s), not opened as a local file.";
+    $("loadmsg").classList.add("bad");
+  }
+});
+
+const LINE_COLORS = ["#6C4AB6", "#FF6B7A", "#2FB37D", "#e6a800", "#3FA7E0"];
+const DIR_DESC = { basic:"across & down", back:"forwards & backwards", all:"every way, even diagonal" };
+
+let themeIdx = 0, P = null, found = new Set(), colorOf = {}, hints = 0, done = false;
+let anchor = null;          /* first tap, or the keyboard's Enter — the start of a line */
+let drag = null;            /* the pointer gesture in progress */
+let cursor = { r:0, c:0 };  /* the keyboard focus ring */
+let hintTimer = null, owlTimer = null;
+const theme = () => THEMES[themeIdx];
+const same = (a, b) => a && b && a.r === b.r && a.c === b.c;
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "good"){ beep(660, .1, "triangle"); beep(880, .13, "triangle", .07); }
+  else if(kind === "bad") beep(240, .12, "sine", 0, .05);        /* soft — a miss is not a failure */
+  else if(kind === "hint"){ beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "win") [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+}
+
+/* ---- start screen: the theme picker ---- */
+function buildPicker(){
+  const box = $("themes");
+  box.innerHTML = "";
+  THEMES.forEach((t, i) => {
+    const b = document.createElement("button");
+    b.className = "tcard a" + (i % 5);
+    b.dataset.i = i;
+    b.setAttribute("aria-pressed", i === themeIdx ? "true" : "false");
+    b.innerHTML = '<div class="t-emoji">' + t.emoji + '</div><div class="t-name">' + t.name + "</div>"
+      + '<div class="t-desc">' + t.grid + "×" + t.grid + " · " + DIR_DESC[t.dirs] + "</div>";
+    b.onclick = () => setTheme(i);
+    box.appendChild(b);
+  });
+  const menu = $("level-menu");
+  menu.innerHTML = THEMES.map((t, i) =>
+    '<button class="level-opt" role="menuitemradio" data-i="' + i + '" aria-current="false">'
+    + "<span>" + t.emoji + " " + t.name + '</span><span class="tick">✓</span></button>').join("");
+  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickTheme(+b.dataset.i));
+  $("loadmsg").classList.add("hide");
+  $("start-btn").disabled = false;
+  setTheme(themeIdx);
+}
+function setTheme(i){
+  themeIdx = i;
+  document.querySelectorAll(".tcard").forEach(b => b.setAttribute("aria-pressed", +b.dataset.i === i ? "true" : "false"));
+  document.querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", +b.dataset.i === i ? "true" : "false"));
+  $("q-level-label").textContent = theme().emoji + " " + theme().name;
+}
+/* switching theme from the chip starts a fresh puzzle and stays in the game */
+function pickTheme(i){
+  closeLevelMenu();
+  if(i === themeIdx) return;
+  setTheme(i);
+  P = null;
+  newRound();
+}
+
+/* ---- rendering ---- */
+function buildGrid(){
+  const N = P.size, g = $("wgrid");
+  $("board-wrap").style.setProperty("--n", N);
+  g.setAttribute("aria-label", "Letter grid, " + N + " by " + N);
+  g.innerHTML = "";
+  for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){
+    const el = document.createElement("div");
+    el.className = "wcell";
+    el.dataset.r = r; el.dataset.c = c;
+    el.textContent = P.grid[r * N + c];
+    el.tabIndex = r === cursor.r && c === cursor.c ? 0 : -1;
+    el.setAttribute("aria-label", "Row " + (r + 1) + ", column " + (c + 1) + ": " + P.grid[r * N + c]);
+    g.appendChild(el);
+  }
+  $("lines").setAttribute("viewBox", "0 0 " + N + " " + N);
+}
+const cellEl = p => $("wgrid").children[p.r * P.size + p.c];
+function lineSVG(a, b, color, cls){
+  return '<line class="' + (cls || "") + '" x1="' + (a.c + .5) + '" y1="' + (a.r + .5)
+    + '" x2="' + (b.c + .5) + '" y2="' + (b.r + .5) + '" stroke="' + color + '"/>';
+}
+/* one round-capped translucent line per found word, plus the selection in progress — so two
+   words that cross both stay visible, which per-cell backgrounds cannot do */
+function drawLines(selA, selB){
+  let h = "";
+  P.words.forEach((w, i) => {
+    if(found.has(i)) h += lineSVG({ r:w.r0, c:w.c0 }, { r:w.r1, c:w.c1 }, colorOf[i]);
+  });
+  if(selA) h += lineSVG(selA, selB || selA, LINE_COLORS[found.size % LINE_COLORS.length], "sel");
+  $("lines").innerHTML = h;
+  for(const el of $("wgrid").children) el.classList.remove("anchor");
+  if(anchor) cellEl(anchor).classList.add("anchor");
+}
+function renderWords(){
+  const box = $("wordlist");
+  box.innerHTML = "";
+  P.words.forEach((w, i) => {
+    const s = document.createElement("span");
+    s.className = "wchip" + (found.has(i) ? " found" : "");
+    s.setAttribute("role", "listitem");
+    s.dataset.i = i;
+    s.textContent = w.word;
+    s.setAttribute("aria-label", w.word + (found.has(i) ? ", found" : ", not found yet"));
+    box.appendChild(s);
+  });
+  $("found-count").innerHTML = "<b>" + found.size + "</b> of <b>" + P.words.length + "</b> words found";
+}
+
+/* ---- checking a line ---- */
+function commit(a, b){
+  anchor = null;
+  const s = readLine(P.grid, P.size, a, b);
+  if(s.length < 2){ drawLines(); return; }
+  const i = matchSelection(P, a, b);
+  if(i >= 0 && !found.has(i)){ foundWord(i); return; }
+  drawLines();
+  if(i >= 0){ flash("You already found " + P.words[i].word + " — look for another!", ""); return; }
+  flash("“" + s + "” isn't on the list — keep looking!", "bad");
+  sound("bad");
+}
+function foundWord(i){
+  clearHint();
+  colorOf[i] = LINE_COLORS[found.size % LINE_COLORS.length];
+  found.add(i);
+  const w = P.words[i].word;
+  drawLines();
+  renderWords();
+  speak(w.toLowerCase(), 0.9);   /* reading it aloud is what makes this a reading game */
+  sound("good");
+  if(found.size === P.words.length){ win(); return; }
+  flash("🎉 You found " + w + "!", "good");
+  setOwl("happy");
+  clearTimeout(owlTimer);
+  owlTimer = setTimeout(() => { if(!done) setOwl("think"); }, 900);
+}
+function win(){
+  done = true;
+  clearTimeout(owlTimer);
+  $("board-wrap").classList.add("done");
+  setOwl("win");
+  const n = starsFor(hints);
+  $("stars").textContent = "★".repeat(n) + "☆".repeat(3 - n);
+  $("rlabel").textContent = "🎉 You spotted every word!";
+  $("rsub").textContent = hints ? "You used " + hints + " hint" + (hints === 1 ? "" : "s") + "." : "No hints needed — wow!";
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl and chip don't move */
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+  flash("", "");
+  sound("win");
+  if(!reduceMotion) wordConfetti();
+}
+
+/* ---- hint: pulse the first letter of one unfound word (without naming it) ---- */
+function clearHint(){
+  clearTimeout(hintTimer);
+  for(const el of $("wgrid").children) el.classList.remove("hint");
+}
+function hint(){
+  if(done || !P) return;
+  const left = P.words.map((w, i) => i).filter(i => !found.has(i));
+  if(!left.length) return;
+  clearHint();
+  const w = P.words[left[(Math.random() * left.length) | 0]];
+  hints++;
+  cellEl({ r:w.r0, c:w.c0 }).classList.add("hint");
+  hintTimer = setTimeout(clearHint, 4000);
+  setOwl("think");
+  sound("hint");
+  flash("💡 One of the words starts at the letter with the dashed ring.", "hint");
+}
+function resetPuzzle(){
+  if(done || !P) return;
+  found = new Set(); colorOf = {}; anchor = null; drag = null;
+  clearHint();
+  drawLines();
+  renderWords();
+  setOwl("think");
+  flash("Same grid, fresh start — find them all again!", "");
+}
+
+/* ---- rounds ---- */
+function newRound(){
+  stopConfetti();
+  stopSpeech();
+  clearHint();
+  clearTimeout(owlTimer);
+  /* pass the outgoing puzzle so Skip and Next never repeat it */
+  const avoid = P ? { key:P.key, gridKey:P.grid.join("") } : null;
+  P = buildPuzzle(theme(), Math.random, avoid);
+  found = new Set(); colorOf = {}; hints = 0; done = false; anchor = null; drag = null;
+  cursor = { r:0, c:0 };
+  $("board-wrap").classList.remove("done");
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("invisible");
+  $("skip-btn").classList.remove("invisible");
+  buildGrid();
+  drawLines();
+  renderWords();
+  setOwl("think");
+  flash("Find the " + P.words.length + " hidden words!", "");
+}
+function startGame(){
+  if(!THEMES.length) return;
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  P = null;
+  newRound();
+}
+function goHome(){
+  stopConfetti();
+  stopSpeech();
+  clearHint();
+  closeLevelMenu();
+  P = null; anchor = null; drag = null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- pointer input: drag, or tap-tap, through one set of pointer events ----------------
+   On touch the pointermove target never changes from where the finger went down, so the cell
+   under the finger is looked up with elementFromPoint(). If the finger slides off the board,
+   the cell is worked out from the board's rectangle and clamped to the edge.              */
+function cellAt(e){
+  let el = null;
+  if(document.elementFromPoint && typeof e.clientX === "number") el = document.elementFromPoint(e.clientX, e.clientY);
+  let cell = el && el.closest ? el.closest(".wcell") : null;
+  if(!cell && e.target && e.target.closest) cell = e.target.closest(".wcell");
+  if(cell && cell.parentNode === $("wgrid")) return { r:+cell.dataset.r, c:+cell.dataset.c };
+  const rect = $("wgrid").getBoundingClientRect(), N = P.size;
+  if(!rect.width || typeof e.clientX !== "number") return null;
+  const clamp = v => Math.max(0, Math.min(N - 1, v));
+  return { r:clamp(Math.floor((e.clientY - rect.top) / rect.height * N)),
+           c:clamp(Math.floor((e.clientX - rect.left) / rect.width * N)) };
+}
+function moveCursor(p){
+  const old = cellEl(cursor);
+  if(old) old.tabIndex = -1;
+  cursor = { r:p.r, c:p.c };
+  cellEl(cursor).tabIndex = 0;
+}
+const grid = $("wgrid");
+grid.addEventListener("pointerdown", e => {
+  if(done || !P || rulesSheetOpen()) return;
+  if(typeof e.button === "number" && e.button > 0) return;
+  const at = cellAt(e);
+  if(!at) return;
+  e.preventDefault();
+  try{ if(grid.setPointerCapture && e.pointerId !== undefined) grid.setPointerCapture(e.pointerId); }catch(_){}
+  moveCursor(at);
+  drag = { down:at, cur:at, moved:false };
+  /* a second tap previews the line from the first; a fresh press just marks the cell */
+  if(anchor && onLine(anchor, at, P.dirs)) drawLines(anchor, at);
+  else drawLines(at, at);
+});
+grid.addEventListener("pointermove", e => {
+  if(!drag) return;
+  const at = cellAt(e);
+  if(!at) return;
+  drag.cur = at;
+  if(!same(at, drag.down)) drag.moved = true;
+  if(drag.moved){
+    anchor = null;   /* dragging always starts from where the finger went down */
+    drawLines(drag.down, snapLine(drag.down, at, P.dirs, P.size));
+  }
+});
+grid.addEventListener("pointerup", e => {
+  if(!drag) return;
+  const d = drag;
+  drag = null;
+  const at = cellAt(e) || d.cur;
+  if(d.moved || !same(at, d.down)){
+    commit(d.down, snapLine(d.down, at, P.dirs, P.size));
+    return;
+  }
+  /* a tap */
+  if(anchor && same(anchor, at)){ anchor = null; drawLines(); flash("", ""); return; }   /* tap it again to cancel */
+  if(anchor && onLine(anchor, at, P.dirs)){ commit(anchor, at); return; }
+  anchor = at;
+  drawLines(at, at);
+  flash("Now tap the last letter of the word.", "");
+});
+grid.addEventListener("pointercancel", () => { drag = null; drawLines(anchor, anchor); });
+/* stop long-press menus and native drag-selection fighting the gesture */
+grid.addEventListener("contextmenu", e => e.preventDefault());
+
+/* ---- keyboard: arrows move a focus ring, Enter anchors, arrows stretch the line, Enter
+   checks it, Escape lets go ---- */
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){
+    closeLevelMenu();
+    if(anchor){ anchor = null; if(P) drawLines(); flash("", ""); }
+    return;
+  }
+  if($("screen-game").classList.contains("hide") || !P) return;
+  if(e.key === "Enter" && done){ e.preventDefault(); newRound(); return; }
+  if(done || !$("wgrid").contains(document.activeElement)) return;
+  const N = P.size;
+  const d = { ArrowLeft:[0,-1], ArrowRight:[0,1], ArrowUp:[-1,0], ArrowDown:[1,0] }[e.key];
+  if(d){
+    e.preventDefault();
+    moveCursor({ r:Math.max(0, Math.min(N - 1, cursor.r + d[0])), c:Math.max(0, Math.min(N - 1, cursor.c + d[1])) });
+    cellEl(cursor).focus();
+    if(anchor) drawLines(anchor, snapLine(anchor, cursor, P.dirs, N));
+    return;
+  }
+  if(e.key === "Enter" || e.key === " "){
+    e.preventDefault();
+    if(!anchor){
+      anchor = { r:cursor.r, c:cursor.c };
+      drawLines(anchor, anchor);
+      flash("Use the arrows to stretch along the word, then press Enter.", "");
+    } else {
+      const a = anchor;
+      commit(a, snapLine(a, cursor, P.dirs, N));
+    }
+  }
+});
+
+/* ---- wiring ---- */
+$("start-btn").onclick = startGame;
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => { if(!done) newRound(); };
+$("next-btn").onclick = newRound;
+$("reset-btn").onclick = resetPuzzle;
+$("hint-link").onclick = hint;
+wireLevelMenu();
+
+/* ---- the rules sheet ---- */
+function miniGrid(rows, on, tap){
+  const n = rows[0].length;
+  let h = '<div class="mgrid" style="grid-template-columns:repeat(' + n + ',22px)" aria-hidden="true">';
+  rows.join("").split("").forEach((ch, i) => {
+    h += '<i class="' + (on.indexOf(i) >= 0 ? "on " : "") + (tap && tap.indexOf(i) >= 0 ? "tap" : "") + '">' + ch + "</i>";
+  });
+  return h + "</div>";
+}
+wireRulesSheet(function(){
+  const demo = ["SEALX", "OCRAB", "FISHT", "LWAVE"];
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>Pick a <b>theme</b>. A handful of words from that theme are <b>hiding in the letter grid</b>, '
+    + 'and they are listed underneath it. Find <b>every word on the list</b> to win the round.</p>'
+    + '<p>When you find one it gets a coloured line through it in the grid, it is <b>crossed off</b> '
+    + 'the list, and you will hear it read out loud.</p></div>'
+
+    + '<div class="rule"><h3>✋ Drag across the letters</h3>'
+    + '<p>Put your finger (or mouse) on the <b>first letter</b> of a word and <b>slide</b> to the '
+    + '<b>last letter</b>, then let go. You don\'t have to be perfectly straight — the line snaps '
+    + 'to the nearest straight line for you.</p>'
+    + '<div class="rrow">' + miniGrid(demo, [10, 11, 12, 13]) + '</div>'
+    + '<span class="cap">Slide from <b>F</b> to <b>H</b> to find <b>FISH</b>.</span></div>'
+
+    + '<div class="rule"><h3>👆 Or tap the first letter, then the last</h3>'
+    + '<p>Not a fan of dragging? <b>Tap the first letter</b> — it gets a ring around it — then '
+    + '<b>tap the last letter</b>. Tap the ringed letter again if you change your mind.</p>'
+    + '<div class="rrow">' + miniGrid(demo, [], [6]) + '<span class="rarrow">➡️</span>'
+    + miniGrid(demo, [6, 7, 8, 9], [9]) + '</div>'
+    + '<span class="cap">Tap <b>C</b>, then <b>B</b> — that\'s <b>CRAB</b>.</span>'
+    + '<p style="margin-top:10px;">On a keyboard: the <b>arrow keys</b> move around the grid, '
+    + '<b>Enter</b> picks the first letter, the arrows stretch the line, and <b>Enter</b> checks it. '
+    + '<b>Escape</b> lets go.</p></div>'
+
+    + '<div class="rule"><h3>🧭 Which ways do words go?</h3>'
+    + '<p>That depends on the theme — each theme card tells you:</p>'
+    + '<p>➡️ <b>Across &amp; down</b> — words read left-to-right or top-to-bottom.<br>'
+    + '↔️ <b>Forwards &amp; backwards</b> — they can also run right-to-left or bottom-to-top.<br>'
+    + '✳️ <b>Every way</b> — backwards <b>and</b> corner to corner, too!</p>'
+    + '<p>Found a word backwards? You can draw it from either end.</p></div>'
+
+    + '<div class="rule"><h3>💡 Hints and stars</h3>'
+    + '<p>Stuck? <b>💡 Hint</b> puts a dashed ring around the <b>first letter</b> of a word you '
+    + 'haven\'t found yet. <b>🔄 Reset</b> clears your found words and lets you start the same grid '
+    + 'again. <b>⏭ Skip</b> gives you a brand-new grid in the same theme.</p>'
+    + '<p>Find them all with <b>no hints</b> for <b>★★★</b>. One or two hints earns <b>★★</b>, '
+    + 'and three or more earns <b>★</b>.</p></div>';
+});
+
+initBouncyTitle("Spot the Words");
+
+function wordConfetti(){
+  const cv = $("confetti"); cv.style.display = "block";
+  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ["#6C4AB6", "#FF6B7A", "#2FB37D", "#FFCF43", "#3FA7E0"];
+  const parts = Array.from({ length:80 }, () => ({ x:cv.width / 2, y:cv.height * 0.35,
+    r:5 + Math.random() * 6, c:colors[(Math.random() * colors.length) | 0],
+    vy:-5 + Math.random() * 2, vx:-6 + Math.random() * 12, rot:0, vr:.25 }));
+  let f = 0;
+  (function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += .16; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); ctx.restore();
+    });
+    f++;
+    if(f < 80) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+}
+</script>
+</body>
+</html>

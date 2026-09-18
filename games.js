@@ -101,4 +101,7 @@ window.GAMES = [
 
   { slug: "lights-out",          title: "Lights Out",          emoji: "💡", accent: "coral",  ageGroup: "6+",
     tagline: "Put the whole town to sleep.",                   skills: ["Logic", "Planning"], badge: "New" },
+
+  { slug: "spot-the-words",      title: "Spot the Words",      emoji: "🔤", accent: "leaf",   ageGroup: "6+",
+    tagline: "Hunt down the hidden words in a themed letter grid.", skills: ["Vocabulary", "Attention"], badge: "New" },
 ];

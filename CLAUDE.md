@@ -21,7 +21,8 @@ online toy store later. Read the rules below before changing anything.
    static server, not by double-clicking the file. **Don't add an embedded/inline copy of
    the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
    two places and lets it silently drift out of sync. If the fetch fails, the game is
-   simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`); that's expected,
+   simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`);
+   that's expected,
    not a bug.
 4. **Each game is one file plus three shared assets.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
@@ -130,7 +131,8 @@ The card, its link, and the search filter appear automatically.
 - **Four difficulty levels** — `EASY`, `MEDIUM`, `HARD`, `EXPERT` — each meaningfully
   different. Exception: `guess-the-capital` has no difficulty levels — it's purely a
   choice of game (Indian States vs World Countries), so it has no level chip at all (see
-  below).
+  below). `spot-the-words` has no levels either: each theme in its `words.json` declares its
+  own grid size and word directions, and the theme *is* the difficulty.
 - **Endless and score-free.** No points, no lives, and **no per-game streak** (a single
   combined streak across all games will be added at the site level later — do not add a
   🔥 streak inside a game). Reward with stars, confetti, and sounds. Exception:
@@ -165,7 +167,10 @@ don't redefine these classes in a game's own `<style>`.
   player's work). For pure multiple-choice games with nothing to reset
   (number-detective, times-table-pop, what-comes-next) omit Reset and show only Hint.
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
-  the **last component at the bottom**, in its own bottom slot.
+  the **last component at the bottom**, in its own bottom slot. A game with **no submit
+  action** (the move itself is the check — `lights-out`, `spot-the-words`) keeps that slot
+  occupied during play with `Next ▶` carrying `.invisible`, and just removes `.invisible` on
+  the win, so the slot never reflows.
 - **On a correct answer, replace the primary button *in place* with a `Next ▶` button**
   in that same bottom slot (Next here is a real `.btn`, not a link), hide Skip, and show
   the result message just above it — so Next appears exactly where the player's eye/finger
@@ -180,7 +185,10 @@ don't redefine these classes in a game's own `<style>`.
   switches difficulty, starts a fresh puzzle at that level **while staying in the game**,
   and closes the menu. Close the menu on **Escape** or an outside click.
   Exception: a game with no difficulty levels (`guess-the-capital`) omits the level chip
-  entirely — the top bar centre is just the owl mascot.
+  entirely — the top bar centre is just the owl mascot. `spot-the-words` instead reuses the
+  same chip (`#q-level` / `#level-menu`, `wireLevelMenu()`) as a **theme** switcher: it lists
+  the fourteen themes rather than levels, and adds its own `max-height`/`overflow-y:auto` on
+  `#level-menu` so the long list scrolls.
 - **Start screen only:** a subtle **`← All games`** link at the top-left that points to
   `../` (the games hub). It must appear only on the start screen, never during play.
 
@@ -215,7 +223,8 @@ globals the game calls directly:
   shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
 - `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
   panel for games whose rules need more room than the start screen's `.howto` block
-  (`tic-tac-trek`, `tick-tock-toe`, `mystery-word`, `matchstick-math`). The game supplies the
+  (`tic-tac-trek`, `tick-tock-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
+  `spot-the-words`). The game supplies the
   standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
   `#rules-ok` — copy it from one of those games), a `📖 Read the full rules` `.tlink`
   (`#rules-home`) on the start screen, a `📖 Rules` `.tlink` (`#rules-btn`) in the `.actions`
@@ -282,6 +291,11 @@ real code. Prefer correctness proofs over spot checks — "every generated board
 the claimed minimum really clears it, across 10,000 boards" beats a handful of examples. If a
 game has no `module.exports` line, the play-through (`bootGame`) still works.
 
+jsdom has no `fetch()`, so a **data-driven** game's play-through passes its real JSON in:
+`bootGame(slug, { data: { "words.json": JSON.parse(read("games/<slug>/words.json")) } })`
+answers that game's `loadGameData()` call; any other path rejects, as it would under `file://`.
+Then wait for the page to finish loading the data before driving it.
+
 ## Publishing (how changes go live)
 
 The site auto-deploys from GitHub: after editing, the human commits and pushes
@@ -297,12 +311,21 @@ pizza-party · set-the-clock · what-comes-next ·
 word-guess · guess-the-capital · math-monsters · shape-sorter · color-match ·
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word · tick-tock-toe · tic-tac-trek ·
-lights-out
+lights-out · spot-the-words
 
-`word-guess`, `guess-the-capital`, and `spell-a-bee` are the **data-driven** games:
-each loads its data from a JSON file in its own folder (`word-guess/words.json`,
-`guess-the-capital/capitals.json`, `spell-a-bee/words.json`) via the shared
-`loadGameData()` helper.
+`word-guess`, `guess-the-capital`, `spell-a-bee` and `spot-the-words` are the
+**data-driven** games: each loads its data from a JSON file in its own folder
+(`word-guess/words.json`, `guess-the-capital/capitals.json`, `spell-a-bee/words.json`,
+`spot-the-words/words.json`) via the shared `loadGameData()` helper.
+
+`spot-the-words/words.json` is `{ "themes": [ { name, emoji, grid, dirs, words } ] }`:
+`grid` is the N of an N×N board (8–11, which also sets the round size: 8→5 words, 9→6,
+10→6, 11→7), `dirs` is `basic` (→ ↓) | `back` (+ ← ↑) | `all` (+ diagonals), and `words`
+are A–Z capitals, each no longer than `grid`, at least 10 per theme (Days of the Week is the
+one exception, at 7). `_tests/games/spot-the-words/engine.test.js` checks all of that and
+generates 2,000 boards per theme to prove every target appears exactly once — **run it after
+editing the word lists**. A word that is a substring of another in the same theme (RAIN /
+RAINBOW) is allowed but never picked in the same round as it.
 
 ## When the store is added later
 
