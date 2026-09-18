@@ -132,7 +132,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -559,7 +559,7 @@ function onSolved(dec){
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("rlabel").textContent = "🎉 Correct! " + dec.display + "  " + praise();
   $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
-  $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  $("next-btn").classList.remove("invisible"); $("next-btn").focus();
   setOwl('win'); sound('win');
   if(!reduceMotion) miniConfetti();
   render();
@@ -674,7 +674,7 @@ function newPuzzle(){
   game.start = new Set(r.start);
   prevSig = puzzleSig(game.start);
   $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
-  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible");
+  $("next-btn").classList.add("invisible"); $("skip-btn").classList.remove("invisible");
   flash("This sum is wrong. Move ONE stick to fix it!", '');
   $("instruct").textContent = "Tap a stick, then tap a glowing spot.";
   setOwl('idle');

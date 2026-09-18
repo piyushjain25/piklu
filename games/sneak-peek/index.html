@@ -112,7 +112,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -207,7 +207,7 @@ function newRound(fromHome){
   $("qprompt").classList.add("hide"); $("qprompt").textContent="";
   $("play-view").classList.add("hide"); $("options").innerHTML="";
   $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
-  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("next-btn").classList.add("invisible"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   renderGrid(true); startTimerBar(LEVELS[level].seconds);
   setOwl('idle'); flash('','');
   memoTimer=setTimeout(showQuestion, LEVELS[level].seconds*1000);
@@ -252,7 +252,7 @@ function choose(v, btn){
     $("serve-view").classList.add("hide"); $("hint-link").classList.add("off");
     $("rlabel").textContent=`🎉 Yes — that's right!`;
     $("skip-btn").classList.add("invisible");   // Next takes its place; Skip keeps its slot so nothing shifts
-    $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
+    $("next-btn").classList.remove("invisible"); $("next-btn").focus(); flash('', ''); setOwl('win');
     if(!reduceMotion) miniConfetti(); sound('win');
   } else {
     btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');

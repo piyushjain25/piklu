@@ -34,6 +34,14 @@ for (const g of GAMES) {
   if ("badge" in g) ok(typeof g.badge === "string" && g.badge.trim(), at + ": badge must be a non-empty string");
 }
 
+/* accent spacing — the hub grid is 1–4 columns, so an entry 1, 2 or 3 places apart can land
+   beside or directly above/below; those must differ. 4 apart may repeat (see CLAUDE.md). */
+GAMES.forEach((g, i) => {
+  for (const d of [1, 2, 3]) if (i >= d)
+    ok(GAMES[i - d].accent !== g.accent,
+       "games.js[" + g.slug + "]: accent " + g.accent + " repeats " + GAMES[i - d].slug + ", " + d + " place(s) above");
+});
+
 /* no orphans either — a folder on disk that the catalog forgot is an unreachable game */
 for (const dir of fs.readdirSync(path.join(ROOT, "games"), { withFileTypes: true })) {
   if (!dir.isDirectory()) continue;

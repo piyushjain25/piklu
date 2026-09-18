@@ -137,7 +137,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -325,7 +325,7 @@ function newBuild(){
   tiles = shuffle(game.ch.digits.slice()).map((d,i)=>({ id:i, digit:d, loc:'tray' }));
   $("goal-text").textContent = game.ch.goal.text;
   $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
-  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible");
+  $("next-btn").classList.add("invisible"); $("skip-btn").classList.remove("invisible");
   document.querySelectorAll('.slot').forEach(el=>el.style.borderColor='');
   updateUndoBtn();
   flash("Tap a number tile to drop it into the next box.", '');
@@ -470,7 +470,7 @@ function onSolved(s){
   $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("rlabel").textContent = `🎉 ${valueOf(s)} — that's it! ${praise()}`;
   $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
-  $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  $("next-btn").classList.remove("invisible"); $("next-btn").focus();
   updateUndoBtn();
   setOwl('win'); sound('win');
   document.querySelectorAll('.slot').forEach(el=>el.style.borderColor='var(--leaf)');

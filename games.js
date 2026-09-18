@@ -84,22 +84,22 @@ window.GAMES = [
   { slug: "what-am-i",           title: "What Am I?",          emoji: "🤔", accent: "sun",    ageGroup: "6+",
     tagline: "Solve the riddle — what am I?",                  skills: ["Riddles", "Logic"] },
 
-  { slug: "mouse-maze",          title: "Mouse Maze",          emoji: "🐭", accent: "coral",  ageGroup: "6+",
+  { slug: "mouse-maze",          title: "Mouse Maze",          emoji: "🐭", accent: "leaf",   ageGroup: "6+",
     tagline: "Guide the mouse through the maze to the cheese!", skills: ["Logic", "Spatial reasoning"] },
 
-  { slug: "sneak-peek",          title: "Sneak Peek",          emoji: "🧠", accent: "leaf",   ageGroup: "6+",
+  { slug: "sneak-peek",          title: "Sneak Peek",          emoji: "🧠", accent: "coral",  ageGroup: "6+",
     tagline: "Take a sneak peek, then remember what you saw!", skills: ["Memory", "Attention"] },
 
   { slug: "mystery-word",        title: "Mystery Word",        emoji: "🔍", accent: "sky",    ageGroup: "12+",
     tagline: "Crack the secret 5-letter word in 6 tries!",     skills: ["Vocabulary", "Logic"] },
 
-  { slug: "lights-out",          title: "Lights Out",          emoji: "💡", accent: "coral",  ageGroup: "6+",
+  { slug: "lights-out",          title: "Lights Out",          emoji: "💡", accent: "grape",  ageGroup: "6+",
     tagline: "Put the whole town to sleep.",                   skills: ["Logic", "Planning"], badge: "New" },
 
   { slug: "spot-the-words",      title: "Spot the Words",      emoji: "🔤", accent: "leaf",   ageGroup: "6+",
     tagline: "Hunt down the hidden words in a themed letter grid.", skills: ["Vocabulary", "Attention"], badge: "New" },
 
-  { slug: "juice-jumble",        title: "Juice Jumble",        emoji: "🧃", accent: "sky",    ageGroup: "6+",
+  { slug: "juice-jumble",        title: "Juice Jumble",        emoji: "🧃", accent: "coral",  ageGroup: "6+",
     tagline: "Pour the juices until every glass is one flavour.", skills: ["Logic", "Planning"], badge: "New" },
 
   { slug: "dino-dig",            title: "Dino Dig",            emoji: "🥚", accent: "sun",    ageGroup: "9+",

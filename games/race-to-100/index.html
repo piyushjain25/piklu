@@ -154,7 +154,7 @@
       <div class="coach" id="coach" aria-live="polite"></div>
 
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -250,7 +250,7 @@ function startRace(){
   setLevel(level);
   $("goal-chip").textContent=`🎯 Reach exactly ${target}`;
   $("result-view").classList.add("hide");
-  $("next-btn").classList.add("hide");
+  $("next-btn").classList.add("invisible");
   $("skip-btn").classList.remove("invisible");
   $("hint-link").classList.remove("off");
   clearFlash(); clearCoach();
@@ -351,7 +351,7 @@ function endRace(){
   $("result-view").classList.remove("hide");
   $("rlabel").textContent = `🎉 You reached exactly ${race.target} in ${race.moves} moves!`;
   $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
-  $("next-btn").classList.remove("hide"); $("next-btn").focus();
+  $("next-btn").classList.remove("invisible"); $("next-btn").focus();
   setOwl('win'); sound('win'); if(!reduceMotion) miniConfetti();
   render();
 }
@@ -386,7 +386,7 @@ document.addEventListener("keydown", e=>{
   if($("screen-game").classList.contains("hide") || !race) return;
   if(e.target && e.target.id==='hint-link') return;   // let the button's own click handling take it
   if((e.key==="Enter"||e.key===" ")){
-    if(race.winner && !$("next-btn").classList.contains("hide")){ e.preventDefault(); startRace(); return; }
+    if(race.winner && !$("next-btn").classList.contains("invisible")){ e.preventDefault(); startRace(); return; }
     if(!race.winner && race.phase==='roll'){ e.preventDefault(); playerRoll(); return; }
   }
   if(e.key.toLowerCase()==="h" && !race.winner){ giveHint(); return; }

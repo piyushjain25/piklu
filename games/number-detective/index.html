@@ -129,7 +129,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -277,7 +277,7 @@ function newCase(){
   game.puzzle = p;
   prevSig = puzzleSig(p);
   $("serve-view").classList.remove("hide"); $("result-view").classList.add("hide");
-  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible");
+  $("next-btn").classList.add("invisible"); $("skip-btn").classList.remove("invisible");
   flash("Read the clues, then tap the number that fits.", '');
   $("instruct").textContent = "Which number fits every clue?";
   setOwl('idle');
@@ -326,7 +326,7 @@ function guess(n, btn){
     $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
     $("rlabel").textContent = `🎉 Case closed! ${n} fits every clue. ${praise()}`;
     $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
-    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+    $("next-btn").classList.remove("invisible"); $("next-btn").focus();
     setOwl('win'); sound('win');
     if(!reduceMotion) miniConfetti();
   } else {

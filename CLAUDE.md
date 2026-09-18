@@ -21,8 +21,8 @@ online toy store later. Read the rules below before changing anything.
    static server, not by double-clicking the file. **Don't add an embedded/inline copy of
    the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
    two places and lets it silently drift out of sync. If the fetch fails, the game is
-   simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`);
-   that's expected,
+   simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`,
+   `mystery-word`, `what-am-i`); that's expected,
    not a bug.
 4. **Each game is one file plus three shared assets.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
@@ -52,7 +52,7 @@ online toy store later. Read the rules below before changing anything.
                         system (colours, owl, buttons, topbar/tlink/level-switch, etc.)
 /assets/site.js         shared JS helpers every game links before its own inline script
                         ($, reduceMotion, flash, setOwl, level-menu, beep, confetti, title,
-                        loadGameData for JSON data files)
+                        loadGameData for JSON data files, wireRulesSheet, speak/stopSpeech)
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
@@ -91,7 +91,7 @@ Two steps — never edit the hub's HTML or CSS to add a game:
 2. Add **one entry** to the `GAMES` array in `games.js`:
 
    ```js
-   { slug: "shape-sorter", title: "Shape Sorter", emoji: "🔷", accent: "sky", ageGroup: "5+",
+   { slug: "shape-sorter", title: "Shape Sorter", emoji: "🔷", accent: "sky", ageGroup: "6+",
      tagline: "Sort the shapes into the right bins.", skills: ["Shapes"], badge: "New" },
    ```
 
@@ -132,7 +132,10 @@ The card, its link, and the search filter appear automatically.
   different. Exception: `guess-the-capital` has no difficulty levels — it's purely a
   choice of game (Indian States vs World Countries), so it has no level chip at all (see
   below). `spot-the-words` has no levels either: each theme in its `words.json` declares its
-  own grid size and word directions, and the theme *is* the difficulty.
+  own grid size and word directions, and the theme *is* the difficulty. `spell-a-bee` and
+  `what-am-i` add an optional **fifth** level on top of the four — `📝 My Words` (the `MY`
+  list in `spell-a-bee/words.json`) and `📝 My Riddles` (`what-am-i/my.json`) — a hidden
+  `.diff` card and level-menu entry that appear only when that data is non-empty.
 - **Level cards look the same in every game.** The start screen's level picker is the
   shared `.diff-grid` of four `.diff` buttons, each exactly
   `<div class="d-name">EMOJI Name</div><div class="d-range">a few words</div>` — the emoji
@@ -178,15 +181,22 @@ don't redefine these classes in a game's own `<style>`.
   one** (guard the regeneration so tiny pools don't loop). Skip and Next both count as
   "not solved" (no reward).
 - **Under the game component:** **Reset** and **Hint** sit **next to each other** in one
-  row (both `.tlink`). `Reset` restarts the *current* puzzle (keeps it, wipes the
+  row (both `.tlink`); a game with a rules sheet adds `📖 Rules` as the **last** item of
+  that row (see "Game rules" panel below). `Reset` restarts the *current* puzzle (keeps it, wipes the
   player's work). For pure multiple-choice games with nothing to reset
-  (number-detective, times-table-pop, what-comes-next) omit Reset and show only Hint.
-  Exception: `juice-jumble` shows **three** links in that row — `↩️ Undo`, `🔄 Reset`,
-  `💡 Hint` — because the puzzle has genuine dead ends and Reset alone is too punishing an
-  escape. (Like every rules-sheet game it also carries `📖 Rules` at the end of the row.)
+  (e.g. number-detective, times-table-pop, what-comes-next) omit Reset and show only Hint.
+  Exception: games where a step-by-step build is worth taking back one move at a time add
+  `Undo` **before** Reset — `juice-jumble` (`↩️ Undo`, `🔄 Reset`, `💡 Hint`, because the
+  puzzle has genuine dead ends and Reset alone is too punishing an escape), `coin-counter`,
+  `number-builder` and `robot-instructions`. `lights-out` shows `↩️ Undo` **instead of**
+  Reset. `tic-tac-toe` has **no Hint** (it's a game against the owl, not a puzzle) and
+  nothing to reset, so its row is just `📖 Rules`. (Rules-sheet games carry `📖 Rules` at
+  the end of the row.)
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
-  action** (the move itself is the check — `lights-out`, `spot-the-words`, `juice-jumble`) keeps that slot
+  action** (the move itself is the check — e.g. `lights-out`, `spot-the-words`, `juice-jumble`,
+  the pure multiple-choice games, `tic-tac-toe`'s `Play again ▶`; also `balance-scales` at
+  EASY/MEDIUM and `tally-chart`'s last phase, see below) keeps that slot
   occupied during play with `Next ▶` carrying `.invisible`, and just removes `.invisible` on
   the win, so the slot never reflows. Exception: `dino-dig` has no submit action either, but
   its bottom-slot primary `.btn` is a real control — a **🔍 Dig / 🚩 Flag mode toggle** that
@@ -196,9 +206,9 @@ don't redefine these classes in a game's own `<style>`.
   the chart → read the chart), shown by a `1 of 3` indicator. Its bottom-slot primary `.btn`
   changes label per phase (`Done counting ✓` → `Check chart ✓`); the last phase is multiple
   choice, so the slot holds `Next ▶` with `.invisible` until the right option is tapped. Its
-  `Reset`/`Hint` links are **phase-aware** — each acts on the current phase — and `Reset`
-  goes `.invisible` (keeping its box) in the multiple-choice phase, matching the convention
-  for pure MCQ games.
+  `Reset`/`Hint` links are **phase-aware** — each acts on the current phase. Unlike a
+  single-phase MCQ game, which omits Reset altogether, `tally-chart` keeps Reset's box and
+  makes it `.invisible` in the multiple-choice phase, so the row doesn't reflow between phases.
 - **Primary button by level:** `balance-scales` has **no primary button at EASY/MEDIUM** —
   the live beam *is* the check, and the round completes the moment the pans are level — so
   the bottom slot holds `Next ▶` with `.invisible` (the same placeholder pattern as
@@ -273,10 +283,8 @@ globals the game calls directly:
   `loadGameData("words.json").then(d => { if (d) WORDS = d; })` — then validates the
   shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
 - `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
-  panel for games whose rules need more room than the start screen's `.howto` block
-  (`tic-tac-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
-  `spot-the-words`, `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`,
-  `balance-scales`). The game supplies the
+  panel for games whose rules need more room than the start screen's `.howto` block (the
+  games using it are listed under the "Game rules" panel bullet above). The game supplies the
   standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
   `#rules-ok` — copy it from one of those games), a `📖 Read the full rules` `.tlink`
   (`#rules-home`) on the start screen, a `📖 Rules` `.tlink` (`#rules-btn`) in the `.actions`
@@ -366,10 +374,12 @@ mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
 balance-scales · tic-tac-toe
 
-`word-guess`, `guess-the-capital`, `spell-a-bee` and `spot-the-words` are the
-**data-driven** games: each loads its data from a JSON file in its own folder
+`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word` and
+`what-am-i` are the **data-driven** games: each loads its data from JSON in its own folder
 (`word-guess/words.json`, `guess-the-capital/capitals.json`, `spell-a-bee/words.json`,
-`spot-the-words/words.json`) via the shared `loadGameData()` helper.
+`spot-the-words/words.json`, `mystery-word/words.json` + `dictionary.json`, and
+`what-am-i/easy.json` … `expert.json` + an optional `my.json`) via the shared
+`loadGameData()` helper.
 
 `spot-the-words/words.json` is `{ "themes": [ { name, emoji, grid, dirs, words } ] }`:
 `grid` is the N of an N×N board (8–11, which also sets the round size: 8→5 words, 9→6,

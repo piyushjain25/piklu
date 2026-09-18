@@ -137,7 +137,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -229,7 +229,7 @@ function newQuestion(){
   });
 
   $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
-  $("next-btn").classList.add("hide"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
+  $("next-btn").classList.add("invisible"); $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   $("fact").textContent=""; $("fact").classList.remove("show");
   flash("Pick the capital city!", '');
   setOwl('idle');
@@ -246,7 +246,7 @@ function answer(idx, btn){
     $("serve-view").classList.add("hide"); $("result-view").classList.remove("hide");
     $("rlabel").textContent = pickPraise();
     $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
-    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+    $("next-btn").classList.remove("invisible"); $("next-btn").focus();
     setOwl('win'); sound('good');
     if(!reduceMotion) miniConfetti();
   } else {

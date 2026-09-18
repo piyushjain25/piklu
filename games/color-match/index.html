@@ -103,7 +103,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -261,7 +261,7 @@ function newRound(fromHome){
   $("target-word").textContent = NAMES[R.target]; $("target-word").style.color = rep;
   renderTiles(); updatePrompt();
   $("result-view").classList.add("hide"); $("tilegrid").classList.remove("hide");
-  $("serve-view").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("serve-view").classList.remove("hide"); $("next-btn").classList.add("invisible");
   $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   flash(R.targetCount>1?"Tap every matching tile!":"Tap the matching tile!", '');
 }
@@ -303,7 +303,7 @@ function roundComplete(){
   const name=NAMES[R.target];
   $("rlabel").textContent = R.targetCount>1 ? `🎉 You found every ${name} tile!` : `🎉 That's ${name}!`;
   $("skip-btn").classList.add("invisible");
-  $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', '');
+  $("next-btn").classList.remove("invisible"); $("next-btn").focus(); flash('', '');
   if(!reduceMotion) miniConfetti(); sound('win');
 }
 function giveHint(){

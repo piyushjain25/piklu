@@ -193,7 +193,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Play again ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Play again ▶</button>
       </div>
     </section>
   </div>
@@ -861,7 +861,7 @@ function finish(){
   if(ult()) renderUlt(); else renderGrid();
   $("result-view").classList.remove("hide");
   $("skip-btn").classList.add("invisible");     // keeps its box, so the top bar can't shift
-  $("next-btn").classList.remove("hide");
+  $("next-btn").classList.remove("invisible");
   turn(''); flash('', '');
   const mode=LEVELS[level].mode, res=$("result");
   const TEXT={
@@ -904,7 +904,7 @@ function newRound(fromHome){
   if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
   $("q-level-label").textContent=LEVELS[level].label;
   $("result-view").classList.add("hide");
-  $("next-btn").classList.add("hide");
+  $("next-btn").classList.add("invisible");
   $("skip-btn").classList.remove("invisible");
   stopConfetti();
   showBoard();

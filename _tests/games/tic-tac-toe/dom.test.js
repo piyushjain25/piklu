@@ -54,7 +54,7 @@ const ultOk = c => c.getAttribute("aria-disabled") === "false";
     const isUlt = lv === "EXPERT";
     ok($("board").classList.contains("hide") === isUlt, `${lv}: 3x3 board ${isUlt ? "hidden" : "shown"}`);
     ok($("uboard").classList.contains("hide") === !isUlt, `${lv}: ultimate board ${isUlt ? "shown" : "hidden"}`);
-    ok($("next-btn").classList.contains("hide") && !$("skip-btn").classList.contains("invisible"), `${lv}: play state`);
+    ok($("next-btn").classList.contains("invisible") && !$("skip-btn").classList.contains("invisible"), `${lv}: play state`);
 
     if (lv === "MEDIUM") {
       ok(/owl goes first/i.test($("turnbar").textContent), "Medium: the strip says the owl goes first");
@@ -83,7 +83,7 @@ const ultOk = c => c.getAttribute("aria-disabled") === "false";
       if (d.querySelector("#board .tile.lost")) sawLost = true;
       ok($("skip-btn").classList.contains("invisible") && !$("skip-btn").classList.contains("hide"),
          `${lv}: Skip hidden with .invisible on a result`);
-      ok(!$("next-btn").classList.contains("hide"), `${lv}: Play again in the bottom slot`);
+      ok(!$("next-btn").classList.contains("invisible"), `${lv}: Play again in the bottom slot`);
     }
     if (lv === "HARD") {
       ok(sawFade, "Hard: a fading (dashed) mark was shown");

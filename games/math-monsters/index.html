@@ -107,7 +107,7 @@
         </div>
       </div>
       <div class="serve-row">
-        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
   </div>
@@ -237,7 +237,7 @@ function newProblem(fromHome){
   $("prob").innerHTML=`${P.a} <span class="op">${P.op}</span> ${P.b} <span>=</span> <span class="q">?</span>`;
   renderOptions();
   $("result-view").classList.add("hide"); $("options").classList.remove("hide");
-  $("serve-view").classList.remove("hide"); $("next-btn").classList.add("hide");
+  $("serve-view").classList.remove("hide"); $("next-btn").classList.add("invisible");
   $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
   flash("Tap the answer to feed the monster!", '');
 }
@@ -260,7 +260,7 @@ function pick(opt,btn){
     $("rlabel").textContent=`🎉 Yum! ${P.a} ${P.op} ${P.b} = ${P.answer}`;
     $("result-view").classList.remove("hide"); flash('', '');
     $("skip-btn").classList.add("invisible"); $("hint-link").classList.add("off");
-    $("next-btn").classList.remove("hide"); $("next-btn").focus();
+    $("next-btn").classList.remove("invisible"); $("next-btn").focus();
   } else {
     btn.classList.remove('wrong-flash'); void btn.offsetWidth; btn.classList.add('wrong-flash');
     setMonster('sad'); sound('bad');
