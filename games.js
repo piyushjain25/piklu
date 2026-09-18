@@ -104,4 +104,7 @@ window.GAMES = [
 
   { slug: "spot-the-words",      title: "Spot the Words",      emoji: "🔤", accent: "leaf",   ageGroup: "6+",
     tagline: "Hunt down the hidden words in a themed letter grid.", skills: ["Vocabulary", "Attention"], badge: "New" },
+
+  { slug: "juice-jumble",        title: "Juice Jumble",        emoji: "🧃", accent: "sky",    ageGroup: "6+",
+    tagline: "Pour the juices until every glass is one flavour.", skills: ["Logic", "Planning"], badge: "New" },
 ];

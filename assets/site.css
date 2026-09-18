@@ -142,7 +142,10 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 @media(min-width:560px){.diff-grid{grid-template-columns:repeat(4,1fr);}}
 .diff{border:3px solid #EEE8FB; background:#fff; border-radius:18px; cursor:pointer; padding:14px 10px; text-align:center; transition:all .15s ease;}
 .diff:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
-.diff .d-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px;}
+.diff{container-type:inline-size;}
+/* emoji + name always on ONE line, on every card: the name shrinks a little on a narrow card
+   rather than wrapping ("⭐ Medium" is the longest, and wrapped first) */
+.diff .d-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px; font-size:min(19px,18cqw); white-space:nowrap;}
 .diff .d-range{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-top:3px;}
 .diff[aria-pressed="true"]{border-color:var(--dc,var(--grape)); background:var(--dbg,#F4F0FE); transform:translateY(-2px); box-shadow:var(--shadow);}
 .diff.easy{--dc:var(--leaf); --dbg:#E8F8F0;} .diff.medium{--dc:var(--sky); --dbg:#E6F4FC;}

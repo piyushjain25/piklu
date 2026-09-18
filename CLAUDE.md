@@ -133,6 +133,15 @@ The card, its link, and the search filter appear automatically.
   choice of game (Indian States vs World Countries), so it has no level chip at all (see
   below). `spot-the-words` has no levels either: each theme in its `words.json` declares its
   own grid size and word directions, and the theme *is* the difficulty.
+- **Level cards look the same in every game.** The start screen's level picker is the
+  shared `.diff-grid` of four `.diff` buttons, each exactly
+  `<div class="d-name">EMOJI Name</div><div class="d-range">a few words</div>` — the emoji
+  and name are **one line** (`🌱 Easy`, `⭐ Medium`, `🔥 Hard`, `🏆 Expert`; `site.css` keeps
+  them on one line and shrinks them slightly on a narrow card, so never put the emoji on its
+  own line or add a `<br>`). The `d-range` is a **short one-line hint** — two or three
+  words, about 12 characters at most (`3 juices`, `lots of help`) — never a list of
+  details. If a card's hint wraps, the four cards stop lining up; the full explanation
+  belongs in the `.howto` block or the rules sheet, not on the card.
 - **Endless and score-free.** No points, no lives, and **no per-game streak** (a single
   combined streak across all games will be added at the site level later — do not add a
   🔥 streak inside a game). Reward with stars, confetti, and sounds. Exception:
@@ -166,9 +175,12 @@ don't redefine these classes in a game's own `<style>`.
   row (both `.tlink`). `Reset` restarts the *current* puzzle (keeps it, wipes the
   player's work). For pure multiple-choice games with nothing to reset
   (number-detective, times-table-pop, what-comes-next) omit Reset and show only Hint.
+  Exception: `juice-jumble` shows **three** links in that row — `↩️ Undo`, `🔄 Reset`,
+  `💡 Hint` — because the puzzle has genuine dead ends and Reset alone is too punishing an
+  escape. (Like every rules-sheet game it also carries `📖 Rules` at the end of the row.)
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
-  action** (the move itself is the check — `lights-out`, `spot-the-words`) keeps that slot
+  action** (the move itself is the check — `lights-out`, `spot-the-words`, `juice-jumble`) keeps that slot
   occupied during play with `Next ▶` carrying `.invisible`, and just removes `.invisible` on
   the win, so the slot never reflows.
 - **On a correct answer, replace the primary button *in place* with a `Next ▶` button**
@@ -191,6 +203,18 @@ don't redefine these classes in a game's own `<style>`.
   `#level-menu` so the long list scrolls.
 - **Start screen only:** a subtle **`← All games`** link at the top-left that points to
   `../` (the games hub). It must appear only on the start screen, never during play.
+- **"Game rules" panel** (for games whose rules need more room than the start screen's
+  `.howto` block). `games/tic-tac-trek/index.html` is the reference implementation — copy
+  it rather than inventing a different rules UI. Two triggers, both `.tlink`s: a
+  `📖 Read the full rules` link (`#rules-home`) centred at the bottom of the start screen's
+  `.howto` block, and a `📖 Rules` link (`#rules-btn`) as the **last** item of the in-game
+  `.actions` row. Both open the same modal sheet: the `.sheet-ov#rules-ov` markup (with
+  `#rules-h`, `#rules-body`, `#rules-close`, `#rules-ok`) placed after `.app` and before the
+  confetti canvas, wired with `wireRulesSheet(buildBody)` — see "Shared JS helpers" for its
+  behaviour. The body is a series of `.rule` sections (an `<h3>` with an emoji, short `<p>`s,
+  and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-trek`,
+  `tick-tock-toe`, `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
+  `juice-jumble`. `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Shared JS helpers (`assets/site.js`)
 
@@ -224,7 +248,7 @@ globals the game calls directly:
 - `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
   panel for games whose rules need more room than the start screen's `.howto` block
   (`tic-tac-trek`, `tick-tock-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
-  `spot-the-words`). The game supplies the
+  `spot-the-words`, `juice-jumble`). The game supplies the
   standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
   `#rules-ok` — copy it from one of those games), a `📖 Read the full rules` `.tlink`
   (`#rules-home`) on the start screen, a `📖 Rules` `.tlink` (`#rules-btn`) in the `.actions`
@@ -311,7 +335,7 @@ pizza-party · set-the-clock · what-comes-next ·
 word-guess · guess-the-capital · math-monsters · shape-sorter · color-match ·
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word · tick-tock-toe · tic-tac-trek ·
-lights-out · spot-the-words
+lights-out · spot-the-words · juice-jumble
 
 `word-guess`, `guess-the-capital`, `spell-a-bee` and `spot-the-words` are the
 **data-driven** games: each loads its data from a JSON file in its own folder

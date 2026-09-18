@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Juice Jumble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  /* juice-bar theme — local vars only, the design system itself lives in site.css */
+  :root{ --glass-line:#CFC4EC; --glass-in:#F7F4FD; }
+  .app{max-width:540px;}
+  .title{font-size:clamp(28px,5.6vw,42px);}
+  .topbar{margin-bottom:10px;}
+  /* four links under the glasses need to share one phone-width row */
+  @media(max-width:430px){ .actions{gap:8px;} .card{padding:20px 14px;} }
+
+  /* ---- the bar: glass beakers, sized from the container, never fixed px ---- */
+  /* padding-top is set from the glass size in JS (layoutBar) so a tilted beaker has room
+     to swing up and pour into the top row */
+  .barwrap{position:relative; padding-top:90px;}
+  .bar{display:grid; grid-template-columns:repeat(var(--cols,4),1fr); column-gap:clamp(8px,3.2vw,20px);
+       row-gap:clamp(30px,6vw,42px); width:100%; max-width:calc(var(--cols,4) * 84px); margin:0 auto;}
+  .glass{position:relative; display:block; background:none; border:none; padding:0; cursor:pointer;
+         touch-action:manipulation; transition:transform .2s ease; -webkit-tap-highlight-color:transparent;}
+  .glass svg.tube{display:block; width:100%; height:auto; overflow:visible;}
+  .glass:focus-visible{outline:3px solid var(--ink); outline-offset:5px; border-radius:12px;}
+  .glass.sel{transform:translateY(-14px); z-index:3;}
+  .glass.away svg.tube{visibility:hidden;}       /* its double is out pouring on the overlay */
+
+  /* the beaker itself — shared by the glasses, the pouring overlay and the rules diagrams */
+  .t-back{fill:var(--glass-in);}
+  .t-shade{fill:url(#jjShade); pointer-events:none;}
+  .t-shine{stroke:#fff; stroke-opacity:.6; stroke-width:9; stroke-linecap:round;}
+  .t-line{fill:none; stroke:var(--glass-line); stroke-width:5; stroke-linejoin:round;}
+  .t-rim{fill:rgba(255,255,255,.75); stroke:var(--glass-line); stroke-width:5;}
+  .t-surf{stroke:#fff; stroke-opacity:.55; stroke-width:4; stroke-linecap:round;}
+  .gl{font-size:40px; user-select:none; pointer-events:none;}
+  /* the run that will move: a dashed ring round it — shape, not just colour */
+  .mvring{fill:none; stroke:#fff; stroke-width:4.5; stroke-dasharray:10 7; stroke-linejoin:round;}
+  .glass.sel .t-line,.glass.sel .t-rim,.lifted .t-line,.lifted .t-rim{stroke:var(--grape);}
+  /* a finished glass gets a tick above it, so "done" never relies on colour */
+  .glass.full .t-line,.glass.full .t-rim,.rglass.ok .t-line,.rglass.ok .t-rim{stroke:var(--leaf);}
+  .glass.full::before{content:"✔"; position:absolute; top:-26px; left:50%; transform:translateX(-50%);
+        font-family:'Fredoka',sans-serif; font-weight:700; font-size:15px; color:var(--leaf-dark);}
+  .glass.pop svg.tube{animation:jjPop .45s ease; transform-origin:50% 100%;}
+  @keyframes jjPop{0%{transform:scale(1)}40%{transform:scale(1.07,.95)}100%{transform:scale(1)}}
+  .glass.shake{animation:jjShake .34s ease;}
+  @keyframes jjShake{0%,100%{translate:0}25%{translate:-7px}75%{translate:7px}}
+  /* hint: numbered, dashed rings on "pour from" and "pour into" */
+  .glass.hint-from svg.tube,.glass.hint-to svg.tube{outline:3px dashed var(--sun-dark); outline-offset:3px;
+        border-radius:14px; animation:jjHint 1.1s ease-in-out infinite;}
+  @keyframes jjHint{50%{outline-color:var(--sun);}}
+  .glass.hint-from::after,.glass.hint-to::after{position:absolute; top:-28px; left:50%; transform:translateX(-50%);
+        font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; color:var(--sun-dark);}
+  .glass.hint-from::after{content:"①";} .glass.hint-to::after{content:"②";}
+  .bar.done .glass{cursor:default;}
+
+  /* the pouring beaker and its stream are drawn on this layer, above the glasses */
+  .pour-layer{position:absolute; left:0; top:0; width:100%; height:100%; overflow:visible;
+              pointer-events:none; z-index:6;}
+  .stream-core{stroke:#fff; stroke-opacity:.45; stroke-linecap:round; fill:none;}
+
+  .pour-count{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft);
+              font-size:14px; margin-top:14px;}
+  .pour-count b{color:var(--grape);}
+  #undo-btn:disabled{opacity:.32; cursor:default;}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .rglass{display:inline-block; width:34px;}
+  .rglass svg{display:block; width:100%; height:auto; overflow:visible;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🧃 The juice bar got jumbled — pour until every glass is one flavour!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">3 juices</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">4 juices</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">6 juices</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">7 juices</div></button>
+      </div>
+      <div class="howto">
+        🍹 <b>How to play:</b> Tap a glass to pick it up, then tap another glass to <b>pour</b>.
+        Juice can only go <b>onto the same flavour</b> or <b>into an empty glass</b>.
+        Make <b>every glass one single flavour</b> to win — and don't use up your empty glasses too soon!
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="barwrap" id="barwrap">
+        <div class="bar" id="bar" role="group" aria-label="Juice glasses"></div>
+        <svg class="pour-layer" id="pour-layer" aria-hidden="true"></svg>
+      </div>
+      <div class="pour-count" id="pour-count"></div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions">
+        <button id="undo-btn" class="tlink">↩️ Undo</button>
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Juice Jumble</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<!-- the glass shading every beaker shares -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="jjShade" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity=".34"/>
+      <stop offset=".28" stop-color="#fff" stop-opacity=".1"/>
+      <stop offset=".62" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#1b0f45" stop-opacity=".2"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   Juice Jumble is water-sort. A glass is an array of flavour indices, BOTTOM first, so the
+   last element is the top band. A board is an array of glasses; `cap` is the glass depth.
+
+   A pour is legal when the source has juice, is not already finished (full of one flavour),
+   and the destination is either empty or has the same flavour on top with room to spare.
+   It moves the whole top run of that flavour — or as much of it as fits.
+
+   The solver is the heart of the game: generation, Hint, the stars' par and the "you're
+   stuck" nudge all come from it. Glasses are interchangeable, so every state is CANONICALISED
+   (glasses sorted into a stable order) before it goes into a visited set — without that the
+   search explodes; with it, every level here solves in milliseconds. Internally a glass is a
+   short string ("abca"), which makes the canonical key a cheap sort + join.
+
+   Boards are dealt at random and then VERIFIED, never reverse-shuffled from the solved
+   state: a pour is not uniquely invertible, so running pours backwards reaches positions
+   that can't be played forwards. Measured over thousands of deals: Easy/Medium/Hard deals
+   are essentially always solvable; only about 1 in 20 Expert deals is (one spare glass is
+   brutal), but an unsolvable one is proven so in well under a millisecond, so dealing until
+   one passes is still instant. Shortest solutions run roughly 3–8 / 7–14 / 12–22 / 17–23
+   pours, which is what the `floor` values below are set against. */
+
+const FLAVOURS = [
+  { name:"Orange",    emoji:"🍊", color:"#FFA23F" },
+  { name:"Grape",     emoji:"🍇", color:"#9A6BDB" },
+  { name:"Lime",      emoji:"🍏", color:"#9AD650" },
+  { name:"Berry",     emoji:"🫐", color:"#4C78DD" },
+  { name:"Cherry",    emoji:"🍒", color:"#E8475F" },
+  { name:"Mango",     emoji:"🥭", color:"#FFC94A" },
+  { name:"Melon",     emoji:"🍉", color:"#FF93AC" },
+  { name:"Pineapple", emoji:"🍍", color:"#F2E38A" },
+];
+
+/* The real step up at Expert is the ONE spare glass, not the extra flavour. */
+const LEVELS = {
+  EASY:   { flavours:3, depth:3, empties:2, floor:4,  label:"🌱 Easy" },
+  MEDIUM: { flavours:4, depth:4, empties:2, floor:6,  label:"⭐ Medium" },
+  HARD:   { flavours:6, depth:4, empties:2, floor:10, label:"🔥 Hard" },
+  EXPERT: { flavours:7, depth:4, empties:1, floor:12, label:"🏆 Expert" },
+};
+const BFS_BUDGET = 300000;     /* solveMin: canonical states it may visit */
+const ANY_BUDGET = 200000;     /* solveAny: fallback when BFS runs out */
+const STUCK_BUDGET = 20000;    /* isSolvable after every pour — small, so Expert never stutters */
+
+const clone = g => g.map(a => a.slice());
+
+/* ---- the public rules, on plain arrays ---- */
+function topRun(glass){
+  if(!glass.length) return 0;
+  const c = glass[glass.length - 1];
+  let n = 1;
+  while(n < glass.length && glass[glass.length - 1 - n] === c) n++;
+  return n;
+}
+function isDone(glass, cap){ return glass.length === cap && topRun(glass) === cap; }
+function isSolved(g, cap){ return g.every(a => a.length === 0 || isDone(a, cap)); }
+function canPour(g, from, to, cap){
+  if(from === to) return false;
+  const s = g[from], d = g[to];
+  if(!s || !d || !s.length || isDone(s, cap) || d.length >= cap) return false;
+  return d.length === 0 || d[d.length - 1] === s[s.length - 1];
+}
+/* how many bands a legal pour moves: the whole top run, or as much of it as fits */
+function pourAmount(g, from, to, cap){
+  return canPour(g, from, to, cap) ? Math.min(topRun(g[from]), cap - g[to].length) : 0;
+}
+/* returns a NEW board, or null when the pour is illegal — the input is never mutated */
+function pour(g, from, to, cap){
+  const n = pourAmount(g, from, to, cap);
+  if(!n) return null;
+  const o = clone(g), c = o[from][o[from].length - 1];
+  o[from].length -= n;
+  for(let k = 0; k < n; k++) o[to].push(c);
+  return o;
+}
+function legalMoves(g, cap){
+  const out = [];
+  for(let i = 0; i < g.length; i++) for(let j = 0; j < g.length; j++) if(canPour(g, i, j, cap)) out.push([i, j]);
+  return out;
+}
+/* canonical key: glass order doesn't matter, so two boards that are the same glasses in a
+   different order are the same puzzle */
+function boardKey(g){ return g.map(a => a.join(",")).sort().join("|"); }
+
+/* ---- the solver, on strings ---- */
+const toS = g => g.map(a => a.map(f => String.fromCharCode(97 + f)).join(""));
+function runS(s){ let n = 1; const c = s[s.length - 1]; while(n < s.length && s[s.length - 1 - n] === c) n++; return n; }
+const doneS = (s, cap) => s.length === 0 || (s.length === cap && runS(s) === cap);
+const solvedS = (gs, cap) => gs.every(s => doneS(s, cap));
+const keyS = gs => gs.slice().sort().join("|");
+/* the moves worth searching: legal pours, minus the ones that can never help — pouring a
+   single-flavour glass into an empty one (it just swaps two glasses), and trying more than
+   one empty destination (they are interchangeable) */
+function movesS(gs, cap){
+  const out = [];
+  for(let i = 0; i < gs.length; i++){
+    const s = gs[i];
+    if(!s.length || doneS(s, cap)) continue;
+    const c = s[s.length - 1], uni = runS(s) === s.length;
+    let empty = false;
+    for(let j = 0; j < gs.length; j++){
+      if(j === i) continue;
+      const d = gs[j];
+      if(!d.length){ if(uni || empty) continue; empty = true; out.push([i, j]); }
+      else if(d.length < cap && d[d.length - 1] === c) out.push([i, j]);
+    }
+  }
+  return out;
+}
+function applyS(gs, i, j, cap){
+  const s = gs[i], d = gs[j], n = Math.min(runS(s), cap - d.length);
+  const o = gs.slice();
+  o[i] = s.slice(0, s.length - n);
+  o[j] = d + s[s.length - 1].repeat(n);
+  return o;
+}
+
+/* solveMin: breadth-first over canonical states, so the first solution found is a SHORTEST
+   one. Returns { status: "solved", path } | { status: "unsolvable" } | { status: "budget",
+   depth } — where `depth` is a proven lower bound: every shorter path was searched in full.
+   A path is a list of [from, to] glass indices in the board's own order. */
+function solveMin(g, cap, budget = BFS_BUDGET){
+  const start = toS(g);
+  if(solvedS(start, cap)) return { status:"solved", path:[] };
+  const states = [start], parent = [-1], move = [null], depth = [0];
+  const seen = new Set([keyS(start)]);
+  for(let h = 0; h < states.length; h++){
+    const gs = states[h];
+    for(const [i, j] of movesS(gs, cap)){
+      const n = applyS(gs, i, j, cap), k = keyS(n);
+      if(seen.has(k)) continue;
+      seen.add(k);
+      states.push(n); parent.push(h); move.push([i, j]); depth.push(depth[h] + 1);
+      if(solvedS(n, cap)){
+        const path = [];
+        for(let x = states.length - 1; x > 0; x = parent[x]) path.unshift(move[x]);
+        return { status:"solved", path };
+      }
+      if(seen.size > budget) return { status:"budget", path:null, depth:depth[h] };
+    }
+  }
+  return { status:"unsolvable", path:null };
+}
+/* solveAny: depth-first with a memo, trying the promising pours first (onto a match, then
+   ones that finish a glass). Finds A solution, not the shortest — the fallback for when the
+   breadth-first search runs out of budget, and the quick check behind isSolvable. */
+function solveAny(g, cap, budget = ANY_BUDGET){
+  const seen = new Set(), path = [];
+  let nodes = 0, over = false;
+  function dfs(gs){
+    if(solvedS(gs, cap)) return true;
+    const k = keyS(gs);
+    if(seen.has(k)) return false;
+    seen.add(k);
+    if(++nodes > budget){ over = true; return false; }
+    const opts = movesS(gs, cap).map(m => {
+      const n = applyS(gs, m[0], m[1], cap);
+      return { m, n, score:(gs[m[1]].length ? 2 : 0) + (doneS(n[m[1]], cap) ? 4 : 0) + (n[m[0]].length ? 0 : 1) };
+    }).sort((a, b) => b.score - a.score);
+    for(const o of opts){
+      path.push(o.m);
+      if(dfs(o.n)) return true;
+      path.pop();
+      if(over) return false;
+    }
+    return false;
+  }
+  if(dfs(toS(g))) return { status:"solved", path:path.slice() };
+  return { status:over ? "budget" : "unsolvable", path:null };
+}
+/* true / false, or null when the check ran out of budget and genuinely doesn't know */
+function isSolvable(g, cap, budget = STUCK_BUDGET){
+  const r = solveAny(g, cap, budget);
+  return r.status === "solved" ? true : r.status === "unsolvable" ? false : null;
+}
+
+/* ---- generation: random deal, then verify ---- */
+function deal(level, rng){
+  const L = LEVELS[level], bag = [];
+  for(let f = 0; f < L.flavours; f++) for(let k = 0; k < L.depth; k++) bag.push(f);
+  for(let i = bag.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; }
+  const g = [];
+  for(let f = 0; f < L.flavours; f++) g.push(bag.slice(f * L.depth, (f + 1) * L.depth));
+  for(let e = 0; e < L.empties; e++) g.push([]);
+  return g;
+}
+/* Returns { glasses, par, exact, path }. `exact` is false only when the breadth-first search
+   ran out of budget and `par` came from solveAny instead. `avoid` is the outgoing board, so
+   Skip and Next can never hand back the same puzzle (in any glass order). */
+function genPuzzle(level, rng = Math.random, avoid = null){
+  const L = LEVELS[level], cap = L.depth, avoidKey = avoid ? boardKey(avoid) : null;
+  for(let attempt = 0; attempt < 20000; attempt++){
+    const g = deal(level, rng);
+    if(g.some(a => isDone(a, cap))) continue;            /* a free win — also rules out "already solved" */
+    if(isSolved(g, cap)) continue;
+    if(avoidKey && boardKey(g) === avoidKey) continue;
+    const r = solveMin(g, cap);
+    if(r.status === "solved"){
+      if(r.path.length < L.floor) continue;
+      return { glasses:g, par:r.path.length, exact:true, path:r.path };
+    }
+    if(r.status === "budget" && r.depth >= L.floor){
+      const a = solveAny(g, cap);
+      if(a.status === "solved") return { glasses:g, par:a.path.length, exact:false, path:a.path };
+    }
+  }
+  return null;
+}
+
+/* Stars: pours against the solver's par. An inexact par (from solveAny) may itself be long
+   or roundabout, so its bands are wider — the player is never punished for our shortcut. */
+function starsFor(moves, par, exact){
+  const [a, b] = exact ? [3, 8] : [6, 14];
+  return moves <= par + a ? 3 : moves <= par + b ? 2 : 1;
+}
+
+if(typeof module !== "undefined") module.exports = { FLAVOURS, LEVELS, BFS_BUDGET, STUCK_BUDGET,
+  topRun, isDone, isSolved, canPour, pourAmount, pour, legalMoves, boardKey,
+  solveMin, solveAny, isSolvable, deal, genPuzzle, starsFor };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+/* ===== the beaker ==========================================================================
+   Every glass — resting, pouring, or in the rules diagrams — is the same SVG test tube, drawn
+   in local units: the mouth's centre is (0,0), y points down, the inside is 2*TW wide with a
+   round bottom. Juice is measured as AREA (one band = BAND units), and each band's edges are
+   found by cutting the tube's outline with a line perpendicular to gravity. Upright that is
+   just a horizontal slab; tilted, it keeps the juice level — which is what makes the pour
+   look like liquid. It also says exactly when juice spills: the tube can only hold what lies
+   below its lip, so the angle a pour needs falls straight out of the geometry. */
+const TW = 50, BAND = 7600, HEAD = 22;          /* half-width, one band's area, headroom */
+const PADX = 13, PADT = 14, PADB = 8;           /* room round the inside for rim and wall */
+const beakers = {};
+function beaker(cap){
+  if(beakers[cap]) return beakers[cap];
+  const L = HEAD + (cap * BAND - Math.PI * TW * TW / 2) / (2 * TW);   /* straight wall length */
+  const poly = [[-TW, 0], [-TW, L]];
+  for(let k = 1; k < 16; k++){ const a = Math.PI - k * Math.PI / 16; poly.push([TW * Math.cos(a), L + TW * Math.sin(a)]); }
+  poly.push([TW, L], [TW, 0]);
+  const H = L + TW;
+  return beakers[cap] = { cap, L, H, poly,
+    path:"M" + (-TW) + " 0L" + (-TW) + " " + L.toFixed(1) + "A" + TW + " " + TW + " 0 0 0 " + TW + " " + L.toFixed(1) + "L" + TW + " 0",
+    vb:[-TW - PADX, -PADT, 2 * (TW + PADX), H + PADT + PADB] };
+}
+/* keep the part of a polygon where sign*(p·g - c) >= 0 */
+function clipHalf(poly, gx, gy, c, sign){
+  const out = [];
+  for(let i = 0; i < poly.length; i++){
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const da = sign * (a[0] * gx + a[1] * gy - c), db = sign * (b[0] * gx + b[1] * gy - c);
+    if(da >= 0) out.push(a);
+    if((da >= 0) !== (db >= 0)){ const t = da / (da - db); out.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]); }
+  }
+  return out;
+}
+function polyArea(p){ let s = 0; for(let i = 0; i < p.length; i++){ const a = p[i], b = p[(i + 1) % p.length]; s += a[0] * b[1] - b[0] * a[1]; } return Math.abs(s) / 2; }
+function centroid(p){
+  let A = 0, x = 0, y = 0;
+  for(let i = 0; i < p.length; i++){ const a = p[i], b = p[(i + 1) % p.length], k = a[0] * b[1] - b[0] * a[1]; A += k; x += (a[0] + b[0]) * k; y += (a[1] + b[1]) * k; }
+  return Math.abs(A) < 1e-9 ? p[0] : [x / (3 * A), y / (3 * A)];
+}
+/* the level c (along gravity g) with exactly `v` area of the tube below it */
+function levelFor(poly, gx, gy, v){
+  let lo = Infinity, hi = -Infinity;
+  for(const p of poly){ const d = p[0] * gx + p[1] * gy; if(d < lo) lo = d; if(d > hi) hi = d; }
+  if(v <= 0) return hi;
+  for(let k = 0; k < 30; k++){ const m = (lo + hi) / 2; if(polyArea(clipHalf(poly, gx, gy, m, 1)) > v) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+const slab = (poly, gx, gy, cTop, cBot) => clipHalf(clipHalf(poly, gx, gy, cTop, 1), gx, gy, cBot, -1);
+const pathOf = p => p.length ? "M" + p.map(q => q[0].toFixed(1) + " " + q[1].toFixed(1)).join("L") + "Z" : "";
+/* how many bands a tube tilted by `a` (radians, toward `dir`) can hold before juice spills over the lip */
+function holds(bk, dir, a){
+  const gx = Math.sin(dir * a), gy = Math.cos(dir * a);
+  return polyArea(clipHalf(bk.poly, gx, gy, dir * TW * gx, 1)) / BAND;
+}
+/* the tilt at which a tube holds exactly `v` bands (holds() only falls as the tube tips) */
+function tiltFor(bk, dir, v){
+  let lo = 0, hi = Math.PI / 2;
+  for(let k = 0; k < 26; k++){ const m = (lo + hi) / 2; if(holds(bk, dir, m) > v) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+/* The juice, as SVG in the tube's own units. `units` is [{f, v}] bottom first (v in bands, so a
+   draining or filling band is fractional); runs of one flavour are drawn as one body of juice,
+   with a glyph on every band that is at least half there. `tilt` is the signed angle the tube
+   is turned by; glyphs are turned back so they always stand upright. */
+function juiceSVG(bk, units, tilt, mv){
+  const gx = Math.sin(tilt), gy = Math.cos(tilt), lv = v => levelFor(bk.poly, gx, gy, v * BAND);
+  const total = units.reduce((a, u) => a + u.v, 0);
+  if(total < 1e-4) return "";
+  let h = "", cum = 0;
+  for(let i = 0; i < units.length;){
+    let j = i, sum = 0;
+    while(j < units.length && units[j].f === units[i].f){ sum += units[j].v; j++; }
+    if(sum > 1e-4) h += '<path d="' + pathOf(slab(bk.poly, gx, gy, lv(cum + sum), lv(cum))) + '" fill="' + FLAVOURS[units[i].f].color + '"/>';
+    cum += sum; i = j;
+  }
+  /* the surface: a bright line across the top of the juice */
+  const cs = lv(total), top = clipHalf(bk.poly, gx, gy, cs, 1).filter(q => Math.abs(q[0] * gx + q[1] * gy - cs) < 1e-6);
+  if(top.length >= 2){
+    const a = top[0], b = top[top.length - 1], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, k = Math.min(8, L / 4) / L;
+    h += '<line class="t-surf" x1="' + (a[0] + dx * k).toFixed(1) + '" y1="' + (a[1] + dy * k).toFixed(1)
+       + '" x2="' + (b[0] - dx * k).toFixed(1) + '" y2="' + (b[1] - dy * k).toFixed(1) + '"/>';
+  }
+  if(mv) h += '<path class="mvring" d="' + pathOf(slab(bk.poly, gx, gy, lv(total), lv(total - mv))) + '"/>';
+  cum = 0;
+  const deg = (-tilt * 180 / Math.PI).toFixed(1);
+  units.forEach((u, k) => {
+    if(u.v >= 0.5){
+      const c = centroid(slab(bk.poly, gx, gy, lv(cum + u.v), lv(cum))), x = c[0].toFixed(1), y = c[1].toFixed(1);
+      h += '<text class="gl' + (k >= units.length - mv ? " mv" : "") + '" x="' + x + '" y="' + y
+         + '" text-anchor="middle" dominant-baseline="central"' + (tilt ? ' transform="rotate(' + deg + " " + x + " " + y + ')"' : "")
+         + (u.v < 1 ? ' style="font-size:' + (40 * u.v).toFixed(1) + 'px"' : "") + ">" + FLAVOURS[u.f].emoji + "</text>";
+    }
+    cum += u.v;
+  });
+  return h;
+}
+function tubeSVG(bk, juice){
+  return '<path class="t-back" d="' + bk.path + '"/>' + juice
+    + '<path class="t-shade" d="' + bk.path + '"/>'
+    + '<line class="t-shine" x1="' + (-TW + 16) + '" y1="16" x2="' + (-TW + 16) + '" y2="' + (bk.L * .8).toFixed(1) + '"/>'
+    + '<path class="t-line" d="' + bk.path + '"/>'
+    + '<ellipse class="t-rim" cx="0" cy="0" rx="' + (TW + 7) + '" ry="8"/>';
+}
+const unitsOf = glass => glass.map(f => ({ f, v:1 }));
+function glassSVG(units, cap, mv){
+  const bk = beaker(cap);
+  return '<svg class="tube" viewBox="' + bk.vb.map(v => +v.toFixed(1)).join(" ") + '" aria-hidden="true">'
+    + tubeSVG(bk, juiceSVG(bk, units, 0, mv || 0)) + "</svg>";
+}
+
+const GO = 300, TAIL = 130, LAG = 90, BACK = 300;   /* pour animation timings, ms */
+const pourTime = n => 220 + 170 * n;
+
+let level = "EASY";
+let G = [], opening = [], stack = [], P = null;
+let sel = -1, done = false, busy = false, hints = 0, focusIdx = 0;
+/* the solver path the Hint reads from; kept while the player follows it, dropped otherwise */
+let plan = null;
+/* bumped on every new round / Home, so a pour animation that is still running can tell
+   that the board it was pouring on has gone, and quietly stop */
+let epoch = 0;
+const cfg = () => LEVELS[level];
+const cols = n => n <= 5 ? n : Math.ceil(n / 2);   /* 5 in a row, 6 as 3+3, 8 as 4+4 */
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "pick")      beep(460, .06, "triangle", 0, .05);
+  else if(kind === "pour"){ beep(330, .09, "sine", 0, .07); beep(392, .09, "sine", .08, .06); }
+  else if(kind === "full"){ beep(784, .10, "triangle", 0, .09); beep(1047, .15, "triangle", .09, .08); }
+  else if(kind === "nope")  beep(180, .12, "sine", 0, .06);
+  else if(kind === "undo")  beep(260, .08, "sine", 0, .05);
+  else if(kind === "hint"){ beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "win")  [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+}
+
+/* ---- rendering ---- */
+function buildBar(){
+  const bar = $("bar");
+  bar.style.setProperty("--cols", cols(G.length));
+  bar.style.setProperty("--cap", cfg().depth);
+  bar.style.setProperty("--ar", "1 / " + (cfg().depth * .72 + .2).toFixed(2));
+  bar.innerHTML = "";
+  for(let i = 0; i < G.length; i++){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "glass";
+    b.dataset.i = i;
+    b.tabIndex = i === 0 ? 0 : -1;
+    b.innerHTML = glassSVG([], cfg().depth);
+    b.onclick = () => tap(i);
+    b.onfocus = () => { focusIdx = i; syncTabs(); };
+    b.addEventListener("animationend", e => { if(e.target === b) b.classList.remove("shake"); });
+    bar.appendChild(b);
+  }
+  layoutBar();
+}
+/* headroom over the top row, measured from the real glass size: a beaker tipped on its side
+   over a top-row glass rises about its own width above that glass's rim */
+function layoutBar(){
+  const first = $("bar").firstElementChild, bk = beaker(cfg().depth);
+  const w = first ? first.getBoundingClientRect().width : 0, s = w / bk.vb[2];
+  $("barwrap").style.paddingTop = Math.round(Math.max(40, 150 * s + 12)) + "px";
+}
+window.addEventListener("resize", () => { if(G.length) layoutBar(); });
+function syncTabs(){
+  [...$("bar").children].forEach((b, i) => b.tabIndex = i === focusIdx ? 0 : -1);
+}
+function describe(glass, cap){
+  if(!glass.length) return "empty";
+  const names = glass.map(f => FLAVOURS[f].name).reverse();     /* top first, as a child reads down */
+  const room = cap - glass.length;
+  return names.join(", ") + (isDone(glass, cap) ? " — finished!" : room ? ". Room for " + room + " more" : ". Full");
+}
+function render(){
+  const cap = cfg().depth, els = $("bar").children;
+  for(let i = 0; i < els.length; i++){
+    const g = G[i], el = els[i];
+    el.innerHTML = glassSVG(unitsOf(g), cap, sel === i ? topRun(g) : 0);
+    el.classList.toggle("sel", sel === i);
+    el.classList.toggle("full", isDone(g, cap));
+    el.setAttribute("aria-pressed", sel === i ? "true" : "false");
+    el.setAttribute("aria-label", "Glass " + (i + 1) + ": " + describe(g, cap) + (sel === i ? ". Picked up" : ""));
+  }
+  const n = stack.length;
+  $("pour-count").innerHTML = "<b>" + n + "</b> pour" + (n === 1 ? "" : "s")
+    + " · goal: " + (P.exact ? "" : "about ") + "<b>" + P.par + "</b>";
+  const canUndo = n > 0 && !done;
+  $("undo-btn").disabled = !canUndo;
+  $("undo-btn").classList.toggle("off", !canUndo);
+  $("reset-btn").classList.toggle("off", done);
+  $("hint-link").classList.toggle("off", done);
+}
+function clearHint(){
+  for(const el of $("bar").children) el.classList.remove("hint-from", "hint-to");
+}
+function shake(i){
+  const el = $("bar").children[i];
+  if(!el || reduceMotion) return;
+  el.classList.remove("shake");
+  void el.offsetWidth;                        /* restart the animation on a repeat tap */
+  el.classList.add("shake");
+}
+
+/* ---- play ---- */
+function tap(i){
+  if(done || busy) return;
+  const cap = cfg().depth;
+  if(sel < 0){
+    if(!G[i].length){ flash("That glass is empty — pick one with juice in it first.", "hint"); shake(i); return; }
+    if(isDone(G[i], cap)){ flash("That glass is already one flavour — leave it be! ✔", "good"); return; }
+    sel = i;
+    sound("pick");
+    flash("Now tap the glass to pour into.", "");
+    render();
+    return;
+  }
+  if(sel === i){ sel = -1; flash("", ""); render(); return; }   /* tap it again to put it down */
+  if(!canPour(G, sel, i, cap)){
+    /* keep the selection — silently dropping it feels broken */
+    const F = FLAVOURS[G[sel][G[sel].length - 1]];
+    flash(G[i].length >= cap ? "That glass is full — try another one."
+        : "Only " + F.emoji + " " + F.name + " can go on top of " + F.name + ", or into an empty glass.", "bad");
+    shake(i);
+    sound("nope");
+    return;
+  }
+  const from = sel;
+  sel = -1;
+  clearHint();
+  flash("", "");
+  if(reduceMotion){ commit(from, i); return; }
+  animatePour(from, i);
+}
+/* The pour, frame by frame. The real glass is hidden and its double on the overlay does the
+   work: it glides until its lip sits just above the target's mouth, pivoting about that lip;
+   tips until the juice reaches the lip; keeps tipping while a stream runs from the lip down to
+   the target, the source draining and the target filling to match; then swings home. Input is
+   blocked (busy) the whole way, so rapid taps can't desync the board from the model. */
+function animatePour(from, to){
+  busy = true;
+  const my = epoch, cap = cfg().depth, bk = beaker(cap), n = pourAmount(G, from, to, cap);
+  const flavour = G[from][G[from].length - 1], colour = FLAVOURS[flavour].color;
+  const wrap = $("barwrap"), layer = $("pour-layer"), els = $("bar").children, W = wrap.getBoundingClientRect();
+  const sR = els[from].querySelector("svg").getBoundingClientRect(), dR = els[to].querySelector("svg").getBoundingClientRect();
+  const s = sR.width / bk.vb[2];
+  const at = (R, x, y) => ({ x:R.left - W.left + (x - bk.vb[0]) * s, y:R.top - W.top + (y - bk.vb[1]) * s });
+  const sC = at(sR, 0, 0), dC = at(dR, 0, 0), c = cols(G.length);
+  /* tip toward the target; straight above/below, tip so the tube swings in toward the middle */
+  const dir = Math.abs(dC.x - sC.x) > 1 ? (dC.x > sC.x ? 1 : -1) : (to % c < c / 2 ? -1 : 1);
+  const home = at(sR, dir * TW, 0), spot = { x:dC.x - dir * 10 * s, y:dC.y - 34 * s };
+  const V0 = G[from].length, V1 = V0 - n, a0 = tiltFor(bk, dir, V0), a1 = tiltFor(bk, dir, V1);
+  const src0 = unitsOf(G[from]), dst0 = G[to].slice(), POUR = pourTime(n);
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const clamp = t => Math.max(0, Math.min(1, t));
+  const inSource = t => Math.max(V1, Math.min(V0, holds(bk, dir, a0 + (a1 - a0) * ease(clamp(t / POUR)))));
+  const surfaceY = v => dR.top - W.top + (levelFor(bk.poly, 0, 1, v * BAND) - bk.vb[1]) * s;
+  const drained = (units, v) => { const out = units.map(u => ({ f:u.f, v:u.v })); let d = units.length - v;
+    for(let k = out.length - 1; k >= 0 && d > 1e-6; k--){ const t = Math.min(out[k].v, d); out[k].v -= t; d -= t; }
+    return out.filter(u => u.v > 1e-4); };
+  const setDest = add => { els[to].innerHTML = glassSVG(unitsOf(dst0).concat(add > 1e-4 ? [{ f:flavour, v:add }] : []), cap, 0); };
+
+  layer.setAttribute("viewBox", "0 0 " + W.width + " " + W.height);
+  els[from].classList.add("away");
+  render();
+  let poured = false, committed = false;
+  const t0 = performance.now();
+  (function frame(){
+    if(my !== epoch){ layer.innerHTML = ""; return; }
+    const t = performance.now() - t0, tp = t - GO;
+    let P, a, units = src0, stream = "";
+    if(t < GO){
+      const e = ease(t / GO);
+      P = { x:home.x + (spot.x - home.x) * e, y:home.y + (spot.y - home.y) * e - Math.sin(Math.PI * e) * 18 * s };
+      a = a0 * e;
+    } else if(tp < POUR + TAIL){
+      if(!poured){ poured = true; sound("pour"); }
+      P = spot;
+      a = a0 + (a1 - a0) * ease(clamp(tp / POUR));
+      units = drained(src0, inSource(tp));
+      const inDest = V0 - inSource(tp - LAG);                       /* the target lags the lip */
+      setDest(inDest);
+      const surf = surfaceY(dst0.length + inDest);
+      const head = P.y + (surf - P.y) * clamp(tp / LAG);            /* the stream falls... */
+      const tail = P.y + (surf - P.y) * ease(clamp((tp - POUR) / TAIL));   /* ...and its tail follows */
+      if(head - tail > 1){
+        const w0 = 19 * s, w1 = 14 * s, x0 = P.x + dir * 2 * s, x1 = P.x + dir * 5 * s;
+        const wT = w0 + (w1 - w0) * (tail - P.y) / Math.max(1, surf - P.y);
+        stream = '<path fill="' + colour + '" d="M' + (x0 - wT / 2).toFixed(1) + " " + tail.toFixed(1)
+          + "L" + (x0 + wT / 2).toFixed(1) + " " + tail.toFixed(1) + "L" + (x1 + w1 / 2).toFixed(1) + " " + head.toFixed(1)
+          + "L" + (x1 - w1 / 2).toFixed(1) + " " + head.toFixed(1) + 'Z"/>'
+          + '<line class="stream-core" stroke-width="' + (2.6 * s).toFixed(2) + '" stroke-dasharray="' + (7 * s).toFixed(1) + " " + (11 * s).toFixed(1)
+          + '" stroke-dashoffset="' + (-t * .12 * s).toFixed(1) + '" x1="' + (x0 - 2 * s).toFixed(1) + '" y1="' + tail.toFixed(1)
+          + '" x2="' + (x1 - 2 * s).toFixed(1) + '" y2="' + head.toFixed(1) + '"/>';
+        if(head >= surf - 1){                                        /* a little splash where it lands */
+          const r = (11 + 3 * Math.sin(t / 40)) * s;
+          stream += '<ellipse fill="' + colour + '" opacity=".85" cx="' + x1.toFixed(1) + '" cy="' + surf.toFixed(1)
+            + '" rx="' + r.toFixed(1) + '" ry="' + (3.5 * s).toFixed(1) + '"/>';
+        }
+      }
+    } else if(tp < POUR + TAIL + BACK){
+      if(!committed){ committed = true; commit(from, to, true); }
+      if(my !== epoch){ layer.innerHTML = ""; return; }
+      const e = ease((tp - POUR - TAIL) / BACK);
+      P = { x:spot.x + (home.x - spot.x) * e, y:spot.y + (home.y - spot.y) * e };
+      a = a1 * (1 - e);
+      units = unitsOf(G[from]);
+    } else {
+      if(!committed) commit(from, to, true);
+      layer.innerHTML = "";
+      els[from].classList.remove("away");
+      busy = false;
+      return;
+    }
+    layer.innerHTML = stream + '<g class="lifted" transform="translate(' + P.x.toFixed(1) + " " + P.y.toFixed(1)
+      + ") rotate(" + (dir * a * 180 / Math.PI).toFixed(2) + ") scale(" + s.toFixed(4) + ") translate(" + (-dir * TW) + ' 0)">'
+      + tubeSVG(bk, juiceSVG(bk, units, dir * a, 0)) + "</g>";
+    requestAnimationFrame(frame);
+  })();
+}
+/* the one place the board actually changes */
+function commit(from, to, soundDone){
+  const cap = cfg().depth, next = pour(G, from, to, cap);
+  if(!next) return;
+  stack.push(clone(G));
+  G = next;
+  if(plan && plan.length && plan[0][0] === from && plan[0][1] === to) plan.shift();
+  else plan = null;
+  if(!soundDone) sound("pour");
+  render();
+  if(isSolved(G, cap)){ win(); return; }
+  if(isDone(G[to], cap)){
+    sound("full");
+    if(!reduceMotion){ const el = $("bar").children[to]; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
+  }
+  checkStuck(isDone(G[to], cap));
+}
+/* Let the mistake happen, then name it. Never block the pour, never grey out risky ones. */
+function checkStuck(justFilled){
+  const cap = cfg().depth;
+  if(!legalMoves(G, cap).length){
+    setOwl("worried");
+    flash("No pours left at all! Tap ↩️ Undo to step back, or 🔄 Reset to start over.", "bad");
+    return;
+  }
+  const ok = isSolvable(G, cap);
+  if(ok === false){
+    setOwl("worried");
+    flash("Hmm — that one's stuck now. Try ↩️ Undo?", "bad");
+    return;
+  }
+  /* ok === null means the check ran out of budget: say nothing rather than freeze */
+  if(justFilled){
+    setOwl("happy");
+    flash("One glass done! ✔", "good");
+    const my = epoch;
+    setTimeout(() => { if(my === epoch && !done) setOwl("think"); }, 800);
+  } else {
+    setOwl("think");
+    flash("", "");
+  }
+}
+function undo(){
+  if(done || busy || !stack.length) return;
+  G = stack.pop();
+  sel = -1;
+  plan = null;
+  clearHint();
+  sound("undo");
+  setOwl("think");
+  flash("Undone — that pour is back in its glass.", "hint");
+  render();
+}
+function reset(){
+  if(done || busy) return;
+  G = clone(opening);
+  stack = [];
+  sel = -1;
+  plan = P.path.slice();                      /* the opening deal's own solution still applies */
+  clearHint();
+  setOwl("think");
+  flash("Back to the start — same glasses, fresh try.", "");
+  render();
+}
+/* The hint reads the next pour off a solver path from the board AS IT STANDS, so it stays
+   right however far the player has wandered. It points; it never pours for them. */
+function hint(){
+  if(done || busy) return;
+  const cap = cfg().depth;
+  sel = -1;
+  clearHint();
+  if(!plan || !plan.length){
+    const r = solveMin(G, cap);
+    if(r.status === "solved") plan = r.path.slice();
+    else if(r.status === "budget"){ const a = solveAny(G, cap); plan = a.status === "solved" ? a.path.slice() : null; }
+    else plan = null;
+    if(!plan || !plan.length){
+      render();
+      setOwl("worried");
+      flash("💡 These glasses are stuck — no pours can fix them. Tap ↩️ Undo to step back first.", "hint");
+      return;
+    }
+  }
+  const [from, to] = plan[0], F = FLAVOURS[G[from][G[from].length - 1]];
+  hints++;
+  render();
+  const els = $("bar").children;
+  els[from].classList.add("hint-from");
+  els[to].classList.add("hint-to");
+  setOwl("think");
+  sound("hint");
+  flash("💡 Pour the " + F.emoji + " " + F.name + " from glass ① into glass ②.", "hint");
+}
+function win(){
+  done = true;
+  sel = -1;
+  clearHint();
+  $("bar").classList.add("done");
+  setOwl("win");
+  const n = starsFor(stack.length, P.par, P.exact);
+  $("stars").textContent = "★".repeat(n) + "☆".repeat(3 - n);
+  $("rlabel").textContent = "Every glass is one flavour! 🧃";
+  $("rsub").textContent = "You did it in " + stack.length + " pour" + (stack.length === 1 ? "" : "s")
+    + (P.exact ? " — the shortest way was " + P.par + "." : " — the owl's way took " + P.par + ".")
+    + (hints ? "  (" + hints + " hint" + (hints === 1 ? "" : "s") + " used)" : "");
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+  flash("", "");
+  render();
+  sound("win");
+  if(!reduceMotion) juiceConfetti();
+}
+
+/* ---- rounds ---- */
+function newRound(){
+  epoch++;
+  busy = false;
+  stopConfetti();
+  $("pour-layer").innerHTML = "";
+  const L = cfg(), fits = G.length === L.flavours + L.empties;
+  /* pass the outgoing deal so Skip and Next can never hand back the same puzzle */
+  P = genPuzzle(level, Math.random, fits ? opening : null);
+  opening = clone(P.glasses);
+  G = clone(opening);
+  stack = []; sel = -1; done = false; hints = 0; focusIdx = 0;
+  plan = P.path.slice();
+  $("bar").classList.remove("done");
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("invisible");
+  $("skip-btn").classList.remove("invisible");
+  buildBar();
+  render();
+  setOwl("think");
+  flash("Tap a glass to pick it up.", "");
+}
+function setLevel(l){
+  level = l;
+  $("q-level-label").textContent = LEVELS[l].label;
+  document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === l ? "true" : "false"));
+  document.querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === l ? "true" : "false"));
+  G = [];
+}
+function goHome(){
+  epoch++;
+  busy = false;
+  stopConfetti();
+  $("pour-layer").innerHTML = "";
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- wiring ---- */
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = () => {
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  newRound();
+};
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => newRound();
+$("next-btn").onclick = () => newRound();
+$("undo-btn").onclick = undo;
+$("reset-btn").onclick = reset;
+$("hint-link").onclick = hint;
+
+(function buildLevelMenu(){
+  const menu = $("level-menu");
+  menu.innerHTML = Object.entries(LEVELS).map(([k, v]) =>
+    '<button class="level-opt" role="menuitemradio" data-diff="' + k + '" aria-current="false">'
+    + '<span>' + v.label + '</span><span class="tick">✓</span></button>').join("");
+  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(); }
+wireLevelMenu();
+
+/* ---- keyboard: arrows walk the glasses, Enter/Space picks up then pours (the glasses are
+   buttons), Escape puts the glass back down ---- */
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){
+    closeLevelMenu();
+    if(sel >= 0 && !busy){ sel = -1; flash("", ""); render(); }
+    return;
+  }
+  if($("screen-game").classList.contains("hide") || done) return;
+  const n = G.length, c = cols(n);
+  const d = { ArrowLeft:-1, ArrowRight:1, ArrowUp:-c, ArrowDown:c }[e.key];
+  if(d === undefined || !e.target.closest || !e.target.closest("#bar")) return;
+  e.preventDefault();
+  let next = focusIdx + d;
+  if(e.key === "ArrowLeft"  && focusIdx % c === 0) next = focusIdx;
+  if(e.key === "ArrowRight" && (focusIdx % c === c - 1 || focusIdx === n - 1)) next = focusIdx;
+  if(next < 0 || next >= n) next = focusIdx;
+  focusIdx = next;
+  syncTabs();
+  $("bar").children[focusIdx].focus();
+});
+
+/* ---- the rules sheet ---- */
+function rglass(bands, cap, opts){
+  opts = opts || {};
+  return '<span class="rglass' + (opts.ok ? " ok" : "") + '" aria-hidden="true">' + glassSVG(unitsOf(bands), cap, opts.run || 0) + "</span>";
+}
+const rpair = (a, b) => '<span style="display:inline-flex; gap:6px; align-items:flex-end">' + a + b + "</span>";
+wireRulesSheet(function(){
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>The juice bar got jumbled! Each glass holds <b>layers of different juices</b>. Pour them '
+    + 'about until <b>every glass holds just one flavour</b> — then you win. Every layer has its '
+    + 'own fruit on it, so you can always tell the juices apart.</p>'
+    + '<div class="rrow">' + rpair(rglass([0,1,0], 3), rglass([1,0,1], 3))
+    + '<span class="rarrow">➡️</span>' + rpair(rglass([0,0,0], 3, {ok:true}), rglass([1,1,1], 3, {ok:true})) + '</div>'
+    + '<span class="cap">Mixed glasses ➡️ one flavour in each.</span></div>'
+
+    + '<div class="rule"><h3>👆 Tap, then tap</h3>'
+    + '<p><b>Tap a glass</b> to pick it up — it lifts and tilts, and the juice that will move gets a '
+    + 'dashed ring. Then <b>tap the glass you want to pour into</b>. Changed your mind? Tap the same '
+    + 'glass again (or press Escape) to put it back down.</p></div>'
+
+    + '<div class="rule"><h3>🍊 Same flavour, or an empty glass</h3>'
+    + '<p>You can only pour juice <b>onto the same flavour</b>, or <b>into an empty glass</b> — and '
+    + 'only if there is <b>room</b>. Pour 🍊 onto 🍇 and the glass just shakes its head.</p>'
+    + '<div class="rrow">' + rpair(rglass([1,0], 3, {run:1}), rglass([2,0], 3))
+    + '<span class="rarrow">➡️</span>' + rpair(rglass([1], 3), rglass([2,0,0], 3)) + '</div>'
+    + '<span class="cap">🍊 onto 🍊 — that works.</span></div>'
+
+    + '<div class="rule"><h3>🌊 The whole top layer moves at once</h3>'
+    + '<p>When the top of a glass has <b>several layers of the same juice</b>, they all pour together. '
+    + 'If there isn\'t room for all of them, the glass fills <b>right to the top</b> and the rest stays behind.</p>'
+    + '<div class="rrow">' + rpair(rglass([2,1,1], 4, {run:2}), rglass([]  , 4))
+    + '<span class="rarrow">➡️</span>' + rpair(rglass([2], 4), rglass([1,1], 4)) + '</div>'
+    + '<span class="cap">Both 🍇 layers moved in one pour.</span></div>'
+
+    + '<div class="rule"><h3>🥤 Keep an empty glass free</h3>'
+    + '<p>Empty glasses are your most precious thing — they are the only place any juice can go. '
+    + 'Fill them up carelessly and you can get <b>stuck</b>. If that happens the owl will tell you, '
+    + 'and <b>↩️ Undo</b> takes back one pour at a time — it costs nothing.</p>'
+    + '<p>On <b>Expert</b> there is only <b>one</b> spare glass, so plan ahead!</p></div>'
+
+    + '<div class="rule"><h3>⭐ Stars, Hint and Reset</h3>'
+    + '<p>The fewer pours you use, the more stars you get. <b>💡 Hint</b> rings the glass to pour '
+    + 'from (①) and the glass to pour into (②). <b>🔄 Reset</b> puts every glass back the way it started.</p></div>';
+});
+
+/* ---- confetti (shared stopConfetti/#confetti live in site.js) ---- */
+function juiceConfetti(){
+  const cv = $("confetti"); cv.style.display = "block";
+  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const colors = FLAVOURS.map(f => f.color);
+  const parts = Array.from({length:85}, () => ({x:cv.width / 2, y:cv.height * 0.35, r:5 + Math.random() * 7,
+    c:colors[Math.floor(Math.random() * colors.length)], vy:-5 + Math.random() * 2,
+    vx:-6 + Math.random() * 12, rot:Math.random() * 6, vr:.25}));
+  let f = 0;
+  (function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += .2; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.2); ctx.restore();
+    });
+    f++;
+    if(f < 80) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+
+initBouncyTitle("Juice Jumble");
+setLevel("EASY");
+
+}
+</script>
+</body>
+</html>
