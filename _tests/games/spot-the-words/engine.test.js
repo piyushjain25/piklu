@@ -49,6 +49,10 @@ ok(THEMES.length === RAW.themes.length, "validateThemes should keep all 14 theme
 THEMES.forEach((t, i) => ok(t.words.length === RAW.themes[i].words.length, t.name + ": validator dropped a word"));
 /* …and drops malformed ones instead of crashing */
 ok(E.validateThemes(null).length === 0 && E.validateThemes({}).length === 0, "validator should survive junk");
+/* no theme ever hides a word reading upward (bottom-to-top, straight or diagonal) */
+for (const [k, set] of Object.entries(E.DIRSETS))
+  ok(set.every(([dr]) => dr >= 0), "DIRSETS." + k + " must never read upward (↑ ↖ ↗)");
+ok(E.DIRSETS.back.length === 3 && E.DIRSETS.all.length === 5, "back = → ↓ ←, all = those + ↘ ↙");
 ok(E.validateThemes({ themes: [{ name: "X", emoji: "x", grid: 8, dirs: "sideways", words: RAW.themes[0].words }] }).length === 0,
    "validator should drop an unknown dirs value");
 ok(E.validateThemes({ themes: [{ name: "X", emoji: "x", grid: 8, dirs: "basic", words: ["ab", "CD"] }] }).length === 0,

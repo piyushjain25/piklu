@@ -208,12 +208,16 @@
    that can't happen. It also keeps the theme's OTHER words (the ones not in this round) out of
    the grid, so the only real words to find are the ones on the list.                       */
 
+/* No word is ever hidden reading UPWARD (↑ ↖ ↗) — bottom-to-top is too hard for the kids
+   this is for. Words still read →, ↓, ← and down the diagonals ↘ ↙. */
 const DIRSETS = {
-  basic: [[0,1],[1,0]],                                           /* → ↓ */
-  back:  [[0,1],[1,0],[0,-1],[-1,0]],                             /* + ← ↑ */
-  all:   [[0,1],[1,0],[0,-1],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1]], /* + the four diagonals */
+  basic: [[0,1],[1,0]],                         /* → ↓ */
+  back:  [[0,1],[1,0],[0,-1]],                  /* + ← */
+  all:   [[0,1],[1,0],[0,-1],[1,1],[1,-1]],     /* + the two downward diagonals ↘ ↙ */
 };
-const ALL8 = DIRSETS.all;
+/* the uniqueness check still scans all eight ways: a line can be drawn from either end, so an
+   accidental upward copy of a word would still count as the word being there twice */
+const ALL8 = [[0,1],[1,0],[0,-1],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1]];
 const ROUND_SIZE = { 8:5, 9:6, 10:6, 11:7 };
 const roundSize = grid => ROUND_SIZE[grid] || (grid < 9 ? 5 : grid > 10 ? 7 : 6);
 const reverse = s => s.split("").reverse().join("");
@@ -836,8 +840,9 @@ wireRulesSheet(function(){
     + '<div class="rule"><h3>🧭 Which ways do words go?</h3>'
     + '<p>That depends on the theme — each theme card tells you:</p>'
     + '<p>➡️ <b>Across &amp; down</b> — words read left-to-right or top-to-bottom.<br>'
-    + '↔️ <b>Forwards &amp; backwards</b> — they can also run right-to-left or bottom-to-top.<br>'
-    + '✳️ <b>Every way</b> — backwards <b>and</b> corner to corner, too!</p>'
+    + '↔️ <b>Forwards &amp; backwards</b> — they can also run right-to-left.<br>'
+    + '✳️ <b>Every way</b> — backwards <b>and</b> corner to corner, going down, too!</p>'
+    + '<p>Words never read <b>upwards</b> — always across or down.</p>'
     + '<p>Found a word backwards? You can draw it from either end.</p></div>'
 
     + '<div class="rule"><h3>💡 Hints and stars</h3>'
