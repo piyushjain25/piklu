@@ -93,12 +93,6 @@ window.GAMES = [
   { slug: "mystery-word",        title: "Mystery Word",        emoji: "🔍", accent: "sky",    ageGroup: "12+",
     tagline: "Crack the secret 5-letter word in 6 tries!",     skills: ["Vocabulary", "Logic"] },
 
-  { slug: "tick-tock-toe",       title: "Tick Tock Toe",       emoji: "⏳", accent: "grape",  ageGroup: "9+",
-    tagline: "Three in a row — but your oldest mark fades away!", skills: ["Strategy", "Memory"], badge: "New" },
-
-  { slug: "tic-tac-trek",        title: "Tic Tac Trek",        emoji: "🧭", accent: "sun",    ageGroup: "15+",
-    tagline: "Nine boards in one — your move sends the owl!",  skills: ["Strategy", "Planning"], badge: "New" },
-
   { slug: "lights-out",          title: "Lights Out",          emoji: "💡", accent: "coral",  ageGroup: "6+",
     tagline: "Put the whole town to sleep.",                   skills: ["Logic", "Planning"], badge: "New" },
 

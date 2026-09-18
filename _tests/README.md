@@ -49,7 +49,7 @@ if (typeof module !== "undefined") module.exports = { newGame, applyMove, /* …
 ```
 
 Harmless in a browser (`module` is undefined there), and it is what lets `loadEngine()`
-reach the real code. See `games/tick-tock-toe/index.html` for the pattern.
+reach the real code. See `games/tic-tac-toe/index.html` for the pattern.
 
 ## Not carried over
 

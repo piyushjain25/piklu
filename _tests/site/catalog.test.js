@@ -61,9 +61,11 @@ for (const g of GAMES) {
   for (const s of g.skills || []) ok(card.textContent.includes(s), g.slug + ": card missing skill " + s);
 }
 
-/* the age filter is built from whatever values appear, so it must be exactly All + 5 bands */
+/* the age filter is built from whatever values appear, so it must be exactly All + the bands
+   in use, in scale order — a band no game uses (today: 15+) simply has no chip */
 const chips = [...d.querySelectorAll(".age-chip")].map(c => c.dataset.age);
-ok(chips.join(",") === "all," + BANDS.join(","), "age chips should be All + the five bands in order, got " + chips.join(","));
+const used = BANDS.filter(b => GAMES.some(g => g.ageGroup === b));
+ok(chips.join(",") === "all," + used.join(","), "age chips should be All + " + used.join(",") + " in order, got " + chips.join(","));
 
 /* search finds every game by a word from its title */
 const box = d.querySelector(".search");

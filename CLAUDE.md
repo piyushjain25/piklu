@@ -230,7 +230,7 @@ don't redefine these classes in a game's own `<style>`.
 - **Start screen only:** a subtle **`← All games`** link at the top-left that points to
   `../` (the games hub). It must appear only on the start screen, never during play.
 - **"Game rules" panel** (for games whose rules need more room than the start screen's
-  `.howto` block). `games/tic-tac-trek/index.html` is the reference implementation — copy
+  `.howto` block). `games/lights-out/index.html` is the reference implementation — copy
   it rather than inventing a different rules UI. Two triggers, both `.tlink`s: a
   `📖 Read the full rules` link (`#rules-home`) centred at the bottom of the start screen's
   `.howto` block, and a `📖 Rules` link (`#rules-btn`) as the **last** item of the in-game
@@ -238,8 +238,8 @@ don't redefine these classes in a game's own `<style>`.
   `#rules-h`, `#rules-body`, `#rules-close`, `#rules-ok`) placed after `.app` and before the
   confetti canvas, wired with `wireRulesSheet(buildBody)` — see "Shared JS helpers" for its
   behaviour. The body is a series of `.rule` sections (an `<h3>` with an emoji, short `<p>`s,
-  and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-trek`,
-  `tick-tock-toe`, `tic-tac-toe`, `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
+  and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
+  `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
@@ -274,7 +274,7 @@ globals the game calls directly:
   shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
 - `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
   panel for games whose rules need more room than the start screen's `.howto` block
-  (`tic-tac-trek`, `tick-tock-toe`, `tic-tac-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
+  (`tic-tac-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
   `spot-the-words`, `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`,
   `balance-scales`). The game supplies the
   standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
@@ -362,7 +362,7 @@ robot-instructions · shopping-adventure · coin-counter · times-table-pop ·
 pizza-party · set-the-clock · what-comes-next ·
 word-guess · guess-the-capital · math-monsters · shape-sorter · color-match ·
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
-mouse-maze · sneak-peek · mystery-word · tick-tock-toe · tic-tac-trek ·
+mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
 balance-scales · tic-tac-toe
 
@@ -386,13 +386,11 @@ RAINBOW) is allowed but never picked in the same round as it.
 (three in a row *loses*; the owl goes first there, because in reverse the first player is the
 one at a disadvantage), HARD is disappearing tic-tac-toe with the **original rules** (as on
 therenotthere.com): at most 3 marks each, and placing a 4th removes your oldest **before** the
-line is checked — so a fading mark can't finish a line, unlike `tick-tock-toe`, which checks
-first on purpose. Three repeats of a position is a tie. EXPERT is **Tic Tac Trek's EXPERT**
-(ultimate), copied into the file on purpose. The owl solves Easy/Medium/Hard exactly (Hard by a
-backwards solve of ~116k positions) and blunders on purpose to stay beatable.
-`_tests/games/tic-tac-toe/engine.test.js` plays Expert in lockstep against the real
-`tic-tac-trek` engine, so **changing Trek's engine or its EXPERT settings fails that test** —
-carry the change across to `tic-tac-toe` too (or decide it shouldn't follow, and update the test).
+line is checked — so a fading mark can't finish a line. Three repeats of a position is a tie.
+EXPERT is **ultimate** tic-tac-toe (nine boards; your square sends the owl to that board) with
+a full-strength searching owl. The owl solves Easy/Medium/Hard exactly (Hard by a backwards
+solve of ~116k positions) and blunders on purpose to stay beatable. It replaced the old
+`tick-tock-toe` and `tic-tac-trek` games, which were removed.
 Its two rules links show **different sheets**: `📖 Read the full rules` (start screen) tours all
 four levels, while the in-game `📖 Rules` shows detailed rules for the **current level only**
 (each level is a different game) — it calls `wireRulesSheet()` for the shared wiring and sets

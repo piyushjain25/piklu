@@ -217,7 +217,7 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 /* ============================================================
    RULES SHEET — a scrollable "how to play" panel for the games
    whose rules need more room than the start screen's .howto
-   block (tic-tac-trek, tick-tock-toe, mystery-word,
+   block (tic-tac-toe, mystery-word,
    matchstick-math). A game links it from its start screen
    (a "📖 Read the full rules" .tlink) and from its .actions row
    during play (a "📖 Rules" .tlink), and supplies ONLY its own
@@ -249,7 +249,7 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 .rule .cap{display:block; text-align:center; font-size:12px; font-weight:700; color:var(--ink-soft); margin-top:6px;}
 .rule .cap b{color:var(--grape);}
 /* one lone noughts-and-crosses board, for the games whose rules need to show a
-   three-in-a-row (tick-tock-toe, tic-tac-trek). Cells are plain <i> elements:
+   three-in-a-row (tic-tac-toe). Cells are plain <i> elements:
    <div class="rsolo"><i>✕</i><i class="o">◯</i>...</div> */
 .rsolo{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; width:74px; flex:0 0 auto;
   background:#EDE7FA; border-radius:8px; padding:3px;}

@@ -49,7 +49,7 @@
   @keyframes tttPop{0%{transform:scale(.4); opacity:.2}70%{transform:scale(1.12)}100%{transform:scale(1)}}
   @keyframes tttGone{0%{transform:scale(1)}100%{transform:scale(.45); opacity:0}}
 
-  /* ---- the ultimate board (Expert) — Tic Tac Trek's Expert look ---- */
+  /* ---- the ultimate board (Expert) ---- */
   .ubig{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:min(400px,100%);
     margin:0 auto; background:var(--grape); padding:6px; border-radius:18px;}
   .ubrd{position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:3px;
@@ -225,13 +225,12 @@
      HARD    vanish    disappearing tic-tac-toe, original rules (as therenotthere.com):
                        each player keeps at most 3 marks; placing a 4th removes your
                        oldest FIRST, and only then is the line checked
-     EXPERT  ultimate  nine boards in one. This is Tic Tac Trek's Expert level — engine,
-                       owl and on-screen help copied unchanged (see `Trek` below).
+     EXPERT  ultimate  nine boards in one: the square you play in sends the owl to that
+                       board (see `Ult` below)
 
    The three 3x3 games share one state shape and one applyGrid(); `mode` decides what a
    finished line means and whether marks fade. `board` says WHAT is where, `queues` says
-   HOW OLD (only vanish reads it). _tests/games/tic-tac-toe proves the Expert engine
-   move-for-move identical to Tic Tac Trek's.
+   HOW OLD (only vanish reads it).
 
    All three 3x3 games are small enough to SOLVE, so the owl always knows the true value
    of every square. Classic and reverse: solveGrid() is an exact negamax over every
@@ -245,7 +244,7 @@
    playing completely at random lost only ~13% of games. Numbers from a Node sweep against
    a "never makes its own three, otherwise random" player: Easy (blunder .40, child first)
    ~49% wins; Medium (blunder .25, owl first) ~28% wins / 26% losses; Hard: see
-   vanishTable; Expert (Tic Tac Trek's) ~0%. */
+   vanishTable; Expert ~0%. */
 
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const REPEATS=3;                      // vanish only: the same position this many times is a tie
@@ -453,16 +452,16 @@ function threatSquares(s,p){
 /* the owl's move in any of the three 3x3 games */
 function aiMoveGrid(s, rand){ return s.mode==='vanish' ? aiVanish(s, rand) : aiGrid(s, rand); }
 
-/* ---- ultimate: Tic Tac Trek's engine with its Expert settings, copied unchanged ---------
+/* ---- ultimate ---------------------------------------------------------------------------
    9 small boards inside one big board, and the CELL you play in names the small BOARD your
    opponent must play in next. `cells[81]` holds cell c of board b at b*9+c, `won[9]` holds
    'X' | 'O' | 'D' (drawn) | null, and `forced` is the board to play in or -1 for a FREE
-   MOVE. Kept in its own scope because its names (newGame, applyMove, …) are Trek's own. */
-const Trek=(function(){
+   MOVE. Kept in its own scope because its names (newGame, applyMove, …) are its own. */
+const Ult=(function(){
   const BW=[3,2,3, 2,4,2, 3,2,3];            // centre > corner > edge, big board…
   const CW=[3,2,3, 2,4,2, 3,2,3];            // …and cells inside one small board
   const CLAIM=45, BIG2=190, BIG1=32, SMALL2=12, SMALL1=2, FREE=30;
-  const EXPERT={ depth:5, blunder:0, soft:1 };   // Tic Tac Trek's LEVELS.EXPERT
+  const EXPERT={ depth:5, blunder:0, soft:1 };   // full-strength search, no deliberate slips
 
   function newGame(){
     return { level:"EXPERT",
@@ -623,7 +622,7 @@ const SPOT=["top-left","top-middle","top-right","middle-left","centre","middle-r
 if(typeof module!=="undefined") module.exports={ LINES, REPEATS, LEVELS, isGridLevel, SPOT,
   newGrid, cloneGrid, gridMoves, lineFor, applyGrid, posKey, solveGrid, moveValue, aiGrid,
   VANISH_BLUNDER, vanishTable, vPlace, isLine, vKey, vanishMoveValue, aiVanish,
-  fadingIndex, threatSquares, aiMoveGrid, Trek };
+  fadingIndex, threatSquares, aiMoveGrid, Ult };
 
 /* ===== DOM =============================================================================== */
 if(typeof document!=="undefined"){
@@ -759,12 +758,12 @@ function gridYourTurn(){
   flash(threat ? "😬 The owl is one away — block it!" : '', threat ? 'bad' : '');
 }
 
-/* ===== the ultimate game (Expert) — Tic Tac Trek's Expert level ===== */
+/* ===== the ultimate game (Expert) ===== */
 
 /* Render from state. `v` names the one-off flourishes: {pop:cell, claimed:board}. */
 function renderUlt(v){
   v=v||{};
-  const play=Trek.playableBoards(S), canMove = !S.over && !busy && S.turn==='X';
+  const play=Ult.playableBoards(S), canMove = !S.over && !busy && S.turn==='X';
   for(let b=0;b<9;b++){
     const bd=uboards[b], w=S.won[b], open=play.indexOf(b)>=0;
     bd.className='ubrd';
@@ -806,11 +805,11 @@ function ultHumanMove(i){
   if(!ult() || busy || !S || S.over || S.turn!=='X') return;
   const b=Math.floor(i/9);
   if(S.cells[i]!==null) return;
-  if(Trek.playableBoards(S).indexOf(b)<0) return nope(b);
+  if(Ult.playableBoards(S).indexOf(b)<0) return nope(b);
 
   busy=true;
   const g=round, claimedBefore=S.won[b];
-  S=Trek.applyMove(S,i);
+  S=Ult.applyMove(S,i);
   const justClaimed = S.won[b]!==claimedBefore;
   sound(justClaimed ? (S.won[b]==='D' ? 'draw' : 'claim') : 'place');
   renderUlt({pop:i, claimed:justClaimed?b:-1});
@@ -823,9 +822,9 @@ function ultHumanMove(i){
 
 function ultOwlMove(){
   const g=round;
-  const m=Trek.aiMove(S), b=Math.floor(m/9);
+  const m=Ult.aiMove(S), b=Math.floor(m/9);
   const claimedBefore=S.won[b];
-  S=Trek.applyMove(S,m);
+  S=Ult.applyMove(S,m);
   const justClaimed = S.won[b]!==claimedBefore;
   sound(justClaimed ? (S.won[b]==='D' ? 'draw' : 'claim') : 'owl');
   renderUlt({pop:m, claimed:justClaimed?b:-1});
@@ -850,7 +849,7 @@ function nope(b){
   bd.classList.remove('nope'); void bd.offsetWidth; bd.classList.add('nope');
   sound('nope');
   flash("🚫 Not that board.", 'bad');
-  const g=round, play=Trek.playableBoards(S);
+  const g=round, play=Ult.playableBoards(S);
   play.forEach(i=>uboards[i].classList.add('callout'));
   step(g, 900, ()=>play.forEach(i=>uboards[i].classList.remove('callout')));
 }
@@ -911,7 +910,7 @@ function newRound(fromHome){
   showBoard();
   flash('', ''); setOwl('idle');
   if(ult()){
-    S=Trek.newGame();
+    S=Ult.newGame();
     renderUlt();
     turn('🎁 <b>You go first!</b> Your very first move can be anywhere.', 'free');
   } else {

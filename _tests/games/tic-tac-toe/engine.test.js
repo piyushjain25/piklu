@@ -6,12 +6,11 @@
      the line check, so nobody ever has more than 3 marks and a fading mark can't finish a
      line; three repeats of a position is a tie. The backwards solve is checked against its
      own fixpoint conditions on every one of its ~116k positions.
-   - Expert: the user asked for Tic Tac Trek's Expert "as is", so it is played in lockstep
-     against the real tic-tac-trek engine and must agree move for move. */
+   - Expert: ultimate tic-tac-toe — the sending rule, free moves, claimed and drawn boards
+     and the big-board win hold across thousands of random games. */
 const { loadEngine, mulberry32, tally } = require("../../lib/harness.js");
 const { ok, report } = tally();
 const E = loadEngine("tic-tac-toe");
-const TREK = loadEngine("tic-tac-trek");
 
 /* ---- level table ---- */
 ok(Object.keys(E.LEVELS).join() === "EASY,MEDIUM,HARD,EXPERT", "four levels in order");
@@ -223,31 +222,68 @@ for (const lv of ["EASY", "MEDIUM"]) {
   ok(gifts === 0, `Hard: a blunder handed over an immediate win ${gifts} times`);
 }
 
-/* ---- EXPERT = Tic Tac Trek's Expert, move for move ---- */
+/* ---- EXPERT: the ultimate rules hold over many random games ---- */
 {
-  const T = E.Trek;
-  ok(JSON.stringify(T.EXPERT) === JSON.stringify({ depth: TREK.LEVELS.EXPERT.depth,
-     blunder: TREK.LEVELS.EXPERT.blunder, soft: TREK.LEVELS.EXPERT.soft }), "Expert uses Tic Tac Trek's Expert owl settings");
-  let moves = 0, diffs = 0;
-  const same = (a, b) => a.cells.join() === b.cells.join() && a.won.join() === b.won.join()
-    && a.forced === b.forced && a.turn === b.turn && a.over === b.over && a.result === b.result;
-  const t0 = Date.now();
-  for (let g = 0; g < 12; g++) {
-    const kid = mulberry32(300 + g), r1 = mulberry32(700 + g), r2 = mulberry32(700 + g);
-    let a = T.newGame(), b = TREK.newGame("EXPERT");
-    while (!a.over) {
-      let m;
-      if (a.turn === "X") { const ms = T.legalMoves(a); m = ms[Math.floor(kid() * ms.length)]; }
-      else {
-        m = T.aiMove(a, r1);
-        if (m !== TREK.aiMove(b, r2)) { diffs++; break; }
+  const U = E.Ult;
+  let bad = 0, games = 0, freeMoves = 0, maxPly = 0;
+  const results = { X: 0, O: 0, tie: 0 };
+  for (let g = 0; g < 3000; g++) {
+    const r = mulberry32(g + 1);
+    let s = U.newGame(); games++;
+    while (!s.over) {
+      const ms = U.legalMoves(s);
+      if (!ms.length) { bad++; break; }
+      /* the sending rule: a forced board is always open, and every move is inside it */
+      if (s.forced >= 0) { if (!U.boardOpen(s, s.forced) || !ms.every(m => Math.floor(m / 9) === s.forced)) bad++; }
+      else {                                   /* a free move offers every open board */
+        const bs = new Set(ms.map(m => Math.floor(m / 9)));
+        if (!U.openBoards(s).every(b => bs.has(b))) bad++;
+        if (s.ply > 0) freeMoves++;
       }
-      a = T.applyMove(a, m); b = TREK.applyMove(b, m); moves++;
-      if (!same(a, b)) { diffs++; break; }
+      if (!ms.every(m => s.cells[m] === null && U.boardOpen(s, Math.floor(m / 9)))) bad++;
+      /* the last move's square names the next board — or a free move if that board is closed */
+      if (s.lastC >= 0 && s.forced !== (U.boardOpen(s, s.lastC) ? s.lastC : -1)) bad++;
+      s = U.applyMove(s, ms[Math.floor(r() * ms.length)]);
+    }
+    maxPly = Math.max(maxPly, s.ply);
+    results[s.result === "tie" ? "tie" : s.result]++;
+    if (s.winner) {                            /* a winner really holds three claimed boards in a row */
+      if (!U.bigLine(s.won, s.winner) || !s.line.every(b => s.won[b] === s.winner && U.lineInBoard(s.cells, b, s.winner))) bad++;
+    } else if (U.bigLine(s.won, "X") || U.bigLine(s.won, "O") || U.legalMoves(s).length) bad++;
+    for (let b = 0; b < 9; b++) {             /* every claim and every draw is justified by the cells */
+      const w = s.won[b]; let full = true;
+      for (let c = 0; c < 9; c++) if (s.cells[b * 9 + c] === null) full = false;
+      if ((w === "X" || w === "O") && !U.lineInBoard(s.cells, b, w)) bad++;
+      if (w === "D" && !(full && !U.lineInBoard(s.cells, b, "X") && !U.lineInBoard(s.cells, b, "O"))) bad++;
     }
   }
-  ok(diffs === 0, `Expert diverged from Tic Tac Trek Expert in ${diffs} games`);
-  console.log(`  Expert == Tic Tac Trek Expert across 12 games (${moves} moves, ${Date.now() - t0} ms)`);
+  ok(bad === 0, `Expert: ${bad} rule violations in ${games} random games`);
+  ok(freeMoves > 0 && results.tie > 0 && results.X > 0 && results.O > 0, "Expert: free moves, wins and ties all exercised");
+  ok(maxPly <= 81, "Expert: no game longer than 81 moves");
+
+  /* illegal moves are rejected */
+  let s = U.applyMove(U.newGame(), 4 * 9 + 4);
+  ok(s.forced === 4, "Expert: the centre square sends to the centre board");
+  let t = 0;
+  for (const m of [4 * 9 + 4, 0, 99]) { try { U.applyMove(s, m); } catch (e) { t++; } }
+  ok(t === 3, "Expert: occupied, wrong-board and out-of-range moves are all rejected");
+
+  /* the owl: always a legal move, and a big-board win on the spot is always taken */
+  let missed = 0, owlMoves = 0; const t0 = Date.now();
+  for (let g = 0; g < 6; g++) {
+    const r = mulberry32(700 + g); let st = U.newGame();
+    while (!st.over) {
+      const ms = U.legalMoves(st);
+      if (st.turn === "O") {
+        const m = U.aiMove(st, r); owlMoves++;
+        if (!ms.includes(m)) missed++;
+        if (ms.some(x => U.applyMove(st, x).winner === "O") && U.applyMove(st, m).winner !== "O") missed++;
+        st = U.applyMove(st, m);
+      } else st = U.applyMove(st, ms[Math.floor(r() * ms.length)]);
+    }
+  }
+  ok(missed === 0, `Expert: the owl made ${missed} illegal or win-skipping moves`);
+  console.log(`  Expert rules hold across ${games} random games (${JSON.stringify(results)}); owl: ${owlMoves} moves in ${Date.now() - t0} ms`);
 }
 
 /* ---- the difficulty curve points the right way, against a child-like player ----
@@ -263,7 +299,7 @@ function kidGrid(s, r) {
   return ms[Math.floor(r() * ms.length)];
 }
 function kidUlt(s, r) {
-  const T = E.Trek, ms = T.legalMoves(s);
+  const T = E.Ult, ms = T.legalMoves(s);
   const w = ms.find(m => T.applyMove(s, m).winner === "X"); if (w !== undefined) return w;
   return ms[Math.floor(r() * ms.length)];
 }
@@ -280,8 +316,8 @@ function kidUlt(s, r) {
   }
   { const r = mulberry32(42), N = 12; let w = 0;
     for (let g = 0; g < N; g++) {
-      let s = E.Trek.newGame();
-      while (!s.over) s = E.Trek.applyMove(s, s.turn === "X" ? kidUlt(s, r) : E.Trek.aiMove(s, r));
+      let s = E.Ult.newGame();
+      while (!s.over) s = E.Ult.applyMove(s, s.turn === "X" ? kidUlt(s, r) : E.Ult.aiMove(s, r));
       if (s.winner === "X") w++;
     }
     rate.EXPERT = w / N; }
