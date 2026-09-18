@@ -38,8 +38,11 @@
   @keyframes settle{0%{transform:rotate(1.6deg)}35%{transform:rotate(-1deg)}65%{transform:rotate(.45deg)}100%{transform:rotate(0)}}
   .hang{position:absolute; top:4px; width:var(--pw); transform-origin:50% 0; transition:transform .45s cubic-bezier(.3,1.4,.5,1);}
   .hang.l{left:0;} .hang.r{left:100%;}
-  .rope{height:26px; margin:0 auto; width:62%; border:2px solid var(--metal); border-bottom:0; border-radius:50% 50% 0 0 / 100% 100% 0 0;}
-  .load{display:flex; flex-wrap:wrap-reverse; justify-content:center; align-content:flex-start; gap:3px;
+  /* the strings run from the beam end (top centre) down to both rims of the dish, so each pan visibly hangs */
+  .rope{position:absolute; top:0; left:2%; width:96%; height:calc(100% - 12px); overflow:visible; pointer-events:none;}
+  .rope path{fill:none; stroke:var(--metal); stroke-width:2; stroke-linecap:round;}
+  .rope circle{fill:var(--metal-dark);}
+  .load{position:relative; margin-top:26px; display:flex; flex-wrap:wrap-reverse; justify-content:center; align-content:flex-start; gap:3px;
         min-height:84px; padding:0 4px 2px;}
   .dish{height:12px; border-radius:0 0 40px 40px; background:var(--dish); border:2px solid var(--metal);}
   .readouts{position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-between;
@@ -332,11 +335,13 @@ const wtHTML = (w, tag, extra) => "<" + tag + ' class="wt w' + w + '"' + (extra 
 const KNOWN_MAX_DISCS = 3;
 const knownHTML = total => discsFor(total).length > KNOWN_MAX_DISCS ? '<div class="crate">' + total + " kg</div>"
   : discsFor(total).map(w => wtHTML(w, "span")).join("");
+const ROPE = '<svg class="rope" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'
+  + '<path d="M50 0 L0 100 M50 0 L100 100" vector-effect="non-scaling-stroke"/></svg>';
 function scaleHTML(id, tag){
   return '<div class="scale" id="' + id + '">' + (tag ? '<span class="scale-tag">' + tag + "</span>" : "")
     + '<div class="stand"></div><div class="base"></div><div class="pivot"></div>'
-    + '<div class="beam"><div class="hang l"><div class="rope"></div><div class="load"></div><div class="dish"></div></div>'
-    + '<div class="hang r"><div class="rope"></div><div class="load"></div><div class="dish"></div></div></div>'
+    + '<div class="beam"><div class="hang l">' + ROPE + '<div class="load"></div><div class="dish"></div></div>'
+    + '<div class="hang r">' + ROPE + '<div class="load"></div><div class="dish"></div></div></div>'
     + '<div class="readouts"><span class="ro l"></span><span class="ro r"></span></div></div>';
 }
 function setTilt(scaleEl, diff){
