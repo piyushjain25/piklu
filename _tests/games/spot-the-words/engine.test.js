@@ -13,11 +13,11 @@ const PUZZLES_PER_THEME = 2000;
 
 /* ---- words.json, checked raw (not through the game's own validator) ---- */
 const EXPECT = [
-  ["Number Words", "🔢", 8, "basic"], ["Colours", "🌈", 8, "basic"], ["Farm Animals", "🐄", 9, "back"],
-  ["Ocean", "🐠", 9, "back"], ["Food", "🍎", 9, "back"], ["Maths Words", "➕", 9, "back"],
-  ["Nature", "🌳", 9, "back"], ["Sports", "⚽", 9, "all"], ["Body", "🖐️", 10, "back"],
-  ["Seasons & Weather", "☀️", 10, "all"], ["Shapes", "🔷", 10, "all"], ["Space", "🚀", 10, "all"],
-  ["Days of the Week", "📅", 11, "all"], ["Months", "🗓️", 11, "all"],
+  ["Number Words", "🔢", 8, "basic"], ["Colours", "🌈", 8, "basic"], ["Farm Animals", "🐄", 9, "basic"],
+  ["Ocean", "🐠", 9, "basic"], ["Food", "🍎", 9, "basic"], ["Maths Words", "➕", 9, "basic"],
+  ["Nature", "🌳", 9, "basic"], ["Sports", "⚽", 9, "diag"], ["Body", "🖐️", 10, "basic"],
+  ["Seasons & Weather", "☀️", 10, "diag"], ["Shapes", "🔷", 10, "diag"], ["Space", "🚀", 10, "diag"],
+  ["Days of the Week", "📅", 11, "diag"], ["Months", "🗓️", 11, "diag"],
 ];
 ok(Array.isArray(RAW.themes) && RAW.themes.length === EXPECT.length, "words.json should hold " + EXPECT.length + " themes");
 RAW.themes.forEach((t, i) => {
@@ -27,7 +27,7 @@ RAW.themes.forEach((t, i) => {
   ok(t.emoji === emoji, at + "emoji should be " + emoji);
   ok(t.grid === grid, at + "grid should be " + grid);
   ok(t.dirs === dirs, at + "dirs should be " + dirs);
-  ok(["basic", "back", "all"].includes(t.dirs), at + "dirs must be basic | back | all");
+  ok(["basic", "diag"].includes(t.dirs), at + "dirs must be basic | diag");
   ok(Number.isInteger(t.grid) && t.grid >= 8 && t.grid <= 11, at + "grid must be 8–11");
   ok(Array.isArray(t.words), at + "needs a words array");
   for (const w of t.words) {
@@ -51,8 +51,9 @@ THEMES.forEach((t, i) => ok(t.words.length === RAW.themes[i].words.length, t.nam
 ok(E.validateThemes(null).length === 0 && E.validateThemes({}).length === 0, "validator should survive junk");
 /* no theme ever hides a word reading upward (bottom-to-top, straight or diagonal) */
 for (const [k, set] of Object.entries(E.DIRSETS))
-  ok(set.every(([dr]) => dr >= 0), "DIRSETS." + k + " must never read upward (↑ ↖ ↗)");
-ok(E.DIRSETS.back.length === 3 && E.DIRSETS.all.length === 5, "back = → ↓ ←, all = those + ↘ ↙");
+  ok(set.every(([dr, dc]) => dr >= 0 && dc >= 0), "DIRSETS." + k + " must never read upward (↑ ↖ ↗) or backwards (← ↙)");
+ok(Object.keys(E.DIRSETS).join() === "basic,diag" && E.DIRSETS.basic.length === 2 && E.DIRSETS.diag.length === 3,
+   "basic = → ↓, diag = those + ↘");
 ok(E.validateThemes({ themes: [{ name: "X", emoji: "x", grid: 8, dirs: "sideways", words: RAW.themes[0].words }] }).length === 0,
    "validator should drop an unknown dirs value");
 ok(E.validateThemes({ themes: [{ name: "X", emoji: "x", grid: 8, dirs: "basic", words: ["ab", "CD"] }] }).length === 0,
@@ -163,13 +164,13 @@ const eq = (a, b) => a.r === b.r && a.c === b.c;
 ok(eq(E.snapLine(S(0,0), S(1,4), "basic", 8), S(0,4)), "a wobbly rightward drag should snap to the row");
 ok(eq(E.snapLine(S(0,0), S(5,1), "basic", 8), S(5,0)), "a wobbly downward drag should snap to the column");
 ok(eq(E.snapLine(S(3,3), S(4,7), "basic", 8), S(3,7)), "snap keeps the anchor's row");
-ok(eq(E.snapLine(S(0,0), S(3,4), "all", 10), S(4,4)), "a near-diagonal drag should snap to the diagonal on 'all'");
-ok(eq(E.snapLine(S(0,0), S(3,4), "back", 10), S(0,4)), "no diagonals on 'back' — snap to the row instead");
+ok(eq(E.snapLine(S(0,0), S(3,4), "diag", 10), S(4,4)), "a near-diagonal drag should snap to the diagonal on 'diag'");
+ok(eq(E.snapLine(S(0,0), S(3,4), "basic", 10), S(0,4)), "no diagonals on 'basic' — snap to the row instead");
 ok(eq(E.snapLine(S(4,4), S(4,1), "basic", 8), S(4,1)), "a word can be drawn from its last letter backwards");
-ok(eq(E.snapLine(S(0,0), S(0,0), "all", 9), S(0,0)), "no movement stays on the anchor");
-ok(eq(E.snapLine(S(1,1), S(-3,-3), "all", 9), S(0,0)), "snapping past the edge clamps to the grid");
-ok(E.onLine(S(2,2), S(5,5), "all") && !E.onLine(S(2,2), S(5,5), "back"), "onLine respects the theme's directions");
-ok(!E.onLine(S(0,0), S(1,2), "all"), "a knight's move is not a line");
+ok(eq(E.snapLine(S(0,0), S(0,0), "diag", 9), S(0,0)), "no movement stays on the anchor");
+ok(eq(E.snapLine(S(1,1), S(-3,-3), "diag", 9), S(0,0)), "snapping past the edge clamps to the grid");
+ok(E.onLine(S(2,2), S(5,5), "diag") && !E.onLine(S(2,2), S(5,5), "basic"), "onLine respects the theme's directions");
+ok(!E.onLine(S(0,0), S(1,2), "diag"), "a knight's move is not a line");
 ok(E.readLine(["A","B","C","D"], 2, S(0,0), S(1,1)) === "AD", "readLine reads a diagonal");
 ok(E.readLine(["A","B","C","D"], 2, S(0,0), S(1,0)) === "AC", "readLine reads a column");
 

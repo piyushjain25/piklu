@@ -18,84 +18,84 @@
       "name": "Farm Animals",
       "emoji": "🐄",
       "grid": 9,
-      "dirs": "back",
+      "dirs": "basic",
       "words": ["COW", "PIG", "HEN", "DUCK", "GOAT", "LAMB", "SHEEP", "HORSE", "CHICK", "GOOSE", "DONKEY", "TURKEY", "ROOSTER"]
     },
     {
       "name": "Ocean",
       "emoji": "🐠",
       "grid": 9,
-      "dirs": "back",
+      "dirs": "basic",
       "words": ["FISH", "CRAB", "SEAL", "WAVE", "WHALE", "SHARK", "CORAL", "SQUID", "SHELL", "TURTLE", "DOLPHIN", "OCTOPUS"]
     },
     {
       "name": "Food",
       "emoji": "🍎",
       "grid": 9,
-      "dirs": "back",
+      "dirs": "basic",
       "words": ["EGG", "RICE", "SOUP", "APPLE", "BREAD", "PASTA", "PIZZA", "HONEY", "MANGO", "BANANA", "CARROT", "CHEESE"]
     },
     {
       "name": "Maths Words",
       "emoji": "➕",
       "grid": 9,
-      "dirs": "back",
+      "dirs": "basic",
       "words": ["ADD", "SUM", "PLUS", "HALF", "MINUS", "SHARE", "TOTAL", "COUNT", "TIMES", "EQUALS", "DOUBLE", "NUMBER", "DIVIDE"]
     },
     {
       "name": "Nature",
       "emoji": "🌳",
       "grid": 9,
-      "dirs": "back",
+      "dirs": "basic",
       "words": ["TREE", "LEAF", "ROCK", "SEED", "ROOT", "BIRD", "LAKE", "HILL", "RIVER", "GRASS", "FLOWER", "FOREST"]
     },
     {
       "name": "Sports",
       "emoji": "⚽",
       "grid": 9,
-      "dirs": "all",
+      "dirs": "diag",
       "words": ["RUN", "SWIM", "JUMP", "GOLF", "RUGBY", "SKATE", "TENNIS", "HOCKEY", "SOCCER", "CRICKET", "CYCLING"]
     },
     {
       "name": "Body",
       "emoji": "🖐️",
       "grid": 10,
-      "dirs": "back",
+      "dirs": "basic",
       "words": ["ARM", "LEG", "EYE", "EAR", "HEAD", "HAND", "FOOT", "KNEE", "NOSE", "MOUTH", "ELBOW", "FINGER", "SHOULDER"]
     },
     {
       "name": "Seasons & Weather",
       "emoji": "☀️",
       "grid": 10,
-      "dirs": "all",
+      "dirs": "diag",
       "words": ["SUN", "RAIN", "SNOW", "WIND", "CLOUD", "STORM", "FROST", "SPRING", "SUMMER", "AUTUMN", "WINTER", "THUNDER"]
     },
     {
       "name": "Shapes",
       "emoji": "🔷",
       "grid": 10,
-      "dirs": "all",
+      "dirs": "diag",
       "words": ["OVAL", "STAR", "CUBE", "CONE", "HEART", "CIRCLE", "SQUARE", "SPHERE", "DIAMOND", "OCTAGON", "HEXAGON", "TRIANGLE"]
     },
     {
       "name": "Space",
       "emoji": "🚀",
       "grid": 10,
-      "dirs": "all",
+      "dirs": "diag",
       "words": ["SUN", "MOON", "STAR", "MARS", "COMET", "EARTH", "ORBIT", "PLANET", "ROCKET", "GALAXY", "ASTRONAUT"]
     },
     {
       "name": "Days of the Week",
       "emoji": "📅",
       "grid": 11,
-      "dirs": "all",
+      "dirs": "diag",
       "words": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     },
     {
       "name": "Months",
       "emoji": "🗓️",
       "grid": 11,
-      "dirs": "all",
+      "dirs": "diag",
       "words": ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
     }
   ]

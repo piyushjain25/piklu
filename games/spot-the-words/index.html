@@ -113,7 +113,7 @@
       <div class="howto">
         🔎 <b>How to play:</b> The words in the list are hiding in the grid. <b>Drag</b> across a word
         to circle it — or <b>tap its first letter, then its last</b>. The bigger themes hide words
-        <b>backwards</b> and <b>corner to corner</b> too!
+        <b>corner to corner</b> too!
         <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
       </div>
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg" disabled>Start ▶</button></div>
@@ -208,15 +208,15 @@
    that can't happen. It also keeps the theme's OTHER words (the ones not in this round) out of
    the grid, so the only real words to find are the ones on the list.                       */
 
-/* No word is ever hidden reading UPWARD (↑ ↖ ↗) — bottom-to-top is too hard for the kids
-   this is for. Words still read →, ↓, ← and down the diagonals ↘ ↙. */
+/* A word is only ever hidden reading FORWARDS: left-to-right and/or top-to-bottom. Never
+   upward (↑ ↖ ↗) and never right-to-left (← ↙) — backwards is too hard for the kids this is
+   for. So words read →, ↓ and, on the harder themes, down the diagonal ↘. */
 const DIRSETS = {
   basic: [[0,1],[1,0]],                         /* → ↓ */
-  back:  [[0,1],[1,0],[0,-1]],                  /* + ← */
-  all:   [[0,1],[1,0],[0,-1],[1,1],[1,-1]],     /* + the two downward diagonals ↘ ↙ */
+  diag:  [[0,1],[1,0],[1,1]],                   /* + the forward diagonal ↘ */
 };
 /* the uniqueness check still scans all eight ways: a line can be drawn from either end, so an
-   accidental upward copy of a word would still count as the word being there twice */
+   accidental backwards or upward copy of a word would still count as the word being there twice */
 const ALL8 = [[0,1],[1,0],[0,-1],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1]];
 const ROUND_SIZE = { 8:5, 9:6, 10:6, 11:7 };
 const roundSize = grid => ROUND_SIZE[grid] || (grid < 9 ? 5 : grid > 10 ? 7 : 6);
@@ -475,7 +475,7 @@ loadGameData("words.json").then(d => {
 });
 
 const LINE_COLORS = ["#6C4AB6", "#FF6B7A", "#2FB37D", "#e6a800", "#3FA7E0"];
-const DIR_DESC = { basic:"across & down", back:"forwards & backwards", all:"every way, even diagonal" };
+const DIR_DESC = { basic:"across & down", diag:"across, down & diagonal" };
 
 let themeIdx = 0, P = null, found = new Set(), colorOf = {}, hints = 0, done = false;
 let anchor = null;          /* first tap, or the keyboard's Enter — the start of a line */
@@ -840,10 +840,9 @@ wireRulesSheet(function(){
     + '<div class="rule"><h3>🧭 Which ways do words go?</h3>'
     + '<p>That depends on the theme — each theme card tells you:</p>'
     + '<p>➡️ <b>Across &amp; down</b> — words read left-to-right or top-to-bottom.<br>'
-    + '↔️ <b>Forwards &amp; backwards</b> — they can also run right-to-left.<br>'
-    + '✳️ <b>Every way</b> — backwards <b>and</b> corner to corner, going down, too!</p>'
-    + '<p>Words never read <b>upwards</b> — always across or down.</p>'
-    + '<p>Found a word backwards? You can draw it from either end.</p></div>'
+    + '↘️ <b>Across, down &amp; diagonal</b> — they can also run corner to corner, from top-left down to bottom-right.</p>'
+    + '<p>Words never read <b>backwards</b> or <b>upwards</b> — always left-to-right and top-to-bottom.</p>'
+    + '<p>You can draw a word from either end — first letter to last, or last to first.</p></div>'
 
     + '<div class="rule"><h3>💡 Hints and stars</h3>'
     + '<p>Stuck? <b>💡 Hint</b> puts a dashed ring around the <b>first letter</b> of a word you '

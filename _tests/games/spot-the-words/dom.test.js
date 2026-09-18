@@ -220,7 +220,7 @@ const DATA = JSON.parse(read("games/spot-the-words/words.json"));
   $("q-level").click(); d.body.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
   ok(!$("level-menu").classList.contains("open"), "an outside click closes the theme menu");
 
-  /* the diagonal/backwards themes play through too, and the 11×11 ones render */
+  /* the diagonal themes play through too, and the 11×11 ones render */
   const months = opts.findIndex(o => o.textContent.includes("Months"));
   $("q-level").click(); opts[months].click();
   ok(size() === 11 && targets().length === 7, "Months is 11×11 with 7 words");

@@ -368,8 +368,9 @@ balance-scales
 
 `spot-the-words/words.json` is `{ "themes": [ { name, emoji, grid, dirs, words } ] }`:
 `grid` is the N of an N×N board (8–11, which also sets the round size: 8→5 words, 9→6,
-10→6, 11→7), `dirs` is `basic` (→ ↓) | `back` (+ ←) | `all` (+ the downward diagonals ↘ ↙) — no word is
-ever placed reading upward (↑ ↖ ↗), which is too hard for the age group — and `words`
+10→6, 11→7), `dirs` is `basic` (→ ↓) | `diag` (+ the forward diagonal ↘) — no word is ever placed reading
+upward (↑ ↖ ↗) or backwards/right-to-left (← ↙), which is too hard for the age group (a player
+may still *draw* a word from either end) — and `words`
 are A–Z capitals, each no longer than `grid`, at least 10 per theme (Days of the Week is the
 one exception, at 7). `_tests/games/spot-the-words/engine.test.js` checks all of that and
 generates 2,000 boards per theme to prove every target appears exactly once — **run it after
