@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dino Dig</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  /* dig-site theme — local vars only, the design system itself lives in site.css */
+  :root{
+    --sand:#E8C98C; --sand-hi:#F2DAA8; --sand-line:#C9A461; --sand-dark:#B38D4A;
+    --dug:#FBF3E4; --dug-line:#EAD9BC;
+  }
+  .app{max-width:520px;}
+  .title{font-size:clamp(28px,5.6vw,42px);}
+  .topbar{margin-bottom:10px;}
+  /* a 10x10 board needs every pixel on a phone: slimmer page + card gutters on narrow screens */
+  @media (max-width:430px){
+    body.game{padding-left:6px; padding-right:6px;}
+    .card{padding:18px 10px;}
+  }
+
+  /* ---- the row above the grid: egg counter + (Expert only) three chances ---- */
+  .digbar{display:flex; align-items:center; justify-content:space-between; gap:10px;
+          max-width:440px; margin:0 auto 8px; font-family:'Fredoka',sans-serif; font-weight:600;
+          font-size:15px; color:var(--ink-soft);}
+  .eggs-left b{color:var(--grape);}
+  .hearts{display:flex; align-items:center; gap:4px;}
+  .hearts .lbl{font-size:13px;}
+  .pip{font-size:19px; line-height:1; transition:transform .25s ease, opacity .25s ease;}
+  .pip.used{opacity:.55; transform:scale(.88);}
+
+  /* ---- the dig site ---- */
+  .dig{display:grid; gap:3px; width:100%; max-width:440px; margin:0 auto; aspect-ratio:1;
+       container-type:inline-size;}
+  .cell{
+    border:0; padding:0; margin:0; border-radius:6px; cursor:pointer; min-width:0; min-height:0;
+    font-family:'Fredoka',sans-serif; font-weight:700; line-height:1; color:var(--ink);
+    font-size:clamp(12px,3.6vw,22px); font-size:calc(100cqw / var(--n) * .52);
+    display:flex; align-items:center; justify-content:center;
+    background:var(--sand); box-shadow:inset 0 -3px 0 var(--sand-line), inset 0 2px 0 var(--sand-hi);
+    touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent; transition:background .12s, transform .08s;
+  }
+  .cell:hover{background:var(--sand-hi);}
+  .cell:active{transform:scale(.94);}
+  .cell:focus-visible{outline:3px solid var(--ink); outline-offset:1px; position:relative; z-index:2;}
+  .cell.open{background:var(--dug); box-shadow:inset 0 0 0 1px var(--dug-line); cursor:default;}
+  .cell.open.num{cursor:pointer;}
+  .cell.woke{background:#FFE1E6; box-shadow:inset 0 0 0 2px var(--coral);}
+  .cell.egg{background:#FFF1C2; box-shadow:inset 0 0 0 2px var(--sun-dark);}
+  .cell.nope{background:var(--dug); color:var(--coral-dark);}
+  .cell.start{outline:3px dashed var(--grape); outline-offset:-3px;}
+  .cell.hinted{animation:hintpop .9s ease;}
+  @keyframes hintpop{0%{box-shadow:0 0 0 0 rgba(255,207,67,.9)}100%{box-shadow:0 0 0 10px rgba(255,207,67,0)}}
+  /* digit colours are a bonus — the digit itself carries the information */
+  .cell.n1{color:var(--sky-dark);}  .cell.n2{color:var(--leaf-dark);} .cell.n3{color:var(--coral-dark);}
+  .cell.n4{color:var(--grape);}     .cell.n5{color:#9a5200;}          .cell.n6{color:#127a78;}
+  .cell.n7{color:var(--ink);}       .cell.n8{color:var(--ink-soft);}
+  .dig.over .cell{cursor:default;}
+
+  /* ---- the Dig / Flag mode toggle (the one real .btn during play) ---- */
+  .btn.mode{display:inline-flex; gap:4px; padding:6px;}
+  .mode .seg{padding:8px 16px; border-radius:12px; opacity:.6;}
+  .mode .seg.on{background:#fff; opacity:1; box-shadow:inset 0 0 0 2px var(--sun-dark);}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .dgrid{display:grid; grid-template-columns:repeat(3,26px); gap:3px;}
+  .dgrid i{width:26px; height:26px; border-radius:5px; font-style:normal; display:flex;
+           align-items:center; justify-content:center; font-family:'Fredoka',sans-serif;
+           font-weight:700; font-size:15px; line-height:1; background:var(--sand);
+           box-shadow:inset 0 -2px 0 var(--sand-line);}
+  .dgrid i.o{background:var(--dug); box-shadow:inset 0 0 0 1px var(--dug-line); color:var(--sky-dark);}
+  .dgrid i.o.t{box-shadow:inset 0 0 0 2px var(--grape);}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🦕 Read the numbers, find the dino eggs — and don't wake them!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">6 eggs</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">12 eggs</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">17 eggs</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">22 eggs</div></button>
+      </div>
+      <div class="howto">
+        🦖 <b>How to play:</b> Dig a square and you'll find a <b>number</b> — it tells you how many
+        dino eggs are buried in the <b>8 squares touching it</b>. Use the numbers to work out where
+        every egg is, and <b>🚩 flag</b> it. Your first dig is always safe, and you <b>never need to
+        guess</b>. On <b>Expert</b> you get just three chances.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="digbar">
+        <span class="eggs-left" id="eggs-left">🥚 <b>6</b> left</span>
+        <span class="hearts invisible" id="hearts" role="img" aria-label="3 chances left"></span>
+      </div>
+
+      <div class="dig" id="grid" role="grid" aria-label="The dig site"></div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="mode-btn" class="btn btn-sun mode" aria-pressed="false" aria-label="Mode: Dig. Tap to switch to Flag.">
+          <span class="seg on" data-m="dig">🔍 Dig</span><span class="seg" data-m="flag">🚩 Flag</span>
+        </button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+        <button id="newdig-btn" class="btn btn-primary hide">New dig ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Dino Dig</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   A patch of sand, N x N squares, with some dinosaur eggs buried in it. Dig a square and it
+   shows how many eggs are in the (up to) eight squares touching it.
+
+   The one promise this engine keeps: EVERY BOARD CAN BE CLEARED BY THINKING. Randomly buried
+   eggs regularly leave a spot where nothing on the board can settle a square and the player
+   has to flip a coin — which teaches a child that careful thinking does not pay. So a board
+   is only built AFTER the first dig (solvability is relative to where you start), and it is
+   only accepted if a perfect logical player, starting from that dig, clears it without ever
+   guessing. Nothing else is ever shipped.
+
+   The same solver powers 💡 Hint: it only ever digs a square the numbers PROVE is safe.
+
+   Boards are plain arrays indexed r * size + c. Knowledge is an Int8Array `st`:
+     0 = still buried and unknown, 1 = dug (its number is known), 2 = known to be an egg.    */
+
+const LEVELS = {
+  EASY:   { size:7,  eggs:6,  lives:Infinity, label:"🌱 Easy"   },
+  MEDIUM: { size:9,  eggs:12, lives:Infinity, label:"⭐ Medium" },
+  HARD:   { size:10, eggs:17, lives:Infinity, label:"🔥 Hard"   },
+  EXPERT: { size:10, eggs:22, lives:3,        label:"🏆 Expert" },
+};
+/* how many egg layouts to try for one first dig before giving up (in practice a handful) */
+const MAX_TRIES = 20000;
+/* backtracking steps the enumeration may spend on one deduction before it bails */
+const NODE_CAP = 400000;
+
+const NB = {};
+/* the (up to) eight squares touching each square — edges and corners have fewer */
+function neighbours(size){
+  if(NB[size]) return NB[size];
+  const out = [];
+  for(let r = 0; r < size; r++) for(let c = 0; c < size; c++){
+    const l = [];
+    for(let dr = -1; dr <= 1; dr++) for(let dc = -1; dc <= 1; dc++){
+      if(!dr && !dc) continue;
+      const nr = r + dr, nc = c + dc;
+      if(nr >= 0 && nr < size && nc >= 0 && nc < size) l.push(nr * size + nc);
+    }
+    out.push(l);
+  }
+  return (NB[size] = out);
+}
+function countsFor(eggs, size){
+  const nb = neighbours(size), out = new Int8Array(size * size);
+  for(let i = 0; i < out.length; i++){
+    let k = 0;
+    for(const j of nb[i]) if(eggs[j]) k++;
+    out[i] = k;
+  }
+  return out;
+}
+
+/* Dig `start` (a non-egg) and flood outward through zeros, the way the board does for the
+   player: a 0 has no eggs around it, so all its neighbours are dug too. `blocked` squares
+   (flags, woken eggs) are never opened by a flood. Mutates `open`, returns what it opened. */
+function openFrom(size, counts, open, blocked, start){
+  const out = [];
+  if(open[start]) return out;
+  const nb = neighbours(size), stack = [start];
+  open[start] = 1; out.push(start);
+  while(stack.length){
+    const i = stack.pop();
+    if(counts[i] !== 0) continue;
+    for(const j of nb[i]) if(!open[j] && !(blocked && blocked[j])){ open[j] = 1; out.push(j); stack.push(j); }
+  }
+  return out;
+}
+
+/* Chording: tap a dug number that already has that many flags around it, and every other
+   buried neighbour is dug at once. Returns the squares to dig — [] if the count does not
+   match. `marked` = flagged or woken (both show the player "an egg is here"). */
+function chordTargets(size, counts, open, marked, i){
+  if(!open[i] || counts[i] === 0) return [];
+  let f = 0; const out = [];
+  for(const j of neighbours(size)[i]){
+    if(marked[j]) f++;
+    else if(!open[j]) out.push(j);
+  }
+  return f === counts[i] ? out : [];
+}
+
+/* ---- the logical player ----------------------------------------------------------------
+   One call looks at what is known and returns what can be PROVED next, trying the cheapest
+   kind of thinking first — so Hint always teaches the simplest step available:
+     simple  - a number already touching that many eggs: its other neighbours are safe;
+               a number with exactly as many buried neighbours as eggs still missing: all eggs.
+     subset  - one number's buried squares sit inside another's: the difference is settled.
+     count   - the eggs still missing vs. the squares still buried (the endgame).
+     enum    - split the edge of the dug area into independent pieces, list every egg layout
+               each piece allows, combine them under the total egg count, and keep whatever is
+               an egg in EVERY layout or safe in EVERY layout. This one is exact: if a square
+               can be proved at all from what is showing, it is proved here.
+   Returns { safe:[...], eggs:[...], rule } — rule is null when nothing can be proved.        */
+function deduce(size, total, st, counts){
+  const nb = neighbours(size), n = size * size;
+  const safe = new Set(), eggs = new Set();
+  const done = rule => ({ safe:[...safe], eggs:[...eggs], rule: (safe.size || eggs.size) ? rule : null });
+
+  let knownEggs = 0, unknown = 0;
+  for(let i = 0; i < n; i++){ if(st[i] === 2) knownEggs++; else if(st[i] === 0) unknown++; }
+  const remaining = total - knownEggs;
+
+  /* one constraint per dug number that still touches buried squares */
+  const cons = [];
+  for(let i = 0; i < n; i++){
+    if(st[i] !== 1) continue;
+    let f = 0; const u = [];
+    for(const j of nb[i]){ if(st[j] === 2) f++; else if(st[j] === 0) u.push(j); }
+    if(!u.length) continue;
+    const need = counts[i] - f;
+    cons.push({ cells:u, need });
+    if(need === 0) u.forEach(j => safe.add(j));
+    else if(need === u.length) u.forEach(j => eggs.add(j));
+  }
+  if(safe.size || eggs.size) return done("simple");
+
+  for(const a of cons) for(const b of cons){
+    if(a === b || a.cells.length >= b.cells.length) continue;
+    if(!a.cells.every(c => b.cells.includes(c))) continue;
+    const diff = b.cells.filter(c => !a.cells.includes(c)), need = b.need - a.need;
+    if(need === 0) diff.forEach(j => safe.add(j));
+    else if(need === diff.length) diff.forEach(j => eggs.add(j));
+  }
+  if(safe.size || eggs.size) return done("subset");
+
+  if(unknown > 0 && (remaining === 0 || remaining === unknown)){
+    for(let i = 0; i < n; i++) if(st[i] === 0) (remaining === 0 ? safe : eggs).add(i);
+    return done("count");
+  }
+
+  enumerate(n, st, cons, remaining, unknown, safe, eggs);
+  return done("enum");
+}
+
+/* The exact fallback. Fills `safe`/`eggs` in place; leaves them empty if the work would blow
+   the node budget (the caller then sees "nothing proved", which the generator treats as a
+   board to reject — never as a licence to guess). */
+function enumerate(n, st, cons, remaining, unknown, safe, eggs){
+  /* the frontier: buried squares touching a dug number, grouped into independent pieces */
+  const fIdx = new Int32Array(n).fill(-1), frontier = [];
+  for(const c of cons) for(const x of c.cells) if(fIdx[x] < 0){ fIdx[x] = frontier.length; frontier.push(x); }
+  const F = frontier.length, parent = frontier.map((_, i) => i);
+  const find = x => { while(parent[x] !== x){ parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+  for(const c of cons) for(let k = 1; k < c.cells.length; k++){
+    const a = find(fIdx[c.cells[0]]), b = find(fIdx[c.cells[k]]);
+    if(a !== b) parent[a] = b;
+  }
+  const byRoot = new Map();
+  frontier.forEach((x, i) => {
+    const r = find(i);
+    if(!byRoot.has(r)) byRoot.set(r, { cells:[], cons:[] });
+    byRoot.get(r).cells.push(x);
+  });
+  for(const c of cons) byRoot.get(find(fIdx[c.cells[0]])).cons.push(c);
+  const comps = [...byRoot.values()];
+  const interior = unknown - F;
+
+  const budget = { left: NODE_CAP };
+  for(const comp of comps){
+    comp.byK = layouts(comp, remaining, budget);
+    if(!comp.byK) return;                         /* over budget: prove nothing */
+  }
+
+  /* which egg totals each piece can take, given every other piece and the interior */
+  const conv = (a, b) => {
+    const o = new Uint8Array(F + 1);
+    for(let i = 0; i <= F; i++) if(a[i]) for(let j = 0; i + j <= F; j++) if(b[j]) o[i + j] = 1;
+    return o;
+  };
+  const unit = new Uint8Array(F + 1); unit[0] = 1;
+  const sets = comps.map(c => { const s = new Uint8Array(F + 1); for(const k of c.byK.keys()) s[k] = 1; return s; });
+  const pre = [unit], suf = new Array(comps.length + 1);
+  for(let j = 0; j < comps.length; j++) pre.push(conv(pre[j], sets[j]));
+  suf[comps.length] = unit;
+  for(let j = comps.length - 1; j >= 0; j--) suf[j] = conv(sets[j], suf[j + 1]);
+  const fits = s => { const m = remaining - s; return m >= 0 && m <= interior; };
+
+  comps.forEach((comp, j) => {
+    const others = conv(pre[j], suf[j + 1]);
+    const ks = [...comp.byK.keys()].filter(k => { for(let s = 0; s <= F; s++) if(others[s] && fits(k + s)) return true; return false; });
+    if(!ks.length) return;                        /* contradiction — cannot happen on a real board */
+    comp.cells.forEach((x, l) => {
+      let allEgg = true, allSafe = true;
+      for(const k of ks){
+        const e = comp.byK.get(k);
+        if(e.eggCnt[l] !== e.num) allEgg = false;
+        if(e.eggCnt[l] !== 0) allSafe = false;
+      }
+      if(allEgg) eggs.add(x); else if(allSafe) safe.add(x);
+    });
+  });
+
+  if(interior > 0){
+    const ms = [];
+    for(let s = 0; s <= F; s++) if(pre[comps.length][s] && fits(s)) ms.push(remaining - s);
+    if(ms.length && ms.every(m => m === 0))
+      for(let i = 0; i < n; i++){ if(st[i] === 0 && fIdx[i] < 0) safe.add(i); }
+    else if(ms.length && ms.every(m => m === interior))
+      for(let i = 0; i < n; i++){ if(st[i] === 0 && fIdx[i] < 0) eggs.add(i); }
+  }
+}
+
+/* every egg layout one frontier piece allows, bucketed by how many eggs it uses:
+   Map k -> { num: layouts with k eggs, eggCnt[l]: how many of those put an egg on square l } */
+function layouts(comp, remaining, budget){
+  const m = comp.cells.length, local = new Map();
+  comp.cells.forEach((x, l) => local.set(x, l));
+  const cons = comp.cons.map(c => ({ cells:c.cells.map(x => local.get(x)), need:c.need }));
+  const cellCons = Array.from({ length:m }, () => []);
+  cons.forEach((c, ci) => c.cells.forEach(l => cellCons[l].push(ci)));
+  const inC = new Int32Array(cons.length), free = new Int32Array(cons.length);
+  cons.forEach((c, ci) => { free[ci] = c.cells.length; });
+
+  /* walk the piece in touching order, so a constraint fills up (and prunes) early */
+  const order = [], seen = new Uint8Array(m);
+  for(let s = 0; s < m; s++){
+    if(seen[s]) continue;
+    seen[s] = 1; order.push(s);
+    for(let q = order.length - 1; q < order.length; q++)
+      for(const ci of cellCons[order[q]]) for(const l of cons[ci].cells) if(!seen[l]){ seen[l] = 1; order.push(l); }
+  }
+
+  const val = new Int8Array(m), byK = new Map();
+  let k = 0, blown = false;
+  (function rec(p){
+    if(blown) return;
+    if(--budget.left < 0){ blown = true; return; }
+    if(p === m){
+      let e = byK.get(k);
+      if(!e){ e = { num:0, eggCnt:new Int32Array(m) }; byK.set(k, e); }
+      e.num++;
+      for(let l = 0; l < m; l++) if(val[l]) e.eggCnt[l]++;
+      return;
+    }
+    const l = order[p];
+    for(let v = 0; v <= 1; v++){
+      if(v && k >= remaining) break;
+      let ok = true;
+      for(const ci of cellCons[l]){ free[ci]--; inC[ci] += v; }
+      for(const ci of cellCons[l]){
+        const e = inC[ci], need = cons[ci].need;
+        if(e > need || e + free[ci] < need){ ok = false; break; }
+      }
+      val[l] = v; k += v;
+      if(ok) rec(p + 1);
+      for(const ci of cellCons[l]){ free[ci]++; inC[ci] -= v; }
+      k -= v; val[l] = 0;
+      if(blown) return;
+    }
+  })(0);
+  return blown ? null : byK;
+}
+
+/* Squares the numbers prove safe right now. Proved eggs are fed back in as known until a
+   safe square turns up — a proof about eggs is often the step before a proof about safety. */
+function provenSafe(size, total, st, counts){
+  const s = Int8Array.from(st);
+  for(let guard = 0; guard < s.length; guard++){
+    const d = deduce(size, total, s, counts);
+    if(!d.rule) return [];
+    if(d.safe.length) return d.safe;
+    d.eggs.forEach(j => { s[j] = 2; });
+  }
+  return [];
+}
+
+/* Play the board as a perfect logical player from the first dig, never guessing.
+   solved = true only if every safe square got dug that way. `wrong` would mean the solver
+   "proved" something false — a bug, which the offline tests assert never happens. */
+function simulate(size, eggs, first){
+  const n = size * size, counts = countsFor(eggs, size);
+  const st = new Int8Array(n), open = new Uint8Array(n);
+  let total = 0;
+  for(let i = 0; i < n; i++) if(eggs[i]) total++;
+  const steps = { simple:0, subset:0, count:0, enum:0 };
+  if(eggs[first]) return { solved:false, wrong:false, steps };
+  let safeLeft = n - total;
+  const dig = i => { for(const j of openFrom(size, counts, open, null, i)){ st[j] = 1; safeLeft--; } };
+  dig(first);
+  while(safeLeft > 0){
+    const d = deduce(size, total, st, counts);
+    if(!d.rule) return { solved:false, wrong:false, steps };
+    for(const j of d.eggs){ if(!eggs[j]) return { solved:false, wrong:true, steps }; st[j] = 2; }
+    for(const j of d.safe){ if(eggs[j]) return { solved:false, wrong:true, steps }; if(!open[j]) dig(j); }
+    steps[d.rule]++;
+  }
+  return { solved:true, wrong:false, steps };
+}
+
+/* Bury the eggs for a first dig at `first`. The first dig is always safe AND always opens a
+   patch: no egg goes on it or on any of its eight neighbours, so it reads 0. Layouts that
+   would ever need a guess are thrown away and a fresh layout is tried. Returns
+   { eggs, tries } — or null after MAX_TRIES, and the caller must NOT fall back to a guessy
+   board (the DOM just asks for another dig). */
+function genBoard(level, first, rand){
+  const cfg = LEVELS[level], size = cfg.size, n = size * size;
+  const banned = new Uint8Array(n);
+  banned[first] = 1;
+  for(const j of neighbours(size)[first]) banned[j] = 1;
+  const pool = [];
+  for(let i = 0; i < n; i++) if(!banned[i]) pool.push(i);
+  for(let t = 1; t <= MAX_TRIES; t++){
+    for(let i = 0; i < cfg.eggs; i++){              /* partial Fisher-Yates: cfg.eggs distinct */
+      const j = i + ((rand() * (pool.length - i)) | 0);
+      const x = pool[i]; pool[i] = pool[j]; pool[j] = x;
+    }
+    const eggs = new Uint8Array(n);
+    for(let i = 0; i < cfg.eggs; i++) eggs[pool[i]] = 1;
+    if(simulate(size, eggs, first).solved) return { eggs, tries:t };
+  }
+  return null;
+}
+
+/* ★★★ nothing woken and no hints · ★★ one woken egg OR one-to-two hints · ★ anything else */
+function starsFor(mistakes, hints){
+  if(!mistakes && !hints) return 3;
+  if((mistakes === 1 && !hints) || (!mistakes && hints <= 2)) return 2;
+  return 1;
+}
+
+if(typeof module !== "undefined") module.exports = { LEVELS, MAX_TRIES, neighbours, countsFor, openFrom,
+  chordTargets, deduce, provenSafe, simulate, genBoard, starsFor };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+let level = "EASY";
+/* B is null until the first dig of a round — the eggs are buried by that dig */
+let B = null;
+let open, flag, woke, mistakes = 0, hints = 0, phase = "fresh", mode = "dig", focusIdx = 0, startMark = -1;
+const cfg = () => LEVELS[level];
+const N = () => cfg().size;
+
+const LONG_PRESS_MS = 450;
+let lpTimer = null, lpFired = false, lpAt = null, owlTimer = null;
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "dig")        beep(520, .06, "triangle", 0, .07);
+  else if(kind === "open")  { beep(520, .06, "triangle", 0, .07); beep(700, .08, "triangle", .06, .06); }
+  else if(kind === "flag")  beep(820, .05, "sine", 0, .045);
+  else if(kind === "unflag")beep(600, .05, "sine", 0, .04);
+  else if(kind === "woke")  beep(170, .24, "sine", 0, .10);
+  else if(kind === "hint")  { beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "lost")  { beep(260, .18, "sine", 0, .08); beep(200, .26, "sine", .16, .08); }
+  else if(kind === "win")   [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+}
+
+/* ---- rendering ---- */
+function buildGrid(){
+  const size = N(), g = $("grid");
+  g.style.setProperty("--n", size);
+  g.style.gridTemplateColumns = "repeat(" + size + ",1fr)";
+  g.style.gridTemplateRows = "repeat(" + size + ",1fr)";
+  g.innerHTML = "";
+  for(let i = 0; i < size * size; i++){
+    const c = document.createElement("button");
+    c.type = "button";
+    c.className = "cell";
+    c.dataset.i = i;
+    c.tabIndex = i === focusIdx ? 0 : -1;
+    g.appendChild(c);
+  }
+}
+const marksArr = () => { const m = new Uint8Array(open.length); for(let i = 0; i < m.length; i++) m[i] = flag[i] | woke[i]; return m; };
+
+function render(){
+  const size = N(), cells = $("grid").children, over = phase === "won" || phase === "lost";
+  for(let i = 0; i < cells.length; i++){
+    const c = cells[i], where = "Row " + ((i / size | 0) + 1) + ", column " + (i % size + 1) + ": ";
+    let cls = "cell", txt = "", say = "buried";
+    if(open[i]){
+      const k = B.counts[i];
+      cls += " open" + (k ? " num n" + k : "");
+      txt = k ? String(k) : "";
+      say = k ? k + (k === 1 ? " egg" : " eggs") + " touching" : "dug, no eggs touching";
+    } else if(woke[i]){ cls += " woke"; txt = "🐣"; say = "woken egg"; }
+    else if(flag[i]){
+      if(phase === "lost" && !B.eggs[i]){ cls += " nope"; txt = "✗"; say = "flag, but no egg here"; }
+      else { txt = "🚩"; say = "flagged"; }
+    }
+    else if(phase === "lost" && B.eggs[i]){ cls += " egg"; txt = "🥚"; say = "egg"; }
+    else if(i === startMark){ cls += " start"; txt = "📍"; say = "buried — start here, it's safe"; }
+    if(c.classList.contains("hinted")) cls += " hinted";
+    c.className = cls;
+    c.textContent = txt;
+    c.setAttribute("aria-label", where + say);
+  }
+  $("grid").classList.toggle("over", over);
+
+  /* the egg counter (a counter, not a score) */
+  let left = cfg().eggs;
+  for(let i = 0; i < open.length; i++) left -= flag[i] + woke[i];
+  $("eggs-left").innerHTML = left >= 0 ? "🥚 <b>" + left + "</b> left"
+    : "🚩 <b>" + (-left) + "</b> too many flag" + (left === -1 ? "" : "s");
+
+  /* Expert's three chances — the row keeps its box on every level so nothing shifts */
+  const h = $("hearts"), lives = cfg().lives;
+  h.classList.toggle("invisible", lives === Infinity);
+  const L = lives === Infinity ? 3 : lives;
+  let pips = '<span class="lbl">Chances</span>';
+  for(let k = 0; k < L; k++) pips += k < mistakes ? '<span class="pip used">🐣</span>' : '<span class="pip">🥚</span>';
+  h.innerHTML = pips;
+  h.setAttribute("aria-label", Math.max(0, L - mistakes) + " chances left");
+
+  const m = $("mode-btn");
+  m.setAttribute("aria-pressed", mode === "flag" ? "true" : "false");
+  m.setAttribute("aria-label", mode === "flag" ? "Mode: Flag. Tap to switch to Dig." : "Mode: Dig. Tap to switch to Flag.");
+  m.querySelectorAll(".seg").forEach(s => s.classList.toggle("on", s.dataset.m === mode));
+
+  $("reset-btn").classList.toggle("off", phase !== "play");
+  $("hint-link").classList.toggle("off", over);
+}
+
+function setFocus(i){
+  const cells = $("grid").children;
+  if(cells[focusIdx]) cells[focusIdx].tabIndex = -1;
+  focusIdx = i;
+  cells[i].tabIndex = 0;
+}
+function owlBackToThink(ms){
+  clearTimeout(owlTimer);
+  owlTimer = setTimeout(() => { if(phase === "play" || phase === "fresh") setOwl("think"); }, ms);
+}
+
+/* ---- play ---- */
+/* what a tap (or Enter) on a square does, in whichever mode is active */
+function act(i){
+  if(phase === "won" || phase === "lost") return;
+  setFocus(i);
+  if(phase === "fresh"){
+    if(mode === "flag"){ flash("Dig your first square to start — the first dig is always safe!", "hint"); return; }
+    firstDig(i); return;
+  }
+  if(open[i]){ chord(i); return; }
+  if(woke[i]) return;
+  if(mode === "flag"){ toggleFlag(i); return; }
+  if(flag[i]){ flash("That square has a flag. Switch to 🚩 Flag to lift it.", "hint"); return; }
+  digAll([i]);
+}
+
+function firstDig(i){
+  const g = genBoard(level, i, Math.random);
+  if(!g){ flash("The sand shifted — tap a square again!", "hint"); return; }   /* never ships a guessy board */
+  B = { eggs:g.eggs, counts:countsFor(g.eggs, N()), first:i };
+  phase = "play";
+  digAll([i]);
+}
+
+/* Dig a list of squares (one tap, a chord, or a hint). Eggs dug by mistake wake up; the
+   round only ends on Expert's third. */
+function digAll(list){
+  if(startMark >= 0 && list.indexOf(startMark) >= 0) startMark = -1;
+  let opened = 0, woken = 0;
+  for(const i of list){
+    if(open[i] || woke[i] || flag[i]) continue;
+    if(B.eggs[i]){
+      woke[i] = 1; mistakes++; woken++;
+      if(mistakes >= cfg().lives) break;
+    } else {
+      opened += openFrom(N(), B.counts, open, marksArr(), i).length;
+    }
+  }
+  if(woken){
+    if(mistakes >= cfg().lives){ render(); lose(); return; }
+    render();
+    setOwl("worried"); sound("woke"); owlBackToThink(1100);
+    const lives = cfg().lives;
+    flash(lives === Infinity
+      ? "🐣 Oops — you woke " + (woken === 1 ? "an egg" : woken + " eggs") + "! It's marked now. Keep digging."
+      : "🐣 You woke an egg! " + (lives - mistakes) + (lives - mistakes === 1 ? " chance" : " chances") + " left — think it through.", "bad");
+  } else if(opened){
+    render();
+    if(phase === "play") setOwl("think");
+    sound(opened > 1 ? "open" : "dig");
+    flash("", "");
+  }
+  if(isCleared()) win();
+}
+const isCleared = () => { let k = 0; for(let i = 0; i < open.length; i++) k += open[i]; return k === open.length - cfg().eggs; };
+
+function chord(i){
+  const targets = chordTargets(N(), B.counts, open, marksArr(), i);
+  if(!targets.length) return;
+  digAll(targets);
+}
+
+function toggleFlag(i){
+  if(phase !== "play"){
+    if(phase === "fresh") flash("Dig your first square to start — the first dig is always safe!", "hint");
+    return;
+  }
+  if(open[i] || woke[i]) return;
+  flag[i] ^= 1;
+  sound(flag[i] ? "flag" : "unflag");
+  render();
+}
+
+/* 💡 Hint digs one square the numbers PROVE is safe, nearest the player's focus. It never
+   trusts the player's flags — only what is actually dug and what has woken. */
+function hint(){
+  if(phase === "fresh"){ flash("Tap any square to start — your first dig is always safe!", "hint"); return; }
+  if(phase !== "play") return;
+  const n = open.length, st = new Int8Array(n);
+  for(let i = 0; i < n; i++) st[i] = open[i] ? 1 : woke[i] ? 2 : 0;
+  let safe = provenSafe(N(), cfg().eggs, st, B.counts).filter(j => !open[j]);
+  /* After a Reset, before the player re-digs the start, nothing may be provable yet — but the
+     first dig itself is always safe (no egg on or around it), and every proof starts there. */
+  if(!safe.length && !open[B.first]) safe = [B.first];
+  if(!safe.length) return;                     /* cannot happen: every board is solvable from its start */
+  const size = N(), fr = focusIdx / size | 0, fc = focusIdx % size;
+  const dist = j => Math.max(Math.abs((j / size | 0) - fr), Math.abs(j % size - fc));
+  const pick = safe.reduce((a, b) => dist(b) < dist(a) ? b : a);
+  hints++;
+  flag[pick] = 0;
+  const cells = $("grid").children;
+  for(const c of cells) c.classList.remove("hinted");
+  cells[pick].classList.add("hinted");
+  setTimeout(() => cells[pick] && cells[pick].classList.remove("hinted"), 950);
+  setFocus(pick);
+  setOwl("think"); sound("hint");
+  digAll([pick]);
+  if(phase === "play") flash("💡 The numbers prove that square is safe — dug it for you!", "hint");
+}
+
+/* 🔄 Reset: the same eggs, every square buried again, mistakes and chances cleared. The
+   board is only guaranteed guess-free from its first dig, so that square is marked 📍. */
+function resetBoard(){
+  if(phase !== "play") return;
+  open.fill(0); flag.fill(0); woke.fill(0);
+  mistakes = 0;
+  startMark = B.first;
+  render();
+  setOwl("think");
+  flash("Everything's buried again. Start at 📍 — that square is safe.", "hint");
+}
+
+function toggleMode(){
+  if(phase === "won" || phase === "lost") return;
+  mode = mode === "dig" ? "flag" : "dig";
+  render();
+}
+
+/* ---- the end of a dig ---- */
+function endView(){
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl + chip stay centred */
+  $("mode-btn").classList.add("hide");
+  flash("", "");
+}
+function win(){
+  phase = "won";
+  clearTimeout(owlTimer);
+  for(let i = 0; i < open.length; i++) if(B.eggs[i] && !woke[i]) flag[i] = 1;   /* auto-flag the rest */
+  render();
+  const s = starsFor(mistakes, hints);
+  $("stars").textContent = "★".repeat(s) + "☆".repeat(3 - s);
+  $("rlabel").textContent = "🦕 Every egg is safe — great digging!";
+  const bits = [];
+  if(mistakes) bits.push(mistakes + (mistakes === 1 ? " egg" : " eggs") + " woken");
+  if(hints) bits.push(hints + (hints === 1 ? " hint" : " hints") + " used");
+  $("rsub").textContent = bits.length ? bits.join(" · ") : "No eggs woken and no hints — a perfect dig!";
+  endView();
+  $("next-btn").classList.remove("hide");
+  $("next-btn").focus();
+  setOwl("win"); sound("win");
+  if(!reduceMotion) eggConfetti();
+}
+function lose(){
+  phase = "lost";
+  clearTimeout(owlTimer);
+  render();                                     /* shows every egg */
+  $("stars").textContent = "";
+  $("rlabel").textContent = "🦖 That dig's disturbed.";
+  $("rsub").textContent = "Every egg on this board could be found by thinking — try another?";
+  endView();
+  $("newdig-btn").classList.remove("hide");
+  $("newdig-btn").focus();
+  setOwl("worried"); sound("lost");
+}
+
+/* ---- rounds ---- */
+/* A fresh dig at the current level. The eggs are buried by the first tap, so this just
+   clears the patch — Skip, Next, New dig and a level change all land here. */
+function newRound(){
+  stopConfetti();
+  clearTimeout(owlTimer);
+  const n = N() * N();
+  B = null; phase = "fresh"; mode = "dig";
+  open = new Uint8Array(n); flag = new Uint8Array(n); woke = new Uint8Array(n);
+  mistakes = 0; hints = 0; startMark = -1;
+  focusIdx = (N() >> 1) * N() + (N() >> 1);     /* the keyboard ring starts in the middle */
+  buildGrid();
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("hide");
+  $("newdig-btn").classList.add("hide");
+  $("mode-btn").classList.remove("hide");
+  $("skip-btn").classList.remove("invisible");
+  render();
+  setOwl("think");
+  flash("Tap any square to start digging — the first dig is always safe!", "");
+}
+function setLevel(l){
+  level = l;
+  $("q-level-label").textContent = LEVELS[l].label;
+  document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === l ? "true" : "false"));
+  $("level-menu").querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === l ? "true" : "false"));
+}
+function goHome(){
+  stopConfetti();
+  clearTimeout(owlTimer);
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- wiring ---- */
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = () => {
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  newRound();
+};
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => { if(phase === "won" || phase === "lost") return; newRound(); };
+$("next-btn").onclick = newRound;
+$("newdig-btn").onclick = newRound;
+$("reset-btn").onclick = resetBoard;
+$("hint-link").onclick = hint;
+$("mode-btn").onclick = toggleMode;
+
+(function buildLevelMenu(){
+  const menu = $("level-menu");
+  menu.innerHTML = Object.entries(LEVELS).map(([k, v]) =>
+    '<button class="level-opt" role="menuitemradio" data-diff="' + k + '" aria-current="false">'
+    + '<span>' + v.label + '</span><span class="tick">✓</span></button>').join("");
+  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(); }
+wireLevelMenu();
+
+/* ---- pointer input: tap = current mode, long-press or right-click = flag ---- */
+const cellOf = e => e.target && e.target.closest ? e.target.closest(".cell") : null;
+const grid = $("grid");
+grid.addEventListener("click", e => {
+  const c = cellOf(e); if(!c) return;
+  if(lpFired){ lpFired = false; return; }       /* the long-press already flagged it */
+  act(+c.dataset.i);
+});
+grid.addEventListener("contextmenu", e => {
+  const c = cellOf(e); if(!c) return;
+  e.preventDefault();
+  if(lpFired) return;                           /* Android fires this after a long-press too */
+  setFocus(+c.dataset.i);
+  toggleFlag(+c.dataset.i);
+});
+grid.addEventListener("pointerdown", e => {
+  const c = cellOf(e); if(!c) return;
+  lpFired = false;
+  clearTimeout(lpTimer);
+  if(e.button !== 0) return;
+  lpAt = { x:e.clientX, y:e.clientY };
+  lpTimer = setTimeout(() => {
+    const i = +c.dataset.i;
+    if(phase !== "play" || open[i] || woke[i]) return;
+    lpFired = true;
+    setFocus(i);
+    toggleFlag(i);
+  }, LONG_PRESS_MS);
+});
+grid.addEventListener("pointermove", e => {
+  if(lpAt && Math.hypot(e.clientX - lpAt.x, e.clientY - lpAt.y) > 10) clearTimeout(lpTimer);
+});
+["pointerup", "pointercancel", "pointerleave"].forEach(t => grid.addEventListener(t, () => clearTimeout(lpTimer)));
+/* Space would click the focused square on keyup — the keydown handler owns Space */
+grid.addEventListener("keyup", e => { if(e.key === " ") e.preventDefault(); });
+
+/* ---- keyboard: arrows walk a focus ring, Enter digs, F or Space flags ---- */
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){ closeLevelMenu(); return; }
+  if($("screen-game").classList.contains("hide") || phase === "won" || phase === "lost") return;
+  const onCell = !!cellOf(e), size = N();
+  if(!onCell && e.target !== document.body) return;
+  const d = { ArrowLeft:[0,-1], ArrowRight:[0,1], ArrowUp:[-1,0], ArrowDown:[1,0] }[e.key];
+  if(d){
+    e.preventDefault();
+    const r = Math.min(size - 1, Math.max(0, (focusIdx / size | 0) + d[0]));
+    const c = Math.min(size - 1, Math.max(0, focusIdx % size + d[1]));
+    setFocus(r * size + c);
+    $("grid").children[focusIdx].focus();
+    return;
+  }
+  if(e.key === "Enter"){
+    e.preventDefault();
+    const i = focusIdx;
+    if(phase === "fresh") firstDig(i);
+    else if(open[i]) chord(i);
+    else if(!flag[i] && !woke[i]) digAll([i]);
+    return;
+  }
+  if(e.key === " " || e.key === "f" || e.key === "F"){
+    e.preventDefault();
+    toggleFlag(focusIdx);
+  }
+});
+
+/* ---- the rules sheet ---- */
+/* a 3x3 diagram: each entry is "" (buried), a digit (dug), or an emoji */
+function dgrid(cells, centreTarget){
+  let h = '<div class="dgrid" aria-hidden="true">';
+  cells.forEach((v, k) => {
+    const dug = /^\d$/.test(v) || v === "·";
+    h += '<i class="' + (dug ? "o" : "") + (dug && centreTarget && k === 4 ? " t" : "") + '">' + (v === "·" ? "" : v) + '</i>';
+  });
+  return h + "</div>";
+}
+wireRulesSheet(function(){
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🦕 What you are trying to do</h3>'
+    + '<p>Dino eggs are buried somewhere in the sand. Your job is to <b>find every egg and '
+    + '🚩 flag it</b> — without waking any of them. When every square that isn\'t an egg has '
+    + 'been dug, the dig is done!</p></div>'
+
+    + '<div class="rule"><h3>🔢 What the numbers mean</h3>'
+    + '<p>When you dig a square you find a <b>number</b>. It tells you how many eggs are buried in '
+    + 'the <b>8 squares touching it</b> — left, right, up, down, and corner to corner.</p>'
+    + '<div class="rrow">' + dgrid(["🥚","","","","2","","","","🥚"], true) + '</div>'
+    + '<span class="cap">This <b>2</b> touches two eggs.</span>'
+    + '<p style="margin-top:10px;">A dug square with <b>no number</b> touches no eggs at all, so '
+    + 'the sand around it opens up by itself.</p></div>'
+
+    + '<div class="rule"><h3>🔍 Dig or 🚩 Flag</h3>'
+    + '<p>The big button at the bottom switches what a tap does: <b>🔍 Dig</b> uncovers a square, '
+    + '<b>🚩 Flag</b> marks a square where you know an egg is. Tap a flag again to lift it.</p>'
+    + '<p>Shortcuts: <b>press and hold</b> a square to flag it, or <b>right-click</b> it. On a '
+    + 'keyboard, the <b>arrow keys</b> move, <b>Enter</b> digs and <b>F</b> or <b>Space</b> flags.</p></div>'
+
+    + '<div class="rule"><h3>🧠 Working it out</h3>'
+    + '<p>Look for a number that has <b>just enough</b> buried squares next to it. This <b>1</b> '
+    + 'only touches one buried square, so the egg <b>must</b> be there:</p>'
+    + '<div class="rrow">' + dgrid(["·","·","·","·","1","·","·","·",""], true)
+    + '<span class="rarrow">➡️</span>' + dgrid(["·","·","·","·","1","·","·","·","🚩"], true) + '</div>'
+    + '<span class="cap">Only one buried square — flag it!</span>'
+    + '<p style="margin-top:10px;">Your <b>first dig is always safe</b>, and you <b>never need to '
+    + 'guess</b>: every egg on every board can be found by thinking. If you are stuck, look at '
+    + 'two numbers side by side and ask what they tell you together.</p></div>'
+
+    + '<div class="rule"><h3>⚡ Clearing around a finished number</h3>'
+    + '<p>When a number already has <b>that many flags</b> touching it, tap the number and all '
+    + 'its other buried squares are dug at once. Careful — if one of your flags is wrong, this '
+    + 'will wake an egg!</p>'
+    + '<div class="rrow">' + dgrid(["🚩","","","·","1","","·","·",""], true)
+    + '<span class="rarrow">➡️</span>' + dgrid(["🚩","1","2","·","1","1","·","·","·"], true) + '</div>'
+    + '<span class="cap">The <b>1</b> already has its flag, so tapping it digs the rest.</span></div>'
+
+    + '<div class="rule"><h3>🐣 Waking an egg</h3>'
+    + '<p>Dig an egg by mistake and it wakes up 🐣. It gets marked, and you <b>keep digging</b> — '
+    + 'it just costs a star.</p>'
+    + '<p>🏆 On <b>Expert</b> you have <b>three chances</b> 🥚🥚🥚. Wake a third egg and that dig '
+    + 'is over — but you can always start another.</p></div>'
+
+    + '<div class="rule"><h3>⭐ Stars, hints and reset</h3>'
+    + '<p><b>★★★</b> no eggs woken and no hints · <b>★★</b> one egg woken, or one or two hints · '
+    + '<b>★</b> anything else.</p>'
+    + '<p><b>💡 Hint</b> digs one square that the numbers <b>prove</b> is safe. <b>🔄 Reset</b> '
+    + 'buries everything again with the eggs in the same places — start from the 📍 square.</p></div>';
+});
+
+/* ---- confetti (shared stopConfetti/#confetti live in site.js) ---- */
+function eggConfetti(){
+  const cv = $("confetti"); cv.style.display = "block";
+  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ["#FFCF43", "#2FB37D", "#FF6B7A", "#3FA7E0", "#6C4AB6", "#E8C98C"];
+  const parts = Array.from({ length:80 }, () => ({ x:cv.width / 2, y:cv.height * 0.35, r:5 + Math.random() * 7,
+    c:colors[(Math.random() * colors.length) | 0], vy:-5 + Math.random() * 2,
+    vx:-6 + Math.random() * 12, rot:Math.random() * 6, vr:.25 }));
+  let f = 0;
+  (function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += .2; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.3); ctx.restore();
+    });
+    f++;
+    if(f < 78) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+
+initBouncyTitle("Dino Dig");
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tally &amp; Chart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  :root{ --bar:var(--leaf); --bar-dark:var(--leaf-dark); --grid:#E6DFF6; --scene:#F3FBF6; --scene-line:#CFEBDB; }
+  .app{max-width:560px;}
+  .title{font-size:clamp(28px,5.6vw,42px);}
+  .topbar{margin-bottom:8px;}
+  @media (max-width:430px){
+    body.game{padding-left:6px; padding-right:6px;}
+    .card{padding:18px 12px;}
+  }
+
+  /* ---- phase indicator ---- */
+  .phasebar{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;
+            font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--ink-soft);}
+  .pdots{display:flex; gap:5px;}
+  .pdot{width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+        font-size:12px; background:#F1EDFA; color:var(--ink-soft); border:2px solid #E4DCF5;}
+  .pdot.done{background:var(--leaf); color:#fff; border-color:var(--leaf-dark);}
+  .pdot.now{background:var(--grape); color:#fff; border-color:var(--grape-dark);}
+
+  /* ---- phase 1: the scene ---- */
+  .scene{position:relative; width:100%; background:var(--scene); border:3px solid var(--scene-line); border-radius:18px;}
+  .item{position:absolute; width:44px; height:44px; margin:-22px 0 0 -22px; border:0; padding:0; background:none;
+        font-size:30px; line-height:1; cursor:pointer; border-radius:12px; touch-action:manipulation;
+        transition:opacity .15s, transform .1s; -webkit-tap-highlight-color:transparent;}
+  .item:active{transform:scale(.9);}
+  /* counted: dimmed AND ticked, so it never relies on brightness alone */
+  .item.counted{opacity:.3;}
+  .item.counted::after{content:"✓"; position:absolute; right:-2px; bottom:-2px; font-size:14px; font-weight:800;
+        color:var(--leaf-dark); font-family:'Fredoka',sans-serif; opacity:1;}
+  .item:focus-visible{outline:3px solid var(--ink); outline-offset:1px;}
+  .item.hinted{animation:tpulse 1s ease 2;}
+  @keyframes tpulse{0%{box-shadow:0 0 0 0 rgba(255,207,67,.95)}100%{box-shadow:0 0 0 14px rgba(255,207,67,0)}}
+  .scene.frozen .item{cursor:default;}
+
+  /* ---- the tally board ---- */
+  .tallies{display:grid; gap:6px; margin:12px 0 4px; background:var(--paper); border:3px solid var(--paper-line);
+           border-radius:16px; padding:10px 12px;}
+  .trow{display:grid; grid-template-columns:34px 1fr 30px; align-items:center; gap:8px; min-height:30px;}
+  .trow .em{font-size:24px; line-height:1; text-align:center;}
+  .trow .tn{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape); font-size:18px; text-align:right;}
+  svg.tally{height:26px; display:block;}
+  svg.tally line{stroke:var(--ink); stroke-width:2.6; stroke-linecap:round;}
+  svg.tally line.dg{stroke:var(--coral-dark);}
+
+  /* ---- phase 2/3: the bar chart ---- */
+  .scale-note{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--ink-soft); margin:10px 0 6px;}
+  .scale-note b{color:var(--grape); font-size:16px;}
+  /* headroom above the top gridline, so a full bar's number label never collides with the note */
+  .chart{display:grid; grid-template-columns:30px 1fr; gap:4px; margin:22px 0 0;}
+  .yaxis{position:relative; height:var(--ch);}
+  .ylab{position:absolute; right:3px; transform:translateY(50%); font-family:'Fredoka',sans-serif; font-weight:600; font-size:12px; color:var(--ink-soft);}
+  .plot{position:relative; height:var(--ch); border-left:3px solid var(--ink); border-bottom:3px solid var(--ink);
+        display:grid; gap:8px; padding:0 6px; touch-action:none;}
+  .gl{position:absolute; left:0; right:0; height:0; border-top:2px solid var(--grid); pointer-events:none;}
+  .gl.major{border-top-color:#D3C8EE;}
+  .col{position:relative; height:100%; cursor:ns-resize; border-radius:8px 8px 0 0; z-index:1;}
+  .col:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .col:hover .bar{filter:brightness(1.05);}
+  .bar{position:absolute; left:0; right:0; bottom:0; background:var(--bar); border-radius:8px 8px 0 0;
+       box-shadow:inset 0 -4px 0 var(--bar-dark); transition:height .12s ease;}
+  .bv{position:absolute; left:0; right:0; text-align:center; font-family:'Fredoka',sans-serif; font-weight:700;
+      font-size:15px; line-height:1; color:var(--ink); padding-bottom:3px; pointer-events:none;}
+  .chart.read .col{cursor:default;}
+  .xaxis{display:grid; gap:8px; padding:4px 6px 0; margin-left:34px;}
+  .xlab{text-align:center; font-size:24px; line-height:1.1;}
+
+  /* ---- phase 3: the question ---- */
+  .qbox{background:#F4F0FE; border-radius:16px; padding:12px 14px; margin:12px 0 4px; text-align:center;}
+  .qtext{font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(16px,4.2vw,19px); color:var(--ink); line-height:1.3;}
+  .opts{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;}
+  .opt{font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px; color:var(--ink); background:#fff;
+       border:3px solid #E4DCF5; border-radius:14px; padding:10px 8px; cursor:pointer; min-height:48px;}
+  .opt:hover{border-color:var(--grape);}
+  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .opt.nope,.opt.gone{opacity:.4; cursor:default; text-decoration:line-through;}
+  .opt.right{border-color:var(--leaf-dark); background:#E8F8F0;}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .rtally{display:flex; align-items:center; gap:8px; font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape);}
+  .rbars{display:flex; align-items:flex-end; gap:6px; height:70px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); padding:0 6px;}
+  .rbars i{width:22px; background:var(--bar); border-radius:4px 4px 0 0; box-shadow:inset 0 -3px 0 var(--bar-dark);}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">📊 Count it, tally it, chart it — then answer the question!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">3 kinds</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">4 kinds</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">lines of 2</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">lines of 2 or 5</div></button>
+      </div>
+      <div class="howto">
+        🔢 <b>How to play:</b> Every round has three steps. <b>1.</b> Tap every thing in the picture
+        to <b>count</b> it — watch the tally marks group into fives. <b>2.</b> <b>Build a bar chart</b>
+        that matches your tally. <b>3.</b> <b>Read your chart</b> to answer a question.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="phasebar" aria-live="polite">
+        <span class="pdots" aria-hidden="true"><span class="pdot" id="pd1">1</span><span class="pdot" id="pd2">2</span><span class="pdot" id="pd3">3</span></span>
+        <span id="phase-name">Count &amp; tally</span> · <b id="phase-num">1 of 3</b>
+      </div>
+
+      <div class="scene" id="scene" role="group" aria-label="Things to count"></div>
+      <div class="tallies" id="tallies" aria-label="Your tally"></div>
+
+      <div id="chart-view" class="hide">
+        <div class="scale-note" id="scale-note"></div>
+        <div class="chart" id="chart">
+          <div class="yaxis" id="yaxis" aria-hidden="true"></div>
+          <div class="plot" id="plot"></div>
+        </div>
+        <div class="xaxis" id="xaxis" aria-hidden="true"></div>
+      </div>
+
+      <div id="q-view" class="hide">
+        <div class="qbox">
+          <div class="qtext" id="qtext"></div>
+          <div class="opts" id="opts"></div>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="count-btn" class="btn btn-go">Done counting ✓</button>
+        <button id="chart-btn" class="btn btn-go hide">Check chart ✓</button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Tally &amp; Chart</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   One round = three phases, always in this order, because that order IS the lesson:
+     1. count & tally  - collect the data
+     2. build the chart - represent it (at HARD/EXPERT one gridline is worth 2 or 5)
+     3. read the chart  - interpret it (one multiple-choice question)
+   A round: { level, theme, cats:[{em,one,many}], counts:[...], scale, top, question }.     */
+
+const LEVELS = {
+  EASY:   { cats:3, max:6,  scales:[1],   maxTotal:15, hideScene:false, label:"🌱 Easy",
+            qs:["most", "least", "howmany"] },
+  MEDIUM: { cats:4, max:8,  scales:[1],   maxTotal:24, hideScene:false, label:"⭐ Medium",
+            qs:["most", "least", "howmany", "more", "fewer"] },
+  HARD:   { cats:4, max:12, scales:[2],   maxTotal:36, hideScene:true,  label:"🔥 Hard",
+            qs:["most", "least", "howmany", "more", "fewer", "total", "combined"] },
+  EXPERT: { cats:5, max:20, scales:[2,5], maxTotal:60, hideScene:true,  label:"🏆 Expert",
+            qs:["most", "least", "howmany", "more", "fewer", "total", "combined", "multistep"] },
+};
+/* Six themes. Each has five kinds so Expert's five bars always fit one theme. */
+const THEMES = [
+  { name:"Minibeasts", kinds:[["🐛","caterpillar","caterpillars"],["🐝","bee","bees"],["🐞","ladybird","ladybirds"],["🦋","butterfly","butterflies"],["🐌","snail","snails"]] },
+  { name:"Fruit",      kinds:[["🍎","apple","apples"],["🍌","banana","bananas"],["🍇","bunch of grapes","bunches of grapes"],["🍓","strawberry","strawberries"],["🍊","orange","oranges"]] },
+  { name:"Vehicles",   kinds:[["🚗","car","cars"],["🚌","bus","buses"],["🚲","bike","bikes"],["🚚","lorry","lorries"],["✈️","plane","planes"]] },
+  { name:"Weather",    kinds:[["☀️","sunny day","sunny days"],["🌧️","rainy day","rainy days"],["⛅","cloudy day","cloudy days"],["❄️","snowy day","snowy days"],["🌈","rainbow","rainbows"]] },
+  { name:"Pets",       kinds:[["🐶","dog","dogs"],["🐱","cat","cats"],["🐰","rabbit","rabbits"],["🐠","fish","fish"],["🐹","hamster","hamsters"]] },
+  { name:"Sports",     kinds:[["⚽","football","footballs"],["🏀","basketball","basketballs"],["🎾","tennis ball","tennis balls"],["🏏","cricket bat","cricket bats"],["🏐","volleyball","volleyballs"]] },
+];
+
+/* ---- tally marks: groups of five (four uprights + one diagonal across them) ---- */
+function tallyGroups(k){
+  const g = [];
+  for(let left = k; left > 0; left -= 5) g.push(Math.min(5, left));
+  return g;
+}
+/* the SVG itself — every fifth stroke is a diagonal drawn ACROSS the four before it */
+function tallySVG(k){
+  const GW = 34, UP = 7, H = 26;
+  const groups = tallyGroups(k), w = Math.max(1, groups.length * GW);
+  let s = '<svg class="tally" viewBox="0 0 ' + w + ' ' + H + '" width="' + w + '" aria-hidden="true">';
+  groups.forEach((n, gi) => {
+    const x0 = gi * GW + 4;
+    for(let u = 0; u < Math.min(n, 4); u++){
+      const x = x0 + u * UP;
+      s += '<line class="up" x1="' + x + '" y1="3" x2="' + x + '" y2="' + (H - 3) + '"/>';
+    }
+    if(n === 5) s += '<line class="dg" x1="' + (x0 - 3) + '" y1="' + (H - 6) + '" x2="' + (x0 + 3 * UP + 3) + '" y2="6"/>';
+  });
+  return s + "</svg>";
+}
+
+/* ---- counts ---- */
+function genCounts(cfg, scale, rand){
+  const steps = Math.floor(cfg.max / scale);
+  for(let t = 0; t < 500; t++){
+    const c = Array.from({ length:cfg.cats }, () => scale * (1 + ((rand() * steps) | 0)));
+    if(c.reduce((a, b) => a + b, 0) <= cfg.maxTotal) return c;
+  }
+  return Array.from({ length:cfg.cats }, () => scale);
+}
+
+/* ---- the question ----------------------------------------------------------------------
+   Every wrong option is a mistake a child would really make — never a random number:
+   off by one, another bar's value, the sum where a difference was asked (or the other way
+   round), a forgotten bar, and — on scaled charts — reading gridlines instead of values.   */
+const shuffle = (a, rand) => { for(let i = a.length - 1; i > 0; i--){ const j = (rand() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function pickNumbers(answer, candidates, rand){
+  const seen = new Set([answer]), out = [];
+  /* keep the most telling mistakes first, but vary which three appear */
+  const top = shuffle(candidates.slice(0, 5), rand).concat(candidates.slice(5), [answer + 1, answer - 1, answer + 2, answer - 2, answer + 3]);
+  for(const v of top){
+    if(out.length === 3) break;
+    if(!Number.isInteger(v) || v < 0 || seen.has(v)) continue;
+    seen.add(v); out.push(v);
+  }
+  return out;
+}
+function makeQuestion(type, counts, kinds, scale, rand){
+  const k = counts.length, idx = [...Array(k).keys()];
+  const nm = i => kinds[i][0] + " " + kinds[i][2];
+  const tidy = (text, answer, wrong) => {
+    const opts = shuffle([{ label:String(answer), value:answer }].concat(wrong.map(v => ({ label:String(v), value:v }))), rand);
+    return { type, text, options:opts, answer:opts.findIndex(o => o.value === answer) };
+  };
+  if(type === "most" || type === "least"){
+    const ext = type === "most" ? Math.max(...counts) : Math.min(...counts);
+    const at = idx.filter(i => counts[i] === ext);
+    if(at.length !== 1) return null;                     /* never a tie on most/least */
+    const ans = at[0];
+    let others = shuffle(idx.filter(i => i !== ans), rand).slice(0, 3);
+    let opts = [ans, ...others].map(i => ({ label:kinds[i][0] + " " + kinds[i][2], value:"k" + i }));
+    /* three kinds only gives three choices, so the fourth is the tempting "they're the same" */
+    if(opts.length < 4) opts.push({ label:"They're all the same", value:"same" });
+    opts = shuffle(opts, rand);
+    return { type, text:"Which kind has the " + (type === "most" ? "most" : "fewest") + "?", options:opts,
+             answer:opts.findIndex(o => o.value === "k" + ans), target:ans };
+  }
+  if(type === "howmany"){
+    const x = idx[(rand() * k) | 0], a = counts[x];
+    const cand = [];
+    if(scale > 1) cand.push(a / scale);                  /* counted gridlines, not values */
+    cand.push(a - 1, a + 1, ...idx.filter(i => i !== x).map(i => counts[i]));
+    return Object.assign(tidy("How many " + nm(x) + " are there?", a, pickNumbers(a, cand, rand)), { x });
+  }
+  if(type === "more" || type === "fewer"){
+    const pairs = [];
+    for(const x of idx) for(const y of idx) if(type === "more" ? counts[x] > counts[y] : counts[x] < counts[y]) pairs.push([x, y]);
+    if(!pairs.length) return null;
+    const [x, y] = pairs[(rand() * pairs.length) | 0];
+    const a = Math.abs(counts[x] - counts[y]);
+    const cand = [counts[x] + counts[y], a + 1, a - 1, counts[x], counts[y]];
+    if(scale > 1) cand.push(a / scale);
+    const text = type === "more" ? "How many more " + nm(x) + " than " + nm(y) + " are there?"
+                                 : "How many fewer " + nm(x) + " than " + nm(y) + " are there?";
+    return Object.assign(tidy(text, a, pickNumbers(a, cand, rand)), { x, y });
+  }
+  if(type === "total"){
+    const a = counts.reduce((s, v) => s + v, 0);
+    const cand = [a - Math.min(...counts), a - Math.max(...counts), a + 1, a - 1];
+    if(scale > 1) cand.push(a / scale);
+    return tidy("How many things were counted altogether?", a, pickNumbers(a, cand, rand));
+  }
+  if(type === "combined"){
+    const [x, y] = shuffle(idx.slice(), rand);
+    const a = counts[x] + counts[y];
+    const cand = [Math.abs(counts[x] - counts[y]), a + 1, a - 1, counts[x], counts[y]];
+    return Object.assign(tidy("How many " + nm(x) + " and " + nm(y) + " are there altogether?", a, pickNumbers(a, cand, rand)), { x, y });
+  }
+  if(type === "multistep"){
+    const trips = [];
+    for(const x of idx) for(const y of idx) for(const z of idx)
+      if(x !== y && x !== z && y < z && counts[x] > counts[y] + counts[z]) trips.push([x, y, z]);
+    if(!trips.length) return null;
+    const [x, y, z] = trips[(rand() * trips.length) | 0];
+    const a = counts[x] - counts[y] - counts[z];
+    const cand = [counts[x] - counts[y], counts[x] - counts[z], counts[y] + counts[z], a + 1, a - 1, counts[x] + counts[y] + counts[z]];
+    return Object.assign(tidy("How many more " + nm(x) + " are there than " + nm(y) + " and " + nm(z) + " together?", a, pickNumbers(a, cand, rand)), { x, y, z });
+  }
+  throw new Error("unknown question type " + type);
+}
+
+const sigOf = r => r ? r.theme + ":" + r.counts.join(",") + ":" + r.scale : "";
+function genRound(level, rand, avoidSig){
+  const cfg = LEVELS[level];
+  for(let t = 0; t < 2000; t++){
+    const theme = (rand() * THEMES.length) | 0;
+    const kinds = shuffle(THEMES[theme].kinds.slice(), rand).slice(0, cfg.cats);
+    const scale = cfg.scales[(rand() * cfg.scales.length) | 0];
+    const counts = genCounts(cfg, scale, rand);
+    const type = cfg.qs[(rand() * cfg.qs.length) | 0];
+    const question = makeQuestion(type, counts, kinds, scale, rand);
+    if(!question || question.options.length !== 4) continue;
+    const r = { level, theme, kinds, counts, scale, top:cfg.max, question };
+    if(avoidSig && sigOf(r) === avoidSig) continue;
+    return r;
+  }
+  return null;
+}
+
+/* ---- phase checks: counts only, never positions ---- */
+const leftToCount = counted => counted.reduce((a, c) => a + (c ? 0 : 1), 0);
+const wrongBars = (bars, tally) => bars.reduce((a, v, i) => a + (v === tally[i] ? 0 : 1), 0);
+/* a bar height from a pointer position, snapped to the chart's scale */
+function snapBar(frac, top, scale){
+  const v = Math.round(Math.max(0, Math.min(1, frac)) * top / scale) * scale;
+  return Math.max(0, Math.min(top, v));
+}
+
+/* ★★★ no hints · ★★ one or two · ★ three or more — across the whole round */
+const starsFor = hints => hints === 0 ? 3 : hints <= 2 ? 2 : 1;
+
+if(typeof module !== "undefined") module.exports = { LEVELS, THEMES, tallyGroups, tallySVG, genCounts, makeQuestion,
+  genRound, sigOf, leftToCount, wrongBars, snapBar, starsFor };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+let level = "EASY", R = null, phase = 1, done = false;
+let items = [], counted = [], bars = [], hints = 0, dragCol = -1;
+const cfg = () => LEVELS[level];
+const tallyNow = () => R.kinds.map((_, k) => items.reduce((a, it, i) => a + (it === k && counted[i] ? 1 : 0), 0));
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "count")      beep(560, .06, "triangle", 0, .07);
+  else if(kind === "five")  { beep(740, .07, "triangle", 0, .08); beep(988, .10, "triangle", .06, .07); }
+  else if(kind === "uncount") beep(340, .06, "sine", 0, .06);
+  else if(kind === "bar")   beep(480, .04, "sine", 0, .04);
+  else if(kind === "phase") [523, 659, 784].forEach((f, i) => beep(f, .12, "triangle", i * .07));
+  else if(kind === "bad")   beep(200, .16, "sine", 0, .09);
+  else if(kind === "hint")  { beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "win")   [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+}
+
+/* ---- phase 1: the scene ------------------------------------------------------------------
+   A loose grid with jitter: one slot per ~50px, a few left empty so it reads as scattered,
+   each item nudged inside its slot. Positions are percentages, so the scene reflows with the
+   card; items are 44px targets and never overlap enough to hide one another.             */
+function buildScene(){
+  const sc = $("scene"), wpx = sc.clientWidth || 320;
+  const cols = Math.max(5, Math.floor(wpx / 50));
+  const slots = Math.max(items.length + 2, Math.ceil(items.length * 1.12));
+  const rows = Math.ceil(slots / cols);
+  const order = [...Array(rows * cols).keys()];
+  for(let i = order.length - 1; i > 0; i--){ const j = (Math.random() * (i + 1)) | 0; [order[i], order[j]] = [order[j], order[i]]; }
+  sc.style.aspectRatio = cols + " / " + rows;
+  sc.innerHTML = "";
+  items.forEach((k, i) => {
+    const slot = order[i], r = (slot / cols) | 0, c = slot % cols;
+    const jx = (Math.random() - .5) * .22, jy = (Math.random() - .5) * .22;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "item";
+    b.dataset.i = i;
+    b.textContent = R.kinds[k][0];
+    b.style.left = ((c + .5 + jx) / cols * 100).toFixed(2) + "%";
+    b.style.top = ((r + .5 + jy) / rows * 100).toFixed(2) + "%";
+    b.onclick = () => countItem(i);
+    sc.appendChild(b);
+  });
+}
+function paintScene(){
+  const kids = $("scene").children;
+  for(let i = 0; i < kids.length; i++){
+    kids[i].classList.toggle("counted", !!counted[i]);
+    kids[i].setAttribute("aria-pressed", counted[i] ? "true" : "false");
+    kids[i].setAttribute("aria-label", R.kinds[items[i]][1] + (counted[i] ? ", counted" : ", not counted yet"));
+    kids[i].disabled = phase !== 1 || done;
+  }
+  $("scene").classList.toggle("frozen", phase !== 1);
+}
+function paintTallies(){
+  const t = tallyNow();
+  $("tallies").innerHTML = R.kinds.map((kd, k) =>
+    '<div class="trow"><span class="em" aria-hidden="true">' + kd[0] + '</span>' + tallySVG(t[k])
+    + '<span class="tn" aria-label="' + kd[2] + ': ' + t[k] + '">' + t[k] + '</span></div>').join("");
+}
+function countItem(i){
+  if(phase !== 1 || done) return;
+  counted[i] = !counted[i];
+  const k = items[i], n = tallyNow()[k];
+  if(counted[i]) sound(n % 5 === 0 ? "five" : "count"); else sound("uncount");
+  paintScene(); paintTallies();
+  setOwl("think");
+  flash("", "");
+}
+
+/* ---- phase 2: the chart ---- */
+function buildChart(){
+  const top = R.top, sc = R.scale, n = R.kinds.length;
+  const ch = "clamp(170px, 48vw, 230px)";
+  $("chart").style.setProperty("--ch", ch);
+  $("scale-note").innerHTML = sc === 1 ? "📏 Each line on the chart is worth <b>1</b>"
+    : "📏 Careful! Each line on the chart is worth <b>" + sc + "</b>";
+  let y = "", gl = "";
+  for(let v = 0; v <= top; v += sc){
+    const pct = (v / top * 100).toFixed(2);
+    y += '<span class="ylab" style="bottom:' + pct + '%">' + v + '</span>';
+    if(v) gl += '<div class="gl' + (v % (sc * 5) === 0 ? " major" : "") + '" style="bottom:' + pct + '%"></div>';
+  }
+  $("yaxis").innerHTML = y;
+  const plot = $("plot");
+  plot.style.gridTemplateColumns = $("xaxis").style.gridTemplateColumns = "repeat(" + n + ",1fr)";
+  plot.innerHTML = gl + R.kinds.map((kd, k) =>
+    '<div class="col" data-k="' + k + '" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="' + top + '" '
+    + 'aria-label="' + kd[2] + ' bar"><div class="bar"></div><div class="bv"></div></div>').join("");
+  $("xaxis").innerHTML = R.kinds.map(kd => '<span class="xlab">' + kd[0] + '</span>').join("");
+  plot.querySelectorAll(".col").forEach(col => {
+    col.addEventListener("pointerdown", e => {
+      if(phase !== 2 || done) return;
+      e.preventDefault();
+      dragCol = +col.dataset.k;
+      if(col.setPointerCapture && e.pointerId !== undefined) try { col.setPointerCapture(e.pointerId); } catch(err) {}
+      barFromPointer(col, e.clientY);
+    });
+    col.addEventListener("pointermove", e => { if(dragCol === +col.dataset.k) barFromPointer(col, e.clientY); });
+    const end = () => { dragCol = -1; };
+    col.addEventListener("pointerup", end);
+    col.addEventListener("pointercancel", end);
+    col.addEventListener("keydown", e => {
+      if(phase !== 2 || done) return;
+      const d = { ArrowUp:1, ArrowRight:1, ArrowDown:-1, ArrowLeft:-1 }[e.key];
+      if(!d) return;
+      e.preventDefault();
+      setBar(+col.dataset.k, bars[+col.dataset.k] + d * R.scale);
+    });
+  });
+}
+function barFromPointer(col, y){
+  const r = col.getBoundingClientRect();
+  if(!r.height) return;
+  setBar(+col.dataset.k, snapBar((r.bottom - y) / r.height, R.top, R.scale));
+}
+function setBar(k, v){
+  v = Math.max(0, Math.min(R.top, v));
+  if(bars[k] === v) return;
+  bars[k] = v;
+  sound("bar");
+  paintChart();
+  flash("", "");
+  setOwl("think");
+}
+function paintChart(){
+  $("plot").querySelectorAll(".col").forEach(col => {
+    const k = +col.dataset.k, v = bars[k];
+    col.querySelector(".bar").style.height = (v / R.top * 100) + "%";
+    const bv = col.querySelector(".bv");
+    bv.style.bottom = (v / R.top * 100) + "%";
+    bv.textContent = v;
+    col.setAttribute("aria-valuenow", v);
+    col.tabIndex = phase === 2 && !done ? 0 : -1;
+  });
+  $("chart").classList.toggle("read", phase !== 2);
+}
+
+/* ---- phase 3: the question ---- */
+function buildQuestion(){
+  const q = R.question;
+  $("qtext").textContent = q.text;
+  $("opts").innerHTML = q.options.map((o, i) => '<button class="opt" data-i="' + i + '">' + o.label + '</button>').join("");
+  $("opts").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.i));
+}
+function answer(i){
+  if(phase !== 3 || done) return;
+  const b = $("opts").children[i];
+  if(b.classList.contains("nope") || b.classList.contains("gone")) return;
+  if(i === R.question.answer){ b.classList.add("right"); win(); return; }
+  b.classList.add("nope"); b.disabled = true;
+  b.setAttribute("aria-label", b.textContent + " — not this one");
+  setOwl("worried"); sound("bad");
+  flash("Not that one — look at the chart again.", "bad");
+}
+
+/* ---- phases ---- */
+function showPhase(){
+  const names = ["", "Count &amp; tally", "Build the chart", "Read the chart"];
+  $("phase-name").innerHTML = names[phase];
+  $("phase-num").textContent = phase + " of 3";
+  [1, 2, 3].forEach(p => { const d = $("pd" + p); d.classList.toggle("done", p < phase || done); d.classList.toggle("now", p === phase && !done); });
+  $("scene").classList.toggle("hide", phase === 3 || (phase === 2 && cfg().hideScene));
+  $("tallies").classList.toggle("hide", phase === 3);
+  $("chart-view").classList.toggle("hide", phase === 1);
+  $("q-view").classList.toggle("hide", phase !== 3);
+  $("count-btn").classList.toggle("hide", phase !== 1);
+  $("chart-btn").classList.toggle("hide", phase !== 2);
+  $("next-btn").classList.toggle("hide", phase !== 3);
+  $("next-btn").classList.toggle("invisible", phase === 3 && !done);   /* holds the slot during the question */
+  /* the question has nothing to reset — Reset keeps its box so Hint doesn't jump */
+  $("reset-btn").classList.toggle("invisible", phase === 3);
+  $("hint-link").classList.toggle("off", done);
+  paintScene();
+  paintChart();
+}
+function doneCounting(){
+  if(phase !== 1 || done) return;
+  const left = leftToCount(counted);
+  if(left){
+    setOwl("worried"); sound("bad");
+    /* how many, never where */
+    flash("There " + (left === 1 ? "is 1 thing" : "are " + left + " things") + " still to count. Look carefully!", "bad");
+    return;
+  }
+  phase = 2;
+  setOwl("happy"); sound("phase");
+  setTimeout(() => { if(phase === 2 && !done) setOwl("think"); }, 900);
+  showPhase();
+  flash(cfg().hideScene ? "Great counting! The picture's gone — use your tally to build the chart."
+                        : "Great counting! Now make each bar match your tally.", "good");
+}
+function checkChart(){
+  if(phase !== 2 || done) return;
+  const wrong = wrongBars(bars, tallyNow());
+  if(wrong){
+    setOwl("worried"); sound("bad");
+    flash(wrong === 1 ? "1 bar isn't right yet. Check it against your tally!" : wrong + " bars aren't right yet. Check them against your tally!", "bad");
+    return;
+  }
+  phase = 3;
+  buildQuestion();
+  setOwl("happy"); sound("phase");
+  setTimeout(() => { if(phase === 3 && !done) setOwl("think"); }, 900);
+  showPhase();
+  flash("Brilliant chart! Now use it to answer the question.", "good");
+}
+
+function hint(){
+  if(done) return;
+  let msg = "";
+  if(phase === 1){
+    const left = counted.map((c, i) => c ? -1 : i).filter(i => i >= 0);
+    if(!left.length){ flash("Everything's counted — press Done counting ✓!", "hint"); return; }
+    const i = left[(Math.random() * left.length) | 0], el = $("scene").children[i];
+    el.classList.remove("hinted"); void el.offsetWidth; el.classList.add("hinted");
+    setTimeout(() => el.classList.remove("hinted"), 2100);
+    if(el.focus) el.focus();
+    msg = "💡 Here's one you haven't counted yet!";
+  } else if(phase === 2){
+    const t = tallyNow(), wrong = bars.map((v, k) => v === t[k] ? -1 : k).filter(k => k >= 0);
+    if(!wrong.length){ flash("Every bar matches — press Check chart ✓!", "hint"); return; }
+    const k = wrong[(Math.random() * wrong.length) | 0];
+    bars[k] = t[k];
+    paintChart();
+    msg = "💡 I've set the " + R.kinds[k][0] + " bar to " + t[k] + " — see how high that is on the lines?";
+  } else {
+    const opts = $("opts").children;
+    const wrong = [...opts].map((b, i) => i !== R.question.answer && !b.classList.contains("nope") && !b.classList.contains("gone") ? i : -1).filter(i => i >= 0);
+    if(!wrong.length) return;
+    const i = wrong[(Math.random() * wrong.length) | 0];
+    opts[i].classList.add("gone"); opts[i].disabled = true;
+    msg = "💡 It isn't " + opts[i].textContent + " — one fewer to choose from.";
+  }
+  hints++;
+  setOwl("think"); sound("hint");
+  flash(msg, "hint");
+}
+function resetPhase(){
+  if(done) return;
+  if(phase === 1){ counted = counted.map(() => false); paintScene(); paintTallies(); flash("Uncounted — start again from the beginning.", "hint"); }
+  else if(phase === 2){ bars = bars.map(() => 0); paintChart(); flash("All the bars are back at 0.", "hint"); }
+  setOwl("think");
+}
+
+function win(){
+  done = true;
+  showPhase();
+  const s = starsFor(hints);
+  $("stars").textContent = "★".repeat(s) + "☆".repeat(3 - s);
+  $("rlabel").textContent = "📊 Counted, charted and cracked it!";
+  $("rsub").textContent = hints ? hints + (hints === 1 ? " hint" : " hints") + " used this round" : "All three steps with no hints!";
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");       /* keeps its box, so the owl stays centred */
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+  $("opts").querySelectorAll(".opt").forEach(b => { b.disabled = true; });
+  flash("", "");
+  setOwl("win"); sound("win");
+  if(!reduceMotion) chartConfetti();
+}
+
+/* ---- rounds ---- */
+function newRound(){
+  stopConfetti();
+  R = genRound(level, Math.random, R && R.level === level ? sigOf(R) : null);
+  items = [];
+  R.counts.forEach((c, k) => { for(let j = 0; j < c; j++) items.push(k); });
+  for(let i = items.length - 1; i > 0; i--){ const j = (Math.random() * (i + 1)) | 0; [items[i], items[j]] = [items[j], items[i]]; }
+  counted = items.map(() => false);
+  bars = R.kinds.map(() => 0);
+  phase = 1; done = false; hints = 0;
+  $("result-view").classList.add("hide");
+  $("skip-btn").classList.remove("invisible");
+  buildScene(); paintTallies(); buildChart();
+  showPhase();
+  setOwl("think");
+  flash("Tap every thing in the picture to count it!", "");
+}
+function setLevel(l){
+  level = l;
+  $("q-level-label").textContent = LEVELS[l].label;
+  document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === l ? "true" : "false"));
+  $("level-menu").querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === l ? "true" : "false"));
+}
+function goHome(){
+  stopConfetti();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- wiring ---- */
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = () => {
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  newRound();
+};
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => { if(!done) newRound(); };
+$("next-btn").onclick = () => { if(done) newRound(); };
+$("count-btn").onclick = doneCounting;
+$("chart-btn").onclick = checkChart;
+$("hint-link").onclick = hint;
+$("reset-btn").onclick = resetPhase;
+
+(function buildLevelMenu(){
+  const menu = $("level-menu");
+  menu.innerHTML = Object.entries(LEVELS).map(([k, v]) =>
+    '<button class="level-opt" role="menuitemradio" data-diff="' + k + '" aria-current="false">'
+    + '<span>' + v.label + '</span><span class="tick">✓</span></button>').join("");
+  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(); }
+wireLevelMenu();
+
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape") closeLevelMenu();
+});
+
+/* ---- the rules sheet ---- */
+wireRulesSheet(function(){
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>1️⃣ Count and tally</h3>'
+    + '<p>Tap <b>every thing</b> in the picture to count it. Each tap adds a <b>tally mark</b> next to '
+    + 'that kind. Tapped the wrong one? Tap it again to take the mark away.</p>'
+    + '<p>Watch the marks: every <b>fifth</b> one is drawn <b>across</b> the four before it, so they '
+    + 'bundle into groups of five. That makes big numbers quick to count — <b>5, 10, 15…</b></p>'
+    + '<div class="rrow"><span class="rtally">' + tallySVG(7) + ' = 7</span><span class="rtally">' + tallySVG(12) + ' = 12</span></div>'
+    + '<span class="cap">A bundle of five, and some more.</span></div>'
+
+    + '<div class="rule"><h3>2️⃣ Build the bar chart</h3>'
+    + '<p>Now make a <b>bar</b> for each kind. Tap or drag inside its column to set how tall it is, '
+    + 'so it matches <b>your tally</b>. On a keyboard, the <b>arrow keys</b> raise and lower a bar.</p>'
+    + '<div class="rrow"><div class="rbars"><i style="height:40%"></i><i style="height:80%"></i><i style="height:60%"></i></div></div>'
+    + '<p style="margin-top:10px;">⚠️ On <b>🔥 Hard</b> and <b>🏆 Expert</b>, <b>one line on the chart can be worth '
+    + '2 or 5</b>, not 1 — read the numbers up the side! And the picture disappears, so you\'ll need '
+    + 'your tally.</p></div>'
+
+    + '<div class="rule"><h3>3️⃣ Read the chart</h3>'
+    + '<p>Last, answer a question using your chart — which kind has the most, how many more of one '
+    + 'than another, how many altogether… Tap the answer you think is right.</p></div>'
+
+    + '<div class="rule"><h3>💡 Hints and ⭐ stars</h3>'
+    + '<p><b>💡 Hint</b> helps with whichever step you\'re on: it points out a thing you haven\'t counted, '
+    + 'fixes one bar, or crosses out a wrong answer. <b>🔄 Reset</b> starts the current step again.</p>'
+    + '<p>Stars are for the whole round: <b>★★★</b> no hints · <b>★★</b> one or two hints · <b>★</b> three or more.</p></div>';
+});
+
+/* ---- confetti (shared stopConfetti/#confetti live in site.js) ---- */
+function chartConfetti(){
+  const cv = $("confetti"); cv.style.display = "block";
+  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ["#2FB37D", "#6C4AB6", "#FFCF43", "#3FA7E0", "#FF6B7A"];
+  const parts = Array.from({ length:80 }, () => ({ x:cv.width / 2, y:cv.height * .35, r:5 + Math.random() * 7,
+    c:colors[(Math.random() * colors.length) | 0], vy:-5 + Math.random() * 2, vx:-6 + Math.random() * 12, rot:Math.random() * 6, vr:.25 }));
+  let f = 0;
+  (function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += .2; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r * .6, p.r * 1.6); ctx.restore();
+    });
+    f++;
+    if(f < 78) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+
+initBouncyTitle("Tally & Chart");
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

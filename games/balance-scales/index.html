@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Balance Scales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  :root{ --metal:#8C7DB8; --metal-dark:#5E4F93; --dish:#C9BDE8; --crate:#C98A4B; --crate-dark:#9A6230; }
+  .app{max-width:600px;}
+  .title{font-size:clamp(28px,5.6vw,42px);}
+  .topbar{margin-bottom:6px;}
+  @media (max-width:430px){
+    body.game{padding-left:6px; padding-right:6px;}
+    .card{padding:18px 12px;}
+  }
+
+  /* ---- the scale(s) ---- */
+  .scales{display:grid; gap:14px;}
+  @media (min-width:560px){ .scales.two{grid-template-columns:1fr 1fr;} }
+  .scale{position:relative; width:100%; height:var(--sh,250px); --pw:78%;}
+  .scale-tag{position:absolute; top:0; left:0; font-family:'Fredoka',sans-serif; font-weight:700; font-size:14px;
+             color:#fff; background:var(--grape); border-radius:999px; padding:3px 10px; z-index:3;}
+  .stand{position:absolute; left:50%; bottom:34px; width:14px; height:calc(100% - 64px); transform:translateX(-50%);
+         background:linear-gradient(90deg,var(--metal),var(--metal-dark)); border-radius:7px 7px 0 0;}
+  .base{position:absolute; left:50%; bottom:28px; width:120px; height:12px; transform:translateX(-50%);
+        background:var(--metal-dark); border-radius:8px;}
+  .pivot{position:absolute; left:50%; top:22px; width:20px; height:20px; margin-left:-10px; border-radius:50%;
+         background:var(--sun); border:3px solid var(--sun-dark); z-index:2;}
+  /* the beam rotates; its hangers counter-rotate so the pans hang upright */
+  /* the beam spans the middle 56%, so a 44%-wide pan centred under each end stays inside the scale */
+  .beam{position:absolute; left:22%; right:22%; top:28px; height:9px; margin-top:-4px; border-radius:6px;
+        background:var(--metal-dark); transform-origin:50% 50%; transition:transform .45s cubic-bezier(.3,1.4,.5,1);}
+  .beam.settle{animation:settle .7s ease;}
+  @keyframes settle{0%{transform:rotate(1.6deg)}35%{transform:rotate(-1deg)}65%{transform:rotate(.45deg)}100%{transform:rotate(0)}}
+  .hang{position:absolute; top:4px; width:var(--pw); transform-origin:50% 0; transition:transform .45s cubic-bezier(.3,1.4,.5,1);}
+  .hang.l{left:0;} .hang.r{left:100%;}
+  .rope{height:26px; margin:0 auto; width:62%; border:2px solid var(--metal); border-bottom:0; border-radius:50% 50% 0 0 / 100% 100% 0 0;}
+  .load{display:flex; flex-wrap:wrap-reverse; justify-content:center; align-content:flex-start; gap:3px;
+        min-height:84px; padding:0 4px 2px;}
+  .dish{height:12px; border-radius:0 0 40px 40px; background:var(--dish); border:2px solid var(--metal);}
+  .readouts{position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-between;
+            font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px; color:var(--ink);}
+  .ro{min-width:40%; text-align:center; background:#F4F0FE; border-radius:10px; padding:2px 6px;}
+  /* reduced motion: snap to the new angle — the angle is information, so it never goes away */
+  .still .beam,.still .hang{transition:none !important;}
+
+  /* ---- things on the pans ---- */
+  .wt{--d:36px; width:var(--d); height:var(--d); border-radius:50%; border:0; padding:0; flex:0 0 auto;
+      display:inline-flex; flex-direction:column; align-items:center; justify-content:center; line-height:.9;
+      font-family:'Fredoka',sans-serif; font-weight:700; font-size:calc(var(--d) * .42); color:var(--ink);
+      background:#fff; box-shadow:inset 0 0 0 3px var(--wc,var(--grape)), 0 2px 0 rgba(51,35,107,.25);}
+  .wt small{font-size:.5em; font-weight:600; opacity:.8;}
+  .wt.w1{--wc:var(--sky);} .wt.w2{--wc:var(--leaf);} .wt.w5{--wc:var(--sun-dark); --d:40px;} .wt.w10{--wc:var(--coral); --d:44px;}
+  button.wt{cursor:pointer;}
+  button.wt:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
+  .load.many .wt{--d:30px;} .load.many .wt.w5{--d:33px;} .load.many .wt.w10{--d:36px;}
+  .crate{width:62px; height:56px; border-radius:6px; background:var(--crate); border:3px solid var(--crate-dark);
+         display:flex; align-items:center; justify-content:center; font-family:'Fredoka',sans-serif; font-weight:700;
+         color:#fff; font-size:17px; text-shadow:0 1px 0 var(--crate-dark);
+         background-image:linear-gradient(0deg,transparent 45%,var(--crate-dark) 45%,var(--crate-dark) 55%,transparent 55%);}
+  .gift,.qbag{width:48px; height:48px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         font-family:'Fredoka',sans-serif; font-weight:700; line-height:1;}
+  .gift{background:#FFE1E6; border:3px solid var(--coral); font-size:24px;}
+  .gift small{font-size:11px; color:var(--coral-dark);}
+  .qbag{background:#FFF1C2; border:3px dashed var(--sun-dark); font-size:26px; color:var(--sun-dark);}
+  .small-scales .scale{--sh:220px;}
+  .small-scales .gift{width:38px; height:38px; font-size:19px;}
+  .small-scales .wt{--d:30px;} .small-scales .wt.w5{--d:33px;} .small-scales .wt.w10{--d:36px;}
+  .fly{position:fixed; z-index:50; pointer-events:none; transition:transform .38s cubic-bezier(.3,.9,.4,1);}
+
+  /* ---- the tray (Easy / Medium) ---- */
+  .tray{display:flex; justify-content:center; align-items:center; gap:14px; margin-top:14px; padding:10px;
+        background:var(--paper); border:3px solid var(--paper-line); border-radius:16px;}
+  .tray .lbl{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:14px;}
+  .tray .wt{--d:48px;} .tray .wt.w5{--d:52px;} .tray .wt.w10{--d:56px;}
+  .tray .wt.hinted{animation:tpulse 1s ease 2;}
+  @keyframes tpulse{0%{box-shadow:inset 0 0 0 3px var(--wc), 0 0 0 0 rgba(255,207,67,.95)}100%{box-shadow:inset 0 0 0 3px var(--wc), 0 0 0 14px rgba(255,207,67,0)}}
+
+  /* ---- number entry (Hard / Expert) ---- */
+  .entry{margin-top:12px; text-align:center;}
+  .ask{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink); font-size:17px; margin-bottom:8px;}
+  .ansline{display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; color:var(--ink);}
+  .ansbox{min-width:64px; height:46px; border-radius:12px; border:3px solid var(--grape); background:#fff;
+          display:inline-flex; align-items:center; justify-content:center; font-size:26px; color:var(--grape);}
+  .ansbox.blank{color:#CFC4EC;}
+  .pad{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; max-width:330px; margin:10px auto 0;}
+  .key{font-family:'Fredoka',sans-serif; font-weight:700; font-size:20px; color:var(--ink); background:#fff;
+       border:2px solid #E4DCF5; border-radius:12px; height:44px; cursor:pointer;}
+  .key:hover{border-color:var(--grape);} .key:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .key.fn{font-size:15px; color:var(--grape); background:#F4F0FE;}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .rbeam{display:flex; flex-direction:column; align-items:center; width:120px;}
+  .rbeam .bar{width:110px; height:6px; background:var(--metal-dark); border-radius:4px;}
+  .rbeam .pans{display:flex; justify-content:space-between; width:120px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:13px; color:var(--ink);}
+  .rbeam .post{width:6px; height:26px; background:var(--metal);}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">⚖️ Make both sides level — then find the mystery box!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">match the crate</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">even it up</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">mystery box</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">two scales</div></button>
+      </div>
+      <div class="howto">
+        ⚖️ <b>How to play:</b> The beam <b>tips down</b> on the heavier side. Tap weights to put them
+        on the pan, and tap them again to take them off — make both sides <b>level</b>! On
+        <b>Hard</b> and <b>Expert</b> the scale is already level: work out what the <b>🎁 mystery box</b> weighs.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="scales" id="scales"></div>
+
+      <div class="tray hide" id="tray" role="group" aria-label="Weights to add"></div>
+
+      <div class="entry hide" id="entry">
+        <div class="ask" id="ask"></div>
+        <div class="ansline"><span id="ans-lead">🎁 =</span><span class="ansbox blank" id="ansbox" aria-live="polite">?</span><span>kg</span></div>
+        <div class="pad" id="pad" role="group" aria-label="Number keys"></div>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="check-btn" class="btn btn-go hide" disabled>Check ✓</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Balance Scales</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   Everything is whole kilograms.
+     EASY   - a crate of known weight on the left; add weights {1,2,5} to the right.
+     MEDIUM - both pans pre-loaded and unequal; add weights {1,2,5,10} to the lighter one.
+     HARD   - 🎁 + a weight or two on the left, weights on the right, already level:
+              how heavy is the box?  (🎁 + 3 = 8, made physical — no letters anywhere)
+     EXPERT - two linked scales: A fixes the box (3 boxes = 12), B uses it (🎁 + 5 vs ?).
+   Balancing puzzles are checked with coin-change DP (a greedy fill fails on some sets), and
+   the DP minimum is the star baseline. Solving puzzles build the UNKNOWN first and derive the
+   constants from it, so the answer is always a whole positive number.                      */
+
+const LEVELS = {
+  EASY:   { kind:"balance", set:[1,2,5],    label:"🌱 Easy"   },
+  MEDIUM: { kind:"balance", set:[1,2,5,10], label:"⭐ Medium" },
+  HARD:   { kind:"solve",   label:"🔥 Hard"   },
+  EXPERT: { kind:"solve",   label:"🏆 Expert" },
+};
+const TILT_MAX = 18;          /* degrees, at full tilt */
+const TILT_FULL_AT = 8;       /* kg of difference that reaches full tilt */
+
+/* fewest weights from `set` (unlimited of each) that make exactly `target`; Infinity if none */
+function minWeights(target, set){
+  if(target < 0) return Infinity;
+  const best = new Array(target + 1).fill(Infinity);
+  best[0] = 0;
+  for(let t = 1; t <= target; t++) for(const w of set) if(w <= t && best[t - w] + 1 < best[t]) best[t] = best[t - w] + 1;
+  return best[target];
+}
+/* the beam's angle for a pan difference (right minus left): proportional, zero only when
+   level, clamped at ±TILT_MAX. Positive = clockwise = the right pan goes down. */
+function tiltFor(diff){
+  const a = diff * TILT_MAX / TILT_FULL_AT;
+  return Math.max(-TILT_MAX, Math.min(TILT_MAX, a)) + 0;     /* +0 turns -0 into 0 */
+}
+/* the biggest weight that still fits without overshooting — the Easy/Medium hint */
+function largestFit(gap, set){
+  let best = 0;
+  for(const w of set) if(w <= gap && w > best) best = w;
+  return best;
+}
+/* how to show a known total as discs on a pan (display only) */
+function discsFor(total){
+  const out = [];
+  for(const w of [10, 5, 2, 1]) while(total >= w){ out.push(w); total -= w; }
+  return out;
+}
+const sum = a => a.reduce((s, v) => s + v, 0);
+const ri = (rand, lo, hi) => lo + ((rand() * (hi - lo + 1)) | 0);
+
+function sigOf(p){
+  if(!p) return "";
+  return p.level + ":" + JSON.stringify([p.crate, p.left, p.right, p.box, p.m, p.c, p.extras]);
+}
+function genPuzzle(level, rand, avoidSig){
+  for(let t = 0; t < 1000; t++){
+    const p = genOnce(level, rand);
+    if(p && (!avoidSig || sigOf(p) !== avoidSig)) return p;
+  }
+  return null;
+}
+function genOnce(level, rand){
+  const cfg = LEVELS[level];
+  if(level === "EASY"){
+    const target = ri(rand, 3, 20), min = minWeights(target, cfg.set);
+    if(min === Infinity) return null;                 /* never ship an unreachable target */
+    return { level, kind:"balance", set:cfg.set, left:[], right:[], crate:target, open:"r", gap:target, min };
+  }
+  if(level === "MEDIUM"){
+    const pan = () => Array.from({ length:ri(rand, 1, 4) }, () => cfg.set[(rand() * cfg.set.length) | 0]).sort((a, b) => b - a);
+    const left = pan(), right = pan(), L = sum(left), R = sum(right);
+    if(L === R || L > 40 || R > 40) return null;
+    const gap = Math.abs(L - R), min = minWeights(gap, cfg.set);
+    if(min === Infinity || min < 2) return null;      /* one weight is no puzzle */
+    return { level, kind:"balance", set:cfg.set, left, right, crate:0, open:L < R ? "l" : "r", gap, min };
+  }
+  if(level === "HARD"){
+    const box = ri(rand, 2, 15);                      /* the unknown comes first */
+    const extras = Array.from({ length:ri(rand, 1, 2) }, () => ri(rand, 1, 5));
+    const right = discsFor(box + sum(extras));
+    return { level, kind:"solve", box, extras, right, answer:box };
+  }
+  /* EXPERT: box first, then everything derived from it */
+  const box = ri(rand, 2, 12), m = ri(rand, 2, 4), c = ri(rand, 1, 9);
+  return { level, kind:"solve", box, m, c, aRight:discsFor(m * box), bLeft:discsFor(c), answer:box + c };
+}
+
+/* stars: two gates, and the round gets the lower one */
+function starsBalance(used, min, hints){
+  const byW = used === min ? 3 : used <= min + 2 ? 2 : 1;
+  const byH = !hints ? 3 : hints <= 2 ? 2 : 1;
+  return Math.min(byW, byH);
+}
+function starsSolve(fails, hints){
+  if(!fails && !hints) return 3;
+  if((fails === 1 && !hints) || (!fails && hints <= 2)) return 2;
+  return 1;
+}
+
+if(typeof module !== "undefined") module.exports = { LEVELS, TILT_MAX, TILT_FULL_AT, minWeights, tiltFor, largestFit,
+  discsFor, genPuzzle, sigOf, starsBalance, starsSolve };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+let level = "EASY", P = null, added = [], entry = "", done = false, hints = 0, fails = 0, owlTimer = null;
+const isBalance = () => P && P.kind === "balance";
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "add")         beep(560, .07, "triangle", 0, .08);
+  else if(kind === "remove") beep(340, .07, "sine", 0, .07);
+  else if(kind === "over")   beep(210, .16, "sine", 0, .08);
+  else if(kind === "key")    beep(640, .04, "sine", 0, .05);
+  else if(kind === "bad")    beep(200, .16, "sine", 0, .09);
+  else if(kind === "hint")   { beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "level")  [784, 988, 1175, 1568].forEach((f, i) => beep(f, .22, "sine", i * .07, .07));
+}
+
+/* ---- building blocks ---- */
+const wtHTML = (w, tag, extra) => "<" + tag + ' class="wt w' + w + '"' + (extra || "") + ">" + w + "<small>kg</small></" + tag + ">";
+/* a known total on a solving level: a few discs, or one labelled crate if it would take more */
+const KNOWN_MAX_DISCS = 3;
+const knownHTML = total => discsFor(total).length > KNOWN_MAX_DISCS ? '<div class="crate">' + total + " kg</div>"
+  : discsFor(total).map(w => wtHTML(w, "span")).join("");
+function scaleHTML(id, tag){
+  return '<div class="scale" id="' + id + '">' + (tag ? '<span class="scale-tag">' + tag + "</span>" : "")
+    + '<div class="stand"></div><div class="base"></div><div class="pivot"></div>'
+    + '<div class="beam"><div class="hang l"><div class="rope"></div><div class="load"></div><div class="dish"></div></div>'
+    + '<div class="hang r"><div class="rope"></div><div class="load"></div><div class="dish"></div></div></div>'
+    + '<div class="readouts"><span class="ro l"></span><span class="ro r"></span></div></div>';
+}
+function setTilt(scaleEl, diff){
+  const a = tiltFor(diff);
+  scaleEl.dataset.tilt = a;
+  scaleEl.querySelector(".beam").style.transform = "rotate(" + a + "deg)";
+  scaleEl.querySelectorAll(".hang").forEach(h => { h.style.transform = "translateX(-50%) rotate(" + (-a) + "deg)"; });
+}
+
+/* ---- rendering ---- */
+function build(){
+  const sc = $("scales");
+  sc.classList.toggle("two", level === "EXPERT");
+  sc.classList.toggle("small-scales", level === "EXPERT");
+  sc.classList.toggle("still", reduceMotion);
+  sc.innerHTML = level === "EXPERT" ? scaleHTML("scale-a", "A") + scaleHTML("scale-b", "B") : scaleHTML("scale-a", "");
+  $("tray").classList.toggle("hide", !isBalance());
+  $("entry").classList.toggle("hide", isBalance());
+  $("check-btn").classList.toggle("hide", isBalance());
+  if(isBalance()){
+    $("tray").innerHTML = '<span class="lbl">Add:</span>' + P.set.map(w => wtHTML(w, "button", ' data-w="' + w + '" aria-label="Add a ' + w + ' kilogram weight"')).join("");
+    $("tray").querySelectorAll("button.wt").forEach(b => b.onclick = () => addWeight(+b.dataset.w, b));
+  } else {
+    $("ans-lead").textContent = level === "EXPERT" ? "? =" : "🎁 =";
+    $("ask").textContent = level === "EXPERT" ? "Scale B is level. What does the ? weigh?" : "The scale is level. What does the 🎁 box weigh?";
+    const keys = ["1","2","3","4","5","⌫","6","7","8","9","0","Clear"];
+    $("pad").innerHTML = keys.map(k => '<button class="key' + (k.length > 1 ? " fn" : "") + '" data-k="' + k + '"'
+      + (k === "⌫" ? ' aria-label="Delete a digit"' : "") + ">" + k + "</button>").join("");
+    $("pad").querySelectorAll(".key").forEach(b => b.onclick = () => press(b.dataset.k));
+  }
+}
+function render(){
+  if(isBalance()){
+    const s = $("scale-a"), [lo, ro] = s.querySelectorAll(".load");
+    const fixedL = P.crate ? '<div class="crate">' + P.crate + " kg</div>" : P.left.map(w => wtHTML(w, "span", ' aria-hidden="true"')).join("");
+    const fixedR = P.right.map(w => wtHTML(w, "span", ' aria-hidden="true"')).join("");
+    const mine = added.map((w, i) => wtHTML(w, "button", ' data-i="' + i + '" aria-label="Take off the ' + w + ' kilogram weight"')).join("");
+    lo.innerHTML = fixedL + (P.open === "l" ? mine : "");
+    ro.innerHTML = fixedR + (P.open === "r" ? mine : "");
+    [lo, ro].forEach(l => l.classList.toggle("many", l.children.length > 5));
+    s.querySelectorAll(".load button.wt").forEach(b => b.onclick = () => removeWeight(+b.dataset.i, b));
+    const L = totals().L, R = totals().R;
+    s.querySelector(".ro.l").textContent = L + " kg";
+    s.querySelector(".ro.r").textContent = R + " kg";
+    setTilt(s, R - L);
+  } else if(level === "HARD"){
+    const s = $("scale-a"), [lo, ro] = s.querySelectorAll(".load");
+    lo.innerHTML = '<div class="gift" aria-label="mystery box">🎁<small>?</small></div>' + P.extras.map(w => wtHTML(w, "span")).join("");
+    ro.innerHTML = knownHTML(sum(P.right));
+    s.querySelector(".ro.l").textContent = "🎁 + " + sum(P.extras) + " kg";
+    s.querySelector(".ro.r").textContent = sum(P.right) + " kg";
+    setTilt(s, 0);
+  } else {
+    const a = $("scale-a"), b = $("scale-b");
+    let [lo, ro] = a.querySelectorAll(".load");
+    lo.innerHTML = Array.from({ length:P.m }, () => '<div class="gift">🎁<small>?</small></div>').join("");
+    ro.innerHTML = knownHTML(sum(P.aRight));
+    a.querySelector(".ro.l").textContent = P.m + " × 🎁";
+    a.querySelector(".ro.r").textContent = sum(P.aRight) + " kg";
+    [lo, ro] = b.querySelectorAll(".load");
+    lo.innerHTML = '<div class="gift">🎁<small>?</small></div>' + knownHTML(P.c);
+    ro.innerHTML = '<div class="qbag" aria-label="unknown weight">?</div>';
+    b.querySelector(".ro.l").textContent = "🎁 + " + P.c + " kg";
+    b.querySelector(".ro.r").textContent = "? kg";
+    setTilt(a, 0); setTilt(b, 0);
+  }
+  const ab = $("ansbox");
+  ab.textContent = entry || "?";
+  ab.classList.toggle("blank", !entry);
+  $("check-btn").disabled = done || !entry;
+  $("reset-btn").classList.toggle("off", done);
+  $("hint-link").classList.toggle("off", done);
+}
+function totals(){
+  const mine = sum(added);
+  const L = (P.crate || sum(P.left)) + (P.open === "l" ? mine : 0);
+  const R = sum(P.right) + (P.open === "r" ? mine : 0);
+  return { L, R };
+}
+
+/* ---- the flight: a weight flies from where it was to where it lands ---- */
+/* `a` is the rectangle it leaves from; the landing spot is hidden until the flyer arrives,
+   unless it is the tray (an endless supply, so its button never disappears) */
+function fly(a, toEl, w, hideTarget){
+  if(reduceMotion || !a || !toEl || !toEl.getBoundingClientRect) return;
+  const b = toEl.getBoundingClientRect();
+  if(!a.width || !b.width) return;
+  const g = document.createElement("span");
+  g.className = "wt w" + w + " fly";
+  g.innerHTML = w + "<small>kg</small>";
+  g.style.left = a.left + "px"; g.style.top = a.top + "px";
+  document.body.appendChild(g);
+  if(hideTarget) toEl.style.visibility = "hidden";
+  void g.offsetWidth;
+  g.style.transform = "translate(" + (b.left - a.left) + "px," + (b.top - a.top) + "px)";
+  setTimeout(() => { g.remove(); if(hideTarget) toEl.style.visibility = ""; }, 400);
+}
+
+/* ---- play: Easy / Medium ---- */
+function addWeight(w, fromBtn){
+  if(done || !isBalance()) return;
+  added.push(w);
+  sound("add");
+  render();
+  const landed = $("scale-a").querySelector('.load button.wt[data-i="' + (added.length - 1) + '"]');
+  fly(fromBtn && fromBtn.getBoundingClientRect ? fromBtn.getBoundingClientRect() : null, landed, w, true);
+  afterMove();
+}
+function removeWeight(i, fromBtn){
+  if(done || !isBalance()) return;
+  const w = added[i];
+  const r = fromBtn && fromBtn.getBoundingClientRect ? fromBtn.getBoundingClientRect() : null;
+  added.splice(i, 1);
+  sound("remove");
+  render();
+  fly(r, $("tray").querySelector('button.wt[data-w="' + w + '"]'), w, false);   /* back to its spot in the tray */
+  const f = $("scale-a").querySelectorAll(".load button.wt")[Math.min(i, added.length - 1)];
+  if(f && document.activeElement === document.body) f.focus();
+  afterMove();
+}
+function afterMove(){
+  const { L, R } = totals(), heavy = Math.max(P.crate || sum(P.left), sum(P.right));
+  const openTotal = P.open === "l" ? L : R, gap = heavy - openTotal;
+  clearTimeout(owlTimer);
+  if(L === R){ win(); return; }
+  if(gap < 0){ setOwl("worried"); sound("over"); flash("Whoops — that side's gone down too far. Take a weight off!", "bad"); }
+  else if(gap <= 2){ setOwl("happy"); flash("So close!", "good"); }
+  else { setOwl("think"); flash("", ""); }
+}
+
+/* ---- play: Hard / Expert ---- */
+function press(k){
+  if(done || isBalance()) return;
+  if(k === "⌫") entry = entry.slice(0, -1);
+  else if(k === "Clear") entry = "";
+  else if(entry.length < 2) entry = (entry + k).replace(/^0+(?=\d)/, "");
+  sound("key");
+  render();
+}
+function check(){
+  if(done || isBalance() || !entry) return;
+  if(+entry === P.answer){ win(); return; }
+  fails++;
+  setOwl("worried"); sound("bad");
+  const why = level === "EXPERT" ? "Work out one box from scale A first." : "Both sides weigh the same — what must the box be?";
+  flash("Not quite — " + entry + " kg doesn't balance. " + why, "bad");
+}
+
+/* 💡 Easy/Medium: the biggest weight that still fits. Hard/Expert: the METHOD, in words —
+   never the number. Expert's hints go one step at a time. */
+function hint(){
+  if(done) return;
+  let msg;
+  if(isBalance()){
+    const { L, R } = totals(), heavy = Math.max(P.crate || sum(P.left), sum(P.right));
+    const gap = heavy - (P.open === "l" ? L : R);
+    if(gap < 0) msg = "💡 That side's too heavy now. Tap a weight on the pan to take it off.";
+    else {
+      const w = largestFit(gap, P.set);
+      const b = $("tray").querySelector('button.wt[data-w="' + w + '"]');
+      if(b){ b.classList.remove("hinted"); void b.offsetWidth; b.classList.add("hinted"); setTimeout(() => b.classList.remove("hinted"), 2100); }
+      msg = "💡 You need " + gap + " kg more. Try a " + w + " kg weight — it's the biggest that still fits.";
+    }
+  } else if(level === "HARD"){
+    const e = sum(P.extras), r = sum(P.right);
+    msg = "💡 Both sides weigh the same. The left has 🎁 and " + e + " kg; the right has " + r + " kg. "
+        + "Take " + e + " kg off each side — what's left on the right balances the box.";
+  } else {
+    msg = hints % 2 === 0
+      ? "💡 Look at scale A first: " + P.m + " boxes weigh " + sum(P.aRight) + " kg. Share " + sum(P.aRight) + " kg equally into " + P.m + " — that's one box."
+      : "💡 Now scale B: the left has one 🎁 and " + P.c + " kg. The ? must weigh the same as both of those together.";
+  }
+  hints++;
+  setOwl("think"); sound("hint");
+  flash(msg, "hint");
+}
+function resetPuzzle(){
+  if(done) return;
+  added = []; entry = "";
+  render();
+  if(isBalance()) afterMove();
+  setOwl("think");
+  flash("Back to the start.", "hint");
+}
+
+function win(){
+  done = true;
+  render();
+  const beams = document.querySelectorAll("#scales .beam");
+  if(!reduceMotion) beams.forEach(b => { b.classList.remove("settle"); void b.offsetWidth; b.classList.add("settle"); });
+  sound("level");
+  let s, sub;
+  if(isBalance()){
+    s = starsBalance(added.length, P.min, hints);
+    sub = "You used " + added.length + " weight" + (added.length === 1 ? "" : "s") + " — the fewest possible was " + P.min + "."
+      + (hints ? "  (" + hints + " hint" + (hints === 1 ? "" : "s") + ")" : "");
+    $("rlabel").textContent = "⚖️ Perfectly level!";
+  } else {
+    s = starsSolve(fails, hints);
+    $("rlabel").textContent = level === "EXPERT" ? "⚖️ Yes! One 🎁 is " + P.box + " kg, so the ? is " + P.answer + " kg." : "⚖️ Yes! The 🎁 weighs " + P.box + " kg.";
+    const bits = [];
+    if(fails) bits.push(fails + (fails === 1 ? " try" : " tries") + " to fix");
+    if(hints) bits.push(hints + (hints === 1 ? " hint" : " hints"));
+    sub = bits.length ? bits.join(" · ") : "Right first time, with no hints!";
+  }
+  $("stars").textContent = "★".repeat(s) + "☆".repeat(3 - s);
+  $("rsub").textContent = sub;
+  $("result-view").classList.remove("hide");
+  $("check-btn").classList.add("hide");
+  $("next-btn").classList.remove("hide", "invisible");
+  $("skip-btn").classList.add("invisible");          /* keeps its box, so the owl stays centred */
+  $("next-btn").focus();
+  flash("", "");
+  setOwl("win");
+  if(!reduceMotion) scaleConfetti();
+}
+
+/* ---- rounds ---- */
+function newPuzzle(){
+  stopConfetti();
+  clearTimeout(owlTimer);
+  P = genPuzzle(level, Math.random, P && P.level === level ? sigOf(P) : null);
+  added = []; entry = ""; done = false; hints = 0; fails = 0;
+  build();
+  $("result-view").classList.add("hide");
+  $("skip-btn").classList.remove("invisible");
+  /* Easy/Medium: no submit — Next waits invisibly in the slot. Hard/Expert: Check owns it. */
+  $("next-btn").classList.toggle("invisible", isBalance());
+  $("next-btn").classList.toggle("hide", !isBalance());
+  render();
+  setOwl("think");
+  flash(level === "EASY" ? "Add weights to the right pan until it's level with the crate."
+      : level === "MEDIUM" ? "Add weights to the lighter side until the beam is level."
+      : level === "HARD" ? "It's level! So both sides weigh the same." : "Scale A tells you about the 🎁. Use it on scale B!", "");
+}
+function setLevel(l){
+  level = l;
+  $("q-level-label").textContent = LEVELS[l].label;
+  document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === l ? "true" : "false"));
+  $("level-menu").querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === l ? "true" : "false"));
+}
+function goHome(){
+  stopConfetti();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- wiring ---- */
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = () => {
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  newPuzzle();
+};
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => { if(!done) newPuzzle(); };
+$("next-btn").onclick = () => { if(done) newPuzzle(); };
+$("check-btn").onclick = check;
+$("hint-link").onclick = hint;
+$("reset-btn").onclick = resetPuzzle;
+
+(function buildLevelMenu(){
+  const menu = $("level-menu");
+  menu.innerHTML = Object.entries(LEVELS).map(([k, v]) =>
+    '<button class="level-opt" role="menuitemradio" data-diff="' + k + '" aria-current="false">'
+    + '<span>' + v.label + '</span><span class="tick">✓</span></button>').join("");
+  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newPuzzle(); }
+wireLevelMenu();
+
+/* ---- keyboard: arrows walk the tray and the pans (Enter is the buttons' own click);
+   digits type the answer on Hard/Expert ---- */
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){ closeLevelMenu(); return; }
+  if($("screen-game").classList.contains("hide") || done || !P) return;
+  if(!isBalance()){
+    if(/^[0-9]$/.test(e.key)){ e.preventDefault(); press(e.key); }
+    else if(e.key === "Backspace"){ e.preventDefault(); press("⌫"); }
+    else if(e.key === "Enter" && entry && !(e.target && e.target.closest && e.target.closest("button"))){ e.preventDefault(); check(); }
+    return;
+  }
+  const d = { ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1 }[e.key];
+  if(!d) return;
+  const list = [...$("tray").querySelectorAll("button.wt"), ...$("scales").querySelectorAll(".load button.wt")];
+  if(!list.length) return;
+  e.preventDefault();
+  const at = list.indexOf(document.activeElement);
+  list[at < 0 ? 0 : (at + d + list.length) % list.length].focus();
+});
+
+/* ---- the rules sheet ---- */
+function rbeam(l, r, tilt){
+  return '<div class="rbeam" aria-hidden="true"><div class="pans"><span>' + l + '</span><span>' + r + '</span></div>'
+    + '<div class="bar" style="transform:rotate(' + tilt + 'deg)"></div><div class="post"></div></div>';
+}
+wireRulesSheet(function(){
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>⚖️ The beam tips to the heavier side</h3>'
+    + '<p>A balance scale has two pans. The <b>heavier</b> pan goes <b>down</b>, the lighter one goes up. '
+    + 'The bigger the difference, the more it tips. When both sides weigh <b>the same</b>, the beam is <b>level</b>.</p>'
+    + '<div class="rrow">' + rbeam("8 kg", "3 kg", -12) + '<span class="rarrow">➡️</span>' + rbeam("8 kg", "8 kg", 0) + '</div>'
+    + '<span class="cap">Add 5 kg to the light side and it levels out.</span></div>'
+
+    + '<div class="rule"><h3>👆 Tap to add, tap to take off</h3>'
+    + '<p>On <b>🌱 Easy</b> and <b>⭐ Medium</b>, tap a weight in the tray and it hops onto the pan. '
+    + 'Tap a weight on the pan and it hops back. The number under each pan tells you its total.</p>'
+    + '<p>Make both sides <b>equal</b> and you\'ve done it — no button needed! Try to use as <b>few weights</b> '
+    + 'as you can: big ones first.</p></div>'
+
+    + '<div class="rule"><h3>🎁 The mystery box</h3>'
+    + '<p>On <b>🔥 Hard</b> the scale is <b>already level</b>, with a mystery box on one side. Level means '
+    + 'both sides weigh the same — so you can work out the box!</p>'
+    + '<div class="rrow">' + rbeam("🎁 + 3 kg", "8 kg", 0) + '</div>'
+    + '<span class="cap">Take 3 kg off each side: the 🎁 balances 5 kg.</span>'
+    + '<p style="margin-top:10px;">Type your answer on the number keys, then press <b>Check ✓</b>.</p></div>'
+
+    + '<div class="rule"><h3>🔗 Two scales</h3>'
+    + '<p>On <b>🏆 Expert</b> there are two scales. <b>Scale A</b> tells you what one box weighs — '
+    + 'if 3 boxes balance 12 kg, one box is 12 shared into 3. Then use that on <b>scale B</b> '
+    + 'to find the <b>?</b>.</p></div>'
+
+    + '<div class="rule"><h3>💡 Hints and ⭐ stars</h3>'
+    + '<p><b>💡 Hint</b> suggests the biggest weight that still fits — or, with a mystery box, explains '
+    + 'how to think about it. <b>🔄 Reset</b> starts the puzzle again.</p>'
+    + '<p>Balancing: <b>★★★</b> the fewest weights and no hints · <b>★★</b> up to 2 extra weights, or one '
+    + 'or two hints · <b>★</b> otherwise. Mystery boxes: <b>★★★</b> right first time with no hints · '
+    + '<b>★★</b> one wrong try, or one or two hints · <b>★</b> otherwise.</p></div>';
+});
+
+/* ---- confetti (shared stopConfetti/#confetti live in site.js) ---- */
+function scaleConfetti(){
+  const cv = $("confetti"); cv.style.display = "block";
+  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ["#3FA7E0", "#6C4AB6", "#FFCF43", "#2FB37D", "#FF6B7A"];
+  const parts = Array.from({ length:80 }, () => ({ x:cv.width / 2, y:cv.height * .35, r:5 + Math.random() * 7,
+    c:colors[(Math.random() * colors.length) | 0], vy:-5 + Math.random() * 2, vx:-6 + Math.random() * 12, rot:Math.random() * 6, vr:.25 }));
+  let f = 0;
+  (function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += .2; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r); ctx.restore();
+    });
+    f++;
+    if(f < 78) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+
+initBouncyTitle("Balance Scales");
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

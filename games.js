@@ -107,4 +107,16 @@ window.GAMES = [
 
   { slug: "juice-jumble",        title: "Juice Jumble",        emoji: "🧃", accent: "sky",    ageGroup: "6+",
     tagline: "Pour the juices until every glass is one flavour.", skills: ["Logic", "Planning"], badge: "New" },
+
+  { slug: "dino-dig",            title: "Dino Dig",            emoji: "🥚", accent: "sun",    ageGroup: "9+",
+    tagline: "Read the numbers, find the dino eggs, don't wake them.", skills: ["Logic", "Counting"], badge: "New" },
+
+  { slug: "mirror-draw",         title: "Mirror Draw",         emoji: "🦋", accent: "grape",  ageGroup: "6+",
+    tagline: "Finish the picture so both halves match.",       skills: ["Symmetry", "Spatial reasoning"], badge: "New" },
+
+  { slug: "tally-chart",         title: "Tally & Chart",       emoji: "📊", accent: "leaf",   ageGroup: "6+",
+    tagline: "Count them, tally them, chart them, then answer the question.", skills: ["Counting", "Data"], badge: "New" },
+
+  { slug: "balance-scales",      title: "Balance Scales",      emoji: "⚖️", accent: "sky",    ageGroup: "6+",
+    tagline: "Add weights until both sides sit level — then find the mystery box.", skills: ["Measurement", "Math"], badge: "New" },
 ];

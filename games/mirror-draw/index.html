@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mirror Draw</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  :root{ --panel:#EFE9FB; --outline:#D2C7EE; --mirror:var(--coral-dark); }
+  .app{max-width:520px;}
+  .title{font-size:clamp(28px,5.6vw,42px);}
+  .topbar{margin-bottom:12px;}
+  /* an 8x8 board needs the room on a phone: slimmer page + card gutters on narrow screens */
+  @media (max-width:430px){
+    body.game{padding-left:6px; padding-right:6px;}
+    .card{padding:18px 12px;}
+  }
+
+  /* ---- the drawing: panel + grid + mirror line + fold layer, all stacked in one square ---- */
+  .mwrap{position:relative; width:100%; max-width:400px; aspect-ratio:1; margin:6px auto 0;}
+  /* the given side sits on a tinted panel; clip-path cuts it to the level's region */
+  .mpanel{position:absolute; inset:-6px; border-radius:14px; background:var(--panel);}
+  .mgrid,.fold{position:absolute; inset:0; display:grid; gap:4px;}
+  .mgrid{touch-action:none; -webkit-user-select:none; user-select:none;}
+  .mc{border:0; padding:0; margin:0; border-radius:6px; min-width:0; min-height:0; font:inherit;
+      -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none;}
+  /* an empty square you can fill: a flat, thin outline */
+  .mc.can{background:#fff; box-shadow:inset 0 0 0 2px var(--outline); cursor:pointer; transition:box-shadow .1s, background .1s;}
+  .mc.can:hover{box-shadow:inset 0 0 0 2px var(--grape);}
+  /* the given side: fixed, and visibly inert — no hover, no press */
+  /* (tinted per square too, so the diagonal squares the triangle panel cuts in half stay whole) */
+  .mc.given{background:var(--panel); box-shadow:inset 0 0 0 1px rgba(108,74,182,.14); cursor:default;}
+  /* a filled square, anywhere: a solid, raised, rounded tile (shape, not just colour) */
+  .mc.on{background:var(--grape); border-radius:8px; box-shadow:0 3px 0 var(--grape-dark), 0 5px 10px rgba(72,45,130,.25);}
+  .mc:focus-visible{outline:3px solid var(--ink); outline-offset:1px; position:relative; z-index:2;}
+  .mc.hinted{animation:mpulse .9s ease;}
+  .mc.land{animation:mpulse .6s ease;}
+  @keyframes mpulse{0%{box-shadow:0 0 0 0 rgba(255,207,67,.95)}100%{box-shadow:0 0 0 12px rgba(255,207,67,0)}}
+  .mline{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:3;}
+  .mline line{stroke:var(--mirror); stroke-width:3; stroke-dasharray:9 7; stroke-linecap:round;}
+
+  /* the fold: a copy of the given side swings over the mirror onto the player's side */
+  .fold{pointer-events:none; z-index:4; backface-visibility:visible;}
+  .fold i{border-radius:8px;}
+  .fold i.on{background:var(--grape); opacity:.78; box-shadow:0 0 0 2px #fff, 0 6px 14px rgba(72,45,130,.35);}
+  .fold.landed{transition:opacity .3s ease !important; opacity:0;}
+
+  .mcount{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:14px; margin-top:12px;}
+  .mcount b{color:var(--grape);}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .rmini{width:92px; height:92px; flex:0 0 auto;}
+  .rmini .p{fill:var(--panel);} .rmini .e{fill:#fff; stroke:var(--outline); stroke-width:.08;}
+  .rmini .g{fill:none; stroke:rgba(108,74,182,.18); stroke-width:.05;} .rmini .t{fill:var(--grape);}
+  .rmini .l{stroke:var(--mirror); stroke-width:.14; stroke-dasharray:.45 .3;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🦋 Finish the picture so both halves match!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">side to side</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">across or up</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">corner to corner</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">two mirrors</div></button>
+      </div>
+      <div class="howto">
+        🪞 <b>How to play:</b> The dashed line is a <b>mirror</b>. Half a picture is drawn on one
+        side — fill in squares on the other side so it matches its <b>reflection</b>: the same
+        distance from the mirror, but flipped. Tap or drag to paint, then press <b>Check</b>.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="mwrap" id="mwrap">
+        <div class="mpanel" id="mpanel"></div>
+        <div class="mgrid" id="grid" role="grid" aria-label="Drawing grid"></div>
+        <svg class="mline" id="mline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+      <div class="mcount" id="mcount"></div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="check-btn" class="btn btn-go" disabled>Check ✓</button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Mirror Draw</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   A square grid, a mirror, and half a picture. Squares are indexed r * size + c.
+
+   Mirror types (the axis type IS the difficulty):
+     V - vertical line down the middle     (r,c) -> (r, N-1-c)
+     H - horizontal line across the middle (r,c) -> (N-1-r, c)
+     D - the diagonal, top-left to bottom-right (r,c) -> (c, r); squares ON it are their
+         own reflection, so they belong to the given side and are never fillable
+     B - both V and H: the top-left quarter is given, the other three are filled
+   Grids are even (6, 8) so the V and H lines fall between columns / rows.
+
+   A puzzle: { level, size, axis, side, pattern:[...], answer:[...] }. `side` picks which half
+   is given for V/H (0 = left/top, 1 = right/bottom).                                       */
+
+const LEVELS = {
+  EASY:   { size:6, axes:["V"],     sides:[0],    place:[5,8],   label:"🌱 Easy"   },
+  MEDIUM: { size:8, axes:["V","H"], sides:[0,1],  place:[8,12],  label:"⭐ Medium" },
+  HARD:   { size:8, axes:["D"],     sides:[0],    place:[10,14], label:"🔥 Hard"   },
+  EXPERT: { size:8, axes:["B"],     sides:[0],    place:[12,18], label:"🏆 Expert" },
+};
+
+/* one reflection across a single mirror line */
+function reflect(axis, size, i){
+  const r = (i / size) | 0, c = i % size;
+  if(axis === "V") return r * size + (size - 1 - c);
+  if(axis === "H") return (size - 1 - r) * size + c;
+  if(axis === "D") return c * size + r;
+  throw new Error("reflect: single axis only, got " + axis);
+}
+/* every mirror image of square i (for B: across V, across H, and across both) */
+function images(axis, size, i){
+  if(axis !== "B") return [reflect(axis, size, i)];
+  const v = reflect("V", size, i), h = reflect("H", size, i);
+  return [v, h, reflect("H", size, v)];
+}
+/* is square i on the given (fixed) side? */
+function inGiven(axis, side, size, i){
+  const r = (i / size) | 0, c = i % size, h = size / 2;
+  if(axis === "V") return side ? c >= h : c < h;
+  if(axis === "H") return side ? r >= h : r < h;
+  if(axis === "D") return r >= c;                      /* below the diagonal, and the diagonal itself */
+  return r < h && c < h;                               /* B: the top-left quarter */
+}
+/* the squares the player must fill: every image of the pattern that lands off the given side */
+function answerOf(axis, side, size, pattern){
+  const out = new Set();
+  for(const i of pattern) for(const j of images(axis, size, i)) if(!inGiven(axis, side, size, j)) out.add(j);
+  return [...out].sort((a, b) => a - b);
+}
+
+/* The given side's OWN reflection. If the pattern already matches it, the mirror image is
+   just a sliding copy of the pattern, so a child who copies instead of reflecting still gets
+   it right — the lesson disappears. Those patterns are rejected.
+     V/H: flip within the given half.  D: flip the given triangle across its own axis (the
+     anti-diagonal).  B: flip the quarter left-right OR top-bottom (either one is a give-away). */
+function localFlips(axis, side, size){
+  const h = size / 2;
+  const colFlip = (lo, hi) => i => { const r = (i / size) | 0, c = i % size; return r * size + (lo + hi - c); };
+  const rowFlip = (lo, hi) => i => { const r = (i / size) | 0, c = i % size; return (lo + hi - r) * size + c; };
+  if(axis === "V") return [side ? colFlip(h, size - 1) : colFlip(0, h - 1)];
+  if(axis === "H") return [side ? rowFlip(h, size - 1) : rowFlip(0, h - 1)];
+  if(axis === "D") return [i => { const r = (i / size) | 0, c = i % size; return (size - 1 - c) * size + (size - 1 - r); }];
+  return [colFlip(0, h - 1), rowFlip(0, h - 1)];
+}
+function selfSymmetric(axis, side, size, pattern){
+  const s = new Set(pattern);
+  return localFlips(axis, side, size).some(f => pattern.every(i => s.has(f(i))));
+}
+function isConnected(size, cells){
+  if(!cells.length) return false;
+  const s = new Set(cells), seen = new Set([cells[0]]), q = [cells[0]];
+  while(q.length){
+    const i = q.pop(), r = (i / size) | 0, c = i % size;
+    for(const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nr = r + dr, nc = c + dc, j = nr * size + nc;
+      if(nr >= 0 && nr < size && nc >= 0 && nc < size && s.has(j) && !seen.has(j)){ seen.add(j); q.push(j); }
+    }
+  }
+  return seen.size === s.size;
+}
+const sigOf = p => p ? p.axis + p.side + ":" + p.pattern.join(",") : "";
+
+/* Grow a blob: seed one square on the given side, then keep adding a random square that
+   touches the shape (up/down/left/right) until the player has the target number of squares
+   to place. Every picture is one connected shape — never static. */
+function genPuzzle(level, rand, avoidSig){
+  const cfg = LEVELS[level], size = cfg.size, n = size * size;
+  const pick = a => a[(rand() * a.length) | 0];
+  for(let attempt = 0; attempt < 5000; attempt++){
+    const axis = pick(cfg.axes), side = pick(cfg.sides);
+    /* B places 3 squares for every pattern square, so its target is a multiple of 3 */
+    const lo = cfg.place[0], hi = cfg.place[1];
+    const target = axis === "B" ? 3 * (Math.ceil(lo / 3) + ((rand() * (Math.floor(hi / 3) - Math.ceil(lo / 3) + 1)) | 0))
+                                : lo + ((rand() * (hi - lo + 1)) | 0);
+    const given = [];
+    for(let i = 0; i < n; i++) if(inGiven(axis, side, size, i)) given.push(i);
+    /* seed off the diagonal, so the very first square always needs reflecting */
+    const seeds = given.filter(i => answerOf(axis, side, size, [i]).length);
+    const shape = new Set([pick(seeds)]);
+    let placed = answerOf(axis, side, size, [...shape]).length;
+    for(let guard = 0; placed < target && guard < 200; guard++){
+      const front = [];
+      for(const i of shape){
+        const r = (i / size) | 0, c = i % size;
+        for(const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+          const nr = r + dr, nc = c + dc, j = nr * size + nc;
+          if(nr >= 0 && nr < size && nc >= 0 && nc < size && !shape.has(j) && inGiven(axis, side, size, j)) front.push(j);
+        }
+      }
+      if(!front.length) break;
+      const j = pick(front);
+      const grow = answerOf(axis, side, size, [j]).length;
+      if(placed + grow > target) continue;             /* would overshoot (B adds 3 at a time) */
+      shape.add(j); placed += grow;
+    }
+    if(placed !== target) continue;
+    const pattern = [...shape].sort((a, b) => a - b);
+    if(selfSymmetric(axis, side, size, pattern)) continue;
+    const p = { level, size, axis, side, pattern, answer:answerOf(axis, side, size, pattern) };
+    if(avoidSig && sigOf(p) === avoidSig) continue;
+    return p;
+  }
+  return null;
+}
+
+/* how far off the drawing is — counted, never located */
+function mismatch(answer, filled){
+  const a = new Set(answer), f = new Set(filled);
+  let missing = 0, extra = 0;
+  for(const i of a) if(!f.has(i)) missing++;
+  for(const i of f) if(!a.has(i)) extra++;
+  return { missing, extra, total:missing + extra };
+}
+
+/* ★★★ first check right and no hints · ★★ one failed check OR one-to-two hints · ★ otherwise */
+function starsFor(fails, hints){
+  if(!fails && !hints) return 3;
+  if((fails === 1 && !hints) || (!fails && hints <= 2)) return 2;
+  return 1;
+}
+
+if(typeof module !== "undefined") module.exports = { LEVELS, reflect, images, inGiven, answerOf, localFlips,
+  selfSymmetric, isConnected, sigOf, genPuzzle, mismatch, starsFor };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+let level = "EASY", P = null, filled = new Set(), phase = "play", hints = 0, fails = 0, focusIdx = 0;
+let painting = false, paintOn = true, ptrToggled = false;
+const n = () => P.size * P.size;
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "fill")       beep(620, .06, "triangle", 0, .07);
+  else if(kind === "clear") beep(380, .06, "sine", 0, .06);
+  else if(kind === "bad")   beep(200, .16, "sine", 0, .09);
+  else if(kind === "hint")  { beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "fold")  beep(520, .5, "sine", 0, .04);
+  else if(kind === "win")   [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+}
+
+/* ---- rendering ---- */
+function buildBoard(){
+  const size = P.size, g = $("grid");
+  g.style.gridTemplateColumns = g.style.gridTemplateRows = "repeat(" + size + ",1fr)";
+  g.innerHTML = "";
+  for(let i = 0; i < size * size; i++){
+    const c = document.createElement("button");
+    c.type = "button";
+    c.dataset.i = i;
+    c.tabIndex = i === focusIdx ? 0 : -1;
+    g.appendChild(c);
+  }
+  /* the tinted panel behind the given side */
+  const clip = { V: P.side ? "inset(0 0 0 50%)" : "inset(0 50% 0 0)", H: P.side ? "inset(50% 0 0 0)" : "inset(0 0 50% 0)",
+                 D: "polygon(0 0, 100% 100%, 0 100%)", B: "inset(0 50% 50% 0)" }[P.axis];
+  $("mpanel").style.clipPath = clip;
+  /* the dashed mirror line(s), in 0-100 box units */
+  const L = (x1, y1, x2, y2) => '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" vector-effect="non-scaling-stroke"/>';
+  $("mline").innerHTML = P.axis === "V" ? L(50, -3, 50, 103)
+    : P.axis === "H" ? L(-3, 50, 103, 50)
+    : P.axis === "D" ? L(-2, -2, 102, 102)
+    : L(50, -3, 50, 103) + L(-3, 50, 103, 50);
+}
+function paint(){
+  const size = P.size, cells = $("grid").children, pat = new Set(P.pattern);
+  for(let i = 0; i < cells.length; i++){
+    const given = inGiven(P.axis, P.side, size, i), on = given ? pat.has(i) : filled.has(i);
+    const c = cells[i];
+    const keep = c.classList.contains("hinted") ? " hinted" : "";
+    c.className = "mc " + (given ? "given" : "can") + (on ? " on" : "") + keep;
+    const where = "Row " + ((i / size | 0) + 1) + ", column " + (i % size + 1);
+    c.setAttribute("aria-label", where + (given ? (on ? ": picture, filled" : ": picture, empty") : (on ? ": filled" : ": empty")));
+    if(given) c.setAttribute("aria-disabled", "true"); else c.removeAttribute("aria-disabled");
+  }
+  $("mcount").innerHTML = "You've filled <b>" + filled.size + "</b> square" + (filled.size === 1 ? "" : "s");
+  $("check-btn").disabled = phase !== "play" || filled.size === 0;
+  $("reset-btn").classList.toggle("off", phase !== "play");
+  $("hint-link").classList.toggle("off", phase !== "play");
+}
+const fillable = i => P && !inGiven(P.axis, P.side, P.size, i);
+
+/* ---- play ---- */
+function setCell(i, on){
+  if(phase !== "play" || !fillable(i) || filled.has(i) === on) return false;
+  if(on) filled.add(i); else filled.delete(i);
+  sound(on ? "fill" : "clear");
+  return true;
+}
+function toggle(i){
+  if(phase !== "play" || !fillable(i)) return;
+  setCell(i, !filled.has(i));
+  if(phase === "play"){ setOwl("think"); flash("", ""); }
+  paint();
+}
+function setFocus(i){
+  const cells = $("grid").children;
+  if(cells[focusIdx]) cells[focusIdx].tabIndex = -1;
+  focusIdx = i; cells[i].tabIndex = 0;
+}
+
+function check(){
+  if(phase !== "play" || !filled.size) return;
+  const m = mismatch(P.answer, [...filled]);
+  if(m.total){
+    fails++;
+    setOwl("worried"); sound("bad");
+    /* how many, never which — pointing at squares would turn this into whack-a-mole */
+    flash("Not quite — " + m.total + (m.total === 1 ? " square isn't" : " squares aren't") + " mirrored yet. Count from the mirror!", "bad");
+    return;
+  }
+  phase = "folding";
+  paint();
+  flash("", "");
+  (reduceMotion ? Promise.resolve() : playFold()).then(win);
+}
+
+/* 💡 Hint fixes exactly one square: fill a missing one, or clear a wrong one */
+function hint(){
+  if(phase !== "play") return;
+  const a = new Set(P.answer);
+  const missing = P.answer.filter(i => !filled.has(i)), extra = [...filled].filter(i => !a.has(i));
+  let i, msg;
+  if(missing.length){ i = missing[(Math.random() * missing.length) | 0]; filled.add(i); msg = "💡 That square belongs in the reflection — filled it in!"; sound("fill"); }
+  else if(extra.length){ i = extra[(Math.random() * extra.length) | 0]; filled.delete(i); msg = "💡 That square wasn't in the reflection — cleared it."; sound("clear"); }
+  else { flash("It all matches — press Check ✓!", "hint"); return; }
+  hints++;
+  const c = $("grid").children[i];
+  c.classList.add("hinted");
+  setTimeout(() => c.classList.remove("hinted"), 950);
+  setOwl("think");
+  paint();
+  flash(msg, "hint");
+}
+function resetDrawing(){
+  if(phase !== "play") return;
+  filled.clear();
+  paint();
+  setOwl("think");
+  flash("Cleared — the picture is still the same.", "hint");
+}
+
+/* ---- the fold: the lesson, in one move ---------------------------------------------------
+   A copy of the given side is lifted off the page and swung 180° about the mirror line in 3D.
+   Rotating about the line IS reflecting across it, so it lands exactly on the squares the
+   player drew. Expert folds twice: the corner across the upright mirror, then the whole top
+   half across the flat one. */
+const FOLD_MS = 950;
+function foldLayer(cells, axis, transformAt){
+  return new Promise(res => {
+    const size = P.size, L = document.createElement("div"), s = new Set(cells);
+    L.className = "fold";
+    L.style.gridTemplateColumns = L.style.gridTemplateRows = "repeat(" + size + ",1fr)";
+    for(let i = 0; i < size * size; i++){ const t = document.createElement("i"); if(s.has(i)) t.className = "on"; L.appendChild(t); }
+    L.style.transformOrigin = "50% 50%";
+    L.style.transform = transformAt(0);
+    $("mwrap").appendChild(L);
+    void L.offsetWidth;                                  /* commit the start pose before animating */
+    L.style.transition = "transform " + FOLD_MS + "ms cubic-bezier(.45,.05,.3,1)";
+    L.style.transform = transformAt(180);
+    sound("fold");
+    setTimeout(() => {
+      for(const i of cells){ const j = reflect(axis, size, i); const c = $("grid").children[j]; if(c) c.classList.add("land"); }
+      L.classList.add("landed");
+      setTimeout(() => { L.remove(); res(); }, 320);
+    }, FOLD_MS + 40);
+  });
+}
+const PERSP = "perspective(1100px) ";
+const turnY = a => PERSP + "rotateY(" + a + "deg)";
+const turnX = a => PERSP + "rotateX(" + a + "deg)";
+/* the diagonal: turn the mirror upright, flip about it, turn it back */
+const turnD = a => PERSP + "rotate(-45deg) rotateY(" + a + "deg) rotate(45deg)";
+function playFold(){
+  if(P.axis === "V") return foldLayer(P.pattern, "V", turnY);
+  if(P.axis === "H") return foldLayer(P.pattern, "H", turnX);
+  if(P.axis === "D") return foldLayer(P.pattern, "D", turnD);
+  const topHalf = P.pattern.concat(P.pattern.map(i => reflect("V", P.size, i)));
+  return foldLayer(P.pattern, "V", turnY)
+    .then(() => new Promise(r => setTimeout(r, 180)))
+    .then(() => foldLayer(topHalf, "H", turnX));
+}
+
+function win(){
+  phase = "won";
+  for(const c of $("grid").children) c.classList.remove("land");
+  paint();
+  const s = starsFor(fails, hints);
+  $("stars").textContent = "★".repeat(s) + "☆".repeat(3 - s);
+  $("rlabel").textContent = "🦋 A perfect reflection!";
+  const bits = [];
+  if(fails) bits.push(fails + (fails === 1 ? " check" : " checks") + " to fix");
+  if(hints) bits.push(hints + (hints === 1 ? " hint" : " hints") + " used");
+  $("rsub").textContent = bits.length ? bits.join(" · ") : "Right first time, with no hints!";
+  $("result-view").classList.remove("hide");
+  $("check-btn").classList.add("hide");
+  $("skip-btn").classList.add("invisible");            /* keeps its box, so the owl stays centred */
+  $("next-btn").classList.remove("hide");
+  $("next-btn").focus();
+  setOwl("win"); sound("win");
+  if(!reduceMotion) mirrorConfetti();
+}
+
+/* ---- rounds ---- */
+function newPuzzle(){
+  stopConfetti();
+  P = genPuzzle(level, Math.random, P && P.level === level ? sigOf(P) : null);
+  filled = new Set(); phase = "play"; hints = 0; fails = 0;
+  focusIdx = [...Array(P.size * P.size).keys()].find(i => fillable(i));
+  buildBoard();
+  $("result-view").classList.add("hide");
+  $("check-btn").classList.remove("hide");
+  $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible");
+  paint();
+  setOwl("think");
+  flash(P.axis === "B" ? "Two mirrors! Fill the other three corners." : "Fill the squares so the picture matches in the mirror.", "");
+}
+function setLevel(l){
+  level = l;
+  $("q-level-label").textContent = LEVELS[l].label;
+  document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === l ? "true" : "false"));
+  $("level-menu").querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === l ? "true" : "false"));
+}
+function goHome(){
+  stopConfetti();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- wiring ---- */
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = () => {
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  newPuzzle();
+};
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => { if(phase === "play") newPuzzle(); };
+$("next-btn").onclick = newPuzzle;
+$("check-btn").onclick = check;
+$("hint-link").onclick = hint;
+$("reset-btn").onclick = resetDrawing;
+
+(function buildLevelMenu(){
+  const menu = $("level-menu");
+  menu.innerHTML = Object.entries(LEVELS).map(([k, v]) =>
+    '<button class="level-opt" role="menuitemradio" data-diff="' + k + '" aria-current="false">'
+    + '<span>' + v.label + '</span><span class="tick">✓</span></button>').join("");
+  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickLevel(b.dataset.diff));
+})();
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newPuzzle(); }
+wireLevelMenu();
+
+/* ---- tap and drag-to-paint (pointer events; the first square decides fill or clear) ---- */
+const grid = $("grid");
+const cellAt = (x, y) => { const el = document.elementFromPoint ? document.elementFromPoint(x, y) : null; return el && el.closest ? el.closest("#grid .mc") : null; };
+grid.addEventListener("pointerdown", e => {
+  const c = e.target.closest && e.target.closest(".mc");
+  if(!c || phase !== "play" || (e.button !== undefined && e.button !== 0)) return;
+  const i = +c.dataset.i;
+  ptrToggled = true;                                  /* the click that follows is this same tap */
+  if(!fillable(i)) return;                            /* the given side never responds */
+  e.preventDefault();
+  setFocus(i);
+  painting = true;
+  paintOn = !filled.has(i);
+  setCell(i, paintOn);
+  setOwl("think"); flash("", "");
+  paint();
+});
+grid.addEventListener("pointermove", e => {
+  if(!painting) return;
+  /* on touch the pointer stays captured by the first square, so ask what is under the finger */
+  const c = cellAt(e.clientX, e.clientY);
+  if(c && setCell(+c.dataset.i, paintOn)) paint();
+});
+const endPaint = () => { painting = false; setTimeout(() => { ptrToggled = false; }, 0); };
+window.addEventListener("pointerup", endPaint);
+window.addEventListener("pointercancel", endPaint);
+/* a click with no pointer before it (keyboard, switch access, screen reader) still toggles */
+grid.addEventListener("click", e => {
+  const c = e.target.closest && e.target.closest(".mc");
+  if(!c) return;
+  if(ptrToggled){ ptrToggled = false; return; }
+  setFocus(+c.dataset.i);
+  toggle(+c.dataset.i);
+});
+
+/* ---- keyboard: arrows walk a focus ring, Enter (or Space) toggles ---- */
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){ closeLevelMenu(); return; }
+  if($("screen-game").classList.contains("hide") || phase !== "play") return;
+  const onCell = !!(e.target && e.target.closest && e.target.closest("#grid .mc"));
+  if(!onCell && e.target !== document.body) return;
+  const size = P.size;
+  const d = { ArrowLeft:[0,-1], ArrowRight:[0,1], ArrowUp:[-1,0], ArrowDown:[1,0] }[e.key];
+  if(d){
+    e.preventDefault();
+    const r = Math.min(size - 1, Math.max(0, (focusIdx / size | 0) + d[0]));
+    const c = Math.min(size - 1, Math.max(0, focusIdx % size + d[1]));
+    setFocus(r * size + c);
+    $("grid").children[focusIdx].focus();
+    return;
+  }
+  if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(focusIdx); }
+});
+grid.addEventListener("keyup", e => { if(e.key === " ") e.preventDefault(); });
+
+/* ---- the rules sheet ---- */
+/* a tiny drawing: N x N, the given side tinted, `on` squares as tiles, dashed mirror(s) */
+function mini(size, axis, side, on){
+  const s = new Set(on);
+  let h = '<svg class="rmini" viewBox="-.3 -.3 ' + (size + .6) + ' ' + (size + .6) + '" aria-hidden="true">';
+  for(let i = 0; i < size * size; i++){
+    const r = (i / size) | 0, c = i % size, g = inGiven(axis, side, size, i);
+    if(g) h += '<rect class="p" x="' + (c - .06) + '" y="' + (r - .06) + '" width="1.12" height="1.12"/>';
+    h += '<rect class="' + (s.has(i) ? "t" : g ? "g" : "e") + '" x="' + (c + .08) + '" y="' + (r + .08) + '" width=".84" height=".84" rx=".16"/>';
+  }
+  const ln = (a, b, c, d) => '<line class="l" x1="' + a + '" y1="' + b + '" x2="' + c + '" y2="' + d + '"/>';
+  if(axis === "V" || axis === "B") h += ln(size / 2, -.2, size / 2, size + .2);
+  if(axis === "H" || axis === "B") h += ln(-.2, size / 2, size + .2, size / 2);
+  if(axis === "D") h += ln(-.1, -.1, size + .1, size + .1);
+  return h + "</svg>";
+}
+wireRulesSheet(function(){
+  const V = [1, 5, 6, 10];                               /* a little shape on a 4x4, left half */
+  const Vdone = V.concat(answerOf("V", 0, 4, V));
+  const D = [4, 8, 9, 13];
+  const B = [0, 1, 5];
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🪞 The dashed line is a mirror</h3>'
+    + '<p>Half a picture is drawn on the <b>tinted side</b>. Fill in squares on the other side so '
+    + 'the picture <b>matches its reflection</b> — as if the dashed line were a mirror.</p>'
+    + '<div class="rrow">' + mini(4, "V", 0, V) + '<span class="rarrow">➡️</span>' + mini(4, "V", 0, Vdone) + '</div>'
+    + '<span class="cap">Both sides match — a perfect reflection.</span></div>'
+
+    + '<div class="rule"><h3>📏 Count from the mirror</h3>'
+    + '<p>A square <b>1 away</b> from the mirror lands <b>1 away</b> on the other side. A square '
+    + '<b>2 away</b> lands <b>2 away</b>. The picture comes out <b>flipped</b>, not copied — '
+    + 'what was nearest the mirror stays nearest the mirror.</p></div>'
+
+    + '<div class="rule"><h3>🔁 Mirrors that lie down and lean over</h3>'
+    + '<p>A mirror doesn\'t have to stand up. On <b>⭐ Medium</b> it can lie flat, so the picture '
+    + 'flips <b>top to bottom</b>. On <b>🔥 Hard</b> it runs <b>corner to corner</b>.</p>'
+    + '<div class="rrow">' + mini(4, "D", 0, D) + '<span class="rarrow">➡️</span>' + mini(4, "D", 0, D.concat(answerOf("D", 0, 4, D))) + '</div>'
+    + '<span class="cap">Squares sitting <b>on</b> a slanted mirror are their own reflection.</span></div>'
+
+    + '<div class="rule"><h3>🦋 Two mirrors</h3>'
+    + '<p>On <b>🏆 Expert</b> there are <b>two mirrors</b>, one standing and one lying down. The '
+    + 'top-left corner is drawn — fill the <b>other three corners</b> so every mirror matches.</p>'
+    + '<div class="rrow">' + mini(4, "B", 0, B) + '<span class="rarrow">➡️</span>' + mini(4, "B", 0, B.concat(answerOf("B", 0, 4, B))) + '</div></div>'
+
+    + '<div class="rule"><h3>✏️ Tap or drag</h3>'
+    + '<p><b>Tap</b> a square to fill it, tap again to clear it. <b>Drag</b> to paint lots at once — '
+    + 'start on a filled square and the drag rubs out instead. On a keyboard, the <b>arrow keys</b> '
+    + 'move and <b>Enter</b> fills or clears.</p></div>'
+
+    + '<div class="rule"><h3>✅ Check, hints and stars</h3>'
+    + '<p>Press <b>Check ✓</b> when you think it matches. If it doesn\'t, you\'ll hear how many squares '
+    + 'still need fixing — finding which ones is your job! <b>💡 Hint</b> fixes one square for you.</p>'
+    + '<p><b>★★★</b> right first time with no hints · <b>★★</b> one wrong check, or one or two hints · '
+    + '<b>★</b> anything else.</p></div>';
+});
+
+/* ---- confetti (shared stopConfetti/#confetti live in site.js) ---- */
+function mirrorConfetti(){
+  const cv = $("confetti"); cv.style.display = "block";
+  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ["#6C4AB6", "#2FB37D", "#FFCF43", "#3FA7E0", "#FF6B7A"];
+  /* launched in mirrored pairs — a symmetric burst for a symmetry game */
+  const half = Array.from({ length:40 }, () => ({ r:5 + Math.random() * 7, c:colors[(Math.random() * colors.length) | 0],
+    vy:-5 + Math.random() * 2, vx:1 + Math.random() * 5, rot:Math.random() * 6, vr:.25 }));
+  const parts = [];
+  half.forEach(p => { parts.push({ ...p, x:cv.width / 2, y:cv.height * .35 }); parts.push({ ...p, x:cv.width / 2, y:cv.height * .35, vx:-p.vx, vr:-p.vr, rot:-p.rot }); });
+  let f = 0;
+  (function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += .2; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .7); ctx.restore();
+    });
+    f++;
+    if(f < 78) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+
+initBouncyTitle("Mirror Draw");
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

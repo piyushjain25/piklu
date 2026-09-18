@@ -151,7 +151,9 @@ The card, its link, and the search filter appear automatically.
   🔥 streak inside a game). Reward with stars, confetti, and sounds. Exception:
   `word-guess` is a hangman-style game where wrong guesses are the core mechanic, so it
   keeps its 10 letter hearts + 3 word stars — these decide whether the round is won or
-  lost, they are not a score or a streak.
+  lost, they are not a score or a streak. Likewise `dino-dig` keeps **three egg hearts at
+  EXPERT only** (🥚🥚🥚, cracking as eggs are woken): they decide whether the dig ends, they
+  are not a score or a streak, and at every other level a woken egg only costs stars.
 - **Feel:** juicy and encouraging — meters, star ratings, confetti canvas, gentle
   WebAudio beeps.
 - **Accessibility:** respect `prefers-reduced-motion` (guard all animation/sound),
@@ -186,7 +188,22 @@ don't redefine these classes in a game's own `<style>`.
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
   action** (the move itself is the check — `lights-out`, `spot-the-words`, `juice-jumble`) keeps that slot
   occupied during play with `Next ▶` carrying `.invisible`, and just removes `.invisible` on
-  the win, so the slot never reflows.
+  the win, so the slot never reflows. Exception: `dino-dig` has no submit action either, but
+  its bottom-slot primary `.btn` is a real control — a **🔍 Dig / 🚩 Flag mode toggle** that
+  decides what a tap on the grid does. It is replaced in place by `Next ▶` on a win, or by
+  `New dig ▶` when an EXPERT dig is lost.
+- **Multi-phase rounds:** `tally-chart` runs **three phases per round** (count & tally → build
+  the chart → read the chart), shown by a `1 of 3` indicator. Its bottom-slot primary `.btn`
+  changes label per phase (`Done counting ✓` → `Check chart ✓`); the last phase is multiple
+  choice, so the slot holds `Next ▶` with `.invisible` until the right option is tapped. Its
+  `Reset`/`Hint` links are **phase-aware** — each acts on the current phase — and `Reset`
+  goes `.invisible` (keeping its box) in the multiple-choice phase, matching the convention
+  for pure MCQ games.
+- **Primary button by level:** `balance-scales` has **no primary button at EASY/MEDIUM** —
+  the live beam *is* the check, and the round completes the moment the pans are level — so
+  the bottom slot holds `Next ▶` with `.invisible` (the same placeholder pattern as
+  `lights-out`) until then. At **HARD/EXPERT** the answer is a number rather than a physical
+  state, so `Check ✓` is the primary `.btn`, replaced in place by `Next ▶`.
 - **On a correct answer, replace the primary button *in place* with a `Next ▶` button**
   in that same bottom slot (Next here is a real `.btn`, not a link), hide Skip, and show
   the result message just above it — so Next appears exactly where the player's eye/finger
@@ -218,7 +235,8 @@ don't redefine these classes in a game's own `<style>`.
   behaviour. The body is a series of `.rule` sections (an `<h3>` with an emoji, short `<p>`s,
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-trek`,
   `tick-tock-toe`, `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
-  `juice-jumble`. `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
+  `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`.
+  `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Shared JS helpers (`assets/site.js`)
 
@@ -252,7 +270,8 @@ globals the game calls directly:
 - `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
   panel for games whose rules need more room than the start screen's `.howto` block
   (`tic-tac-trek`, `tick-tock-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
-  `spot-the-words`, `juice-jumble`). The game supplies the
+  `spot-the-words`, `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`,
+  `balance-scales`). The game supplies the
   standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
   `#rules-ok` — copy it from one of those games), a `📖 Read the full rules` `.tlink`
   (`#rules-home`) on the start screen, a `📖 Rules` `.tlink` (`#rules-btn`) in the `.actions`
@@ -339,7 +358,8 @@ pizza-party · set-the-clock · what-comes-next ·
 word-guess · guess-the-capital · math-monsters · shape-sorter · color-match ·
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word · tick-tock-toe · tic-tac-trek ·
-lights-out · spot-the-words · juice-jumble
+lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
+balance-scales
 
 `word-guess`, `guess-the-capital`, `spell-a-bee` and `spot-the-words` are the
 **data-driven** games: each loads its data from a JSON file in its own folder
@@ -354,6 +374,12 @@ one exception, at 7). `_tests/games/spot-the-words/engine.test.js` checks all of
 generates 2,000 boards per theme to prove every target appears exactly once — **run it after
 editing the word lists**. A word that is a substring of another in the same theme (RAIN /
 RAINBOW) is allowed but never picked in the same round as it.
+
+`dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
+player can clear from there without ever guessing; the same solver powers its Hint.
+`_tests/games/dino-dig/engine.test.js` proves that across 2,000 boards per level and
+re-checks every deduction with an independent search — **run it after touching the solver
+or the level table.**
 
 ## When the store is added later
 
