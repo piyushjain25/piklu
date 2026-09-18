@@ -119,4 +119,7 @@ window.GAMES = [
 
   { slug: "balance-scales",      title: "Balance Scales",      emoji: "⚖️", accent: "sky",    ageGroup: "6+",
     tagline: "Add weights until both sides sit level — then find the mystery box.", skills: ["Measurement", "Math"], badge: "New" },
+
+  { slug: "tic-tac-toe",         title: "Tic Tac Toe",         emoji: "❌", accent: "coral",  ageGroup: "6+",
+    tagline: "Classic, reverse, vanishing and nine-boards-in-one — beat the owl!", skills: ["Strategy", "Logic"], badge: "New" },
 ];

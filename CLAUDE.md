@@ -239,7 +239,7 @@ don't redefine these classes in a game's own `<style>`.
   confetti canvas, wired with `wireRulesSheet(buildBody)` — see "Shared JS helpers" for its
   behaviour. The body is a series of `.rule` sections (an `<h3>` with an emoji, short `<p>`s,
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-trek`,
-  `tick-tock-toe`, `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
+  `tick-tock-toe`, `tic-tac-toe`, `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
@@ -274,7 +274,7 @@ globals the game calls directly:
   shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
 - `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
   panel for games whose rules need more room than the start screen's `.howto` block
-  (`tic-tac-trek`, `tick-tock-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
+  (`tic-tac-trek`, `tick-tock-toe`, `tic-tac-toe`, `mystery-word`, `matchstick-math`, `lights-out`,
   `spot-the-words`, `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`,
   `balance-scales`). The game supplies the
   standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
@@ -364,7 +364,7 @@ word-guess · guess-the-capital · math-monsters · shape-sorter · color-match 
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word · tick-tock-toe · tic-tac-trek ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
-balance-scales
+balance-scales · tic-tac-toe
 
 `word-guess`, `guess-the-capital`, `spell-a-bee` and `spot-the-words` are the
 **data-driven** games: each loads its data from a JSON file in its own folder
@@ -381,6 +381,22 @@ one exception, at 7). `_tests/games/spot-the-words/engine.test.js` checks all of
 generates 2,000 boards per theme to prove every target appears exactly once — **run it after
 editing the word lists**. A word that is a substring of another in the same theme (RAIN /
 RAINBOW) is allowed but never picked in the same round as it.
+
+`tic-tac-toe`'s levels change the **rules**, not just the owl: EASY classic, MEDIUM reverse
+(three in a row *loses*; the owl goes first there, because in reverse the first player is the
+one at a disadvantage), HARD is disappearing tic-tac-toe with the **original rules** (as on
+therenotthere.com): at most 3 marks each, and placing a 4th removes your oldest **before** the
+line is checked — so a fading mark can't finish a line, unlike `tick-tock-toe`, which checks
+first on purpose. Three repeats of a position is a tie. EXPERT is **Tic Tac Trek's EXPERT**
+(ultimate), copied into the file on purpose. The owl solves Easy/Medium/Hard exactly (Hard by a
+backwards solve of ~116k positions) and blunders on purpose to stay beatable.
+`_tests/games/tic-tac-toe/engine.test.js` plays Expert in lockstep against the real
+`tic-tac-trek` engine, so **changing Trek's engine or its EXPERT settings fails that test** —
+carry the change across to `tic-tac-toe` too (or decide it shouldn't follow, and update the test).
+Its two rules links show **different sheets**: `📖 Read the full rules` (start screen) tours all
+four levels, while the in-game `📖 Rules` shows detailed rules for the **current level only**
+(each level is a different game) — it calls `wireRulesSheet()` for the shared wiring and sets
+its own `onclick`s on `#rules-home` / `#rules-btn`.
 
 `dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
 player can clear from there without ever guessing; the same solver powers its Hint.

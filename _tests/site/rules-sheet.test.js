@@ -7,7 +7,7 @@ const { ROOT, read, gameHTML, inlineScript, bootGame, tally } = require("../lib/
 const { ok, report } = tally();
 
 /* the games whose rules need more room than the start screen's .howto block */
-const GAMES=["tic-tac-trek","tick-tock-toe","mystery-word","matchstick-math","lights-out","spot-the-words","juice-jumble","dino-dig","mirror-draw","tally-chart","balance-scales"];
+const GAMES=["tic-tac-trek","tick-tock-toe","tic-tac-toe","mystery-word","matchstick-math","lights-out","spot-the-words","juice-jumble","dino-dig","mirror-draw","tally-chart","balance-scales"];
 const siteJS=read("assets/site.js");
 const siteCSS=read("assets/site.css");
 

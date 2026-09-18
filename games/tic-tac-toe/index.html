@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tic Tac Toe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:520px;}
+  .title{font-size:clamp(26px,5.2vw,40px);}
+  .topbar{margin-bottom:10px;}
+  /* Expert's 81 cells need every pixel of a phone screen */
+  @media(max-width:430px){ .card{padding:18px 12px;} }
+
+  /* ---- turn strip (fixed height so the board never jumps) ---- */
+  .turnbar{min-height:44px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:8px; padding:0 2px; line-height:1.3;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:14.5px; color:var(--ink-soft);}
+  /* one flex item, so a long sentence wraps instead of scrolling sideways */
+  .turnbar .msg{display:block; text-align:center; min-width:0;}
+  .turnbar b{color:var(--grape);}
+  .turnbar .pip{font-size:18px; line-height:1;}
+  .turnbar .pip.x{color:var(--coral);} .turnbar .pip.o{color:var(--sky);}
+  .turnbar.free{color:var(--sun-dark);} .turnbar.free b{color:var(--sun-dark);}
+
+  /* ---- the 3x3 board (Easy / Medium / Hard) ---- */
+  .board{grid-template-columns:repeat(3,1fr); width:min(340px,84vw); margin:6px auto 2px;}
+  .tile{background:#fff; border:4px solid var(--key-line); border-radius:18px; aspect-ratio:1/1; padding:0;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:'Fredoka',sans-serif; font-weight:700; line-height:1;
+    font-size:clamp(34px,12vw,54px); transition:border-color .15s ease, background .15s ease;}
+  .tile[disabled]{cursor:default;}
+  .tile.locked{cursor:default;}
+  .mark{display:block;}
+  .mark.x{color:var(--coral);}
+  .mark.o{color:var(--sky);}
+  /* Hard: fading = lower opacity AND a dashed border, so it never depends on colour alone.
+     .ghost = leaving right now; .fading = goes the moment that player places again */
+  .tile.fading,.tile.ghost{border-style:dashed; border-color:#CFC4EC;}
+  .tile.fading .mark,.tile.ghost .mark{opacity:.3;}
+  .tile.win{border-color:var(--leaf-dark); background:#EAFBF1;}
+  /* Medium: the three-in-a-row that LOST the game */
+  .tile.lost{border-color:var(--coral-dark); background:#FFECEE;}
+  .mark.pop{animation:tttPop .2s ease;}
+  .mark.vanish{animation:tttGone .3s ease forwards;}
+  @keyframes tttPop{0%{transform:scale(.4); opacity:.2}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+  @keyframes tttGone{0%{transform:scale(1)}100%{transform:scale(.45); opacity:0}}
+
+  /* ---- the ultimate board (Expert) — Tic Tac Trek's Expert look ---- */
+  .ubig{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:min(400px,100%);
+    margin:0 auto; background:var(--grape); padding:6px; border-radius:18px;}
+  .ubrd{position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:3px;
+    background:#E4DCF5; border-radius:10px; padding:3px;
+    transition:box-shadow .18s ease, background .18s ease;}
+  .ucell{background:#fff; border:2px solid var(--key-line); border-radius:6px; aspect-ratio:1/1; padding:0;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden;
+    font-family:'Fredoka',sans-serif; font-weight:700; line-height:1;
+    font-size:clamp(12px,3.4vw,19px); color:var(--ink);
+    transition:border-color .12s ease, background .12s ease;}
+  .ucell[disabled]{cursor:default;}
+  .ucell.ok:hover{border-color:var(--grape); background:#FFFBEE;}
+  .ucell:focus-visible{outline:3px solid var(--ink); outline-offset:1px; z-index:3;}
+  .ucell.last{box-shadow:inset 0 0 0 2px var(--grape);}
+  .mk{display:block;} .mk.x{color:var(--coral);} .mk.o{color:var(--sky);}
+  .mk.pop{animation:tttPop .2s ease;}
+  /* the playable board is brighter AND ringed — never colour alone */
+  .ubig .ubrd.dim .ucell{background:#F8F6FD; border-color:#DDD3F0;}
+  .ubig .ubrd.active{background:#fff; box-shadow:0 0 0 2px var(--ink-soft);}
+  .ubig .ubrd.nope{animation:tttNope .34s ease;}
+  @keyframes tttNope{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .ubig .ubrd.callout.callout{box-shadow:0 0 0 4px var(--coral);}
+  .claim{position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    border-radius:10px; pointer-events:none; text-align:center;
+    font-family:'Fredoka',sans-serif; font-weight:700; line-height:1; font-size:clamp(32px,9.5vw,52px);}
+  .claim.x,.claim.o,.claim.d{display:flex;}
+  .claim.x{color:var(--coral); background:rgba(255,107,122,.26);}
+  .claim.o{color:var(--sky);   background:rgba(63,167,224,.26);}
+  .claim.d{color:var(--ink-soft); background:rgba(51,35,107,.16); font-size:clamp(17px,4.6vw,24px);}
+  .claim.pop{animation:tttClaim .45s ease;}
+  @keyframes tttClaim{0%{transform:scale(.3); opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .ubrd.claimed .ucell{opacity:.22;}
+  .ubig .ubrd.bigwin.bigwin{box-shadow:0 0 0 4px var(--leaf-dark);}
+
+  .result.lose .rlabel{color:var(--coral-dark);}
+  .result.tie .rlabel{color:var(--grape);}
+
+  /* the four levels, one line each, on the start screen */
+  .lvls{margin:8px 0 2px; padding:0; list-style:none;}
+  .lvls li{margin:3px 0;}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .rsolo i.lost{background:#FFECEE; box-shadow:inset 0 0 0 2px var(--coral-dark);}
+  .rsolo i.hi{background:#FFF1C2; box-shadow:inset 0 0 0 2px var(--sun-dark);}
+  .rbig{display:grid; grid-template-columns:repeat(3,1fr); gap:3px; width:118px; flex:0 0 auto;
+    background:var(--grape); padding:3px; border-radius:9px;}
+  .rbrd{position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:#EDE7FA; border-radius:5px; padding:1px;}
+  .rbrd.hi{background:#fff; box-shadow:0 0 0 2px var(--sun);}
+  .rcell{display:flex; align-items:center; justify-content:center; aspect-ratio:1/1; background:#fff;
+    border-radius:2px; font-family:'Fredoka',sans-serif; font-style:normal; font-weight:700;
+    font-size:8px; color:var(--coral); line-height:1;}
+  .rcell.hi{background:#FFF1C2; box-shadow:inset 0 0 0 1px var(--sun-dark);}
+  .rclaim{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; border-radius:5px;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; line-height:1;}
+  .rclaim.x{color:var(--coral); background:rgba(255,107,122,.2);}
+  .rclaim.o{color:var(--sky); background:rgba(63,167,224,.2);}
+  .rtag{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-decoration:none;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:7.5px; color:var(--sun-dark); text-align:center;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        </svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">❌ Four ways to play noughts and crosses — can you beat the owl?</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">three wins</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">three loses</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">marks vanish</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">nine boards</div></button>
+      </div>
+      <div class="howto">
+        ❌ <b>How to play:</b> You are <b>✕</b> and the owl is <b>◯</b>. Every level changes the
+        rules:
+        <ul class="lvls">
+          <li>🌱 <b>Easy</b> — get <b>three in a row</b> to win.</li>
+          <li>⭐ <b>Medium</b> — upside down! Make three in a row and you <b>lose</b>. The owl goes first.</li>
+          <li>🔥 <b>Hard</b> — only <b>3 marks</b> each; place a 4th and your oldest vanishes first.</li>
+          <li>🏆 <b>Expert</b> — <b>nine boards in one</b>, and your square sends the owl to its board.</li>
+        </ul>
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
+            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
+            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
+            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
+            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
+            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          </svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="turnbar" id="turnbar" aria-live="polite"></div>
+
+      <div class="tilegrid board" id="board" role="group" aria-label="Tic Tac Toe board"></div>
+      <div class="ubig hide" id="uboard" role="group" aria-label="Ultimate Tic Tac Toe board"></div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result" id="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary hide">Play again ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
+  <div class="sheet">
+    <div class="sheet-top">
+      <h2 id="rules-h">📖 How to play Tic Tac Toe</h2>
+      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
+    </div>
+    <div class="sheet-body" id="rules-body"></div>
+    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   Four different games of noughts and crosses behind one level chip. The level changes the
+   RULES, not just how well the owl plays:
+
+     EASY    classic   three in a row wins
+     MEDIUM  reverse   three in a row LOSES (misère noughts and crosses)
+     HARD    vanish    disappearing tic-tac-toe, original rules (as therenotthere.com):
+                       each player keeps at most 3 marks; placing a 4th removes your
+                       oldest FIRST, and only then is the line checked
+     EXPERT  ultimate  nine boards in one. This is Tic Tac Trek's Expert level — engine,
+                       owl and on-screen help copied unchanged (see `Trek` below).
+
+   The three 3x3 games share one state shape and one applyGrid(); `mode` decides what a
+   finished line means and whether marks fade. `board` says WHAT is where, `queues` says
+   HOW OLD (only vanish reads it). _tests/games/tic-tac-toe proves the Expert engine
+   move-for-move identical to Tic Tac Trek's.
+
+   All three 3x3 games are small enough to SOLVE, so the owl always knows the true value
+   of every square. Classic and reverse: solveGrid() is an exact negamax over every
+   reachable position (a few thousand), memoised; both are draws with perfect play.
+   Vanish can loop, so it is solved backwards instead (see vanishTable). An unbeatable owl
+   would never lose, so `blunder` is the chance per move that it plays a random (but never
+   suicidal) square instead — and it always takes a win on the spot.
+
+   In REVERSE the owl goes first (`first:'O'`). Whoever starts places five of the nine
+   marks, so in reverse going first is the handicap: with the child starting, even an owl
+   playing completely at random lost only ~13% of games. Numbers from a Node sweep against
+   a "never makes its own three, otherwise random" player: Easy (blunder .40, child first)
+   ~49% wins; Medium (blunder .25, owl first) ~28% wins / 26% losses; Hard: see
+   vanishTable; Expert (Tic Tac Trek's) ~0%. */
+
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const REPEATS=3;                      // vanish only: the same position this many times is a tie
+const LEVELS={
+  EASY:  { label:"🌱 Easy",   mode:"classic",  blunder:.40 },
+  MEDIUM:{ label:"⭐ Medium", mode:"reverse",  blunder:.25, first:'O' },
+  HARD:  { label:"🔥 Hard",   mode:"vanish",   K:3 },
+  EXPERT:{ label:"🏆 Expert", mode:"ultimate" },
+};
+const isGridLevel = l => LEVELS[l].mode!=="ultimate";
+
+function newGrid(level){
+  const cfg=LEVELS[level]&&isGridLevel(level) ? LEVELS[level] : LEVELS.EASY;
+  const lv=LEVELS[level]&&isGridLevel(level) ? level : "EASY";
+  return { level:lv, mode:cfg.mode, K:cfg.K||9,
+           board:[null,null,null,null,null,null,null,null,null],
+           queues:{X:[],O:[]}, turn:cfg.first||'X', ply:0, over:false,
+           winner:null, line:null, result:null, lastMove:-1, evicted:-1, seen:{} };
+}
+function cloneGrid(s){
+  return { level:s.level, mode:s.mode, K:s.K, board:s.board.slice(),
+           queues:{ X:s.queues.X.slice(), O:s.queues.O.slice() },
+           turn:s.turn, ply:s.ply, over:s.over, winner:s.winner,
+           line:s.line, result:s.result, lastMove:s.lastMove, evicted:s.evicted,
+           seen:Object.assign({}, s.seen) };
+}
+/* a position is the marks, how old each one is, and whose turn it is */
+const posKey = s => s.queues.X.join('')+'|'+s.queues.O.join('')+'|'+s.turn;
+function gridMoves(s){
+  const out=[]; if(s.over) return out;
+  for(let i=0;i<9;i++) if(s.board[i]===null) out.push(i);
+  return out;
+}
+function lineFor(board,p){
+  for(let i=0;i<LINES.length;i++){ const L=LINES[i];
+    if(board[L[0]]===p && board[L[1]]===p && board[L[2]]===p) return L; }
+  return null;
+}
+
+/* The rule steps, in order. (2) before (3) is the original disappearing rule: your oldest
+   mark is gone BEFORE the line is checked, so nobody ever has more than 3 marks and a
+   fading mark can never finish its owner's line (it still blocks the other player until
+   it goes). Classic and reverse never reach 4 marks, so (2) never fires for them. In
+   reverse mode a finished line hands the game to the OTHER player. */
+function applyGrid(s, idx){
+  if(s.over) return s;
+  if(idx<0 || idx>8 || s.board[idx]!==null) throw new Error("illegal move "+idx);
+  const n=cloneGrid(s), p=s.turn, q = p==='X' ? 'O' : 'X';
+  n.board[idx]=p; n.queues[p].push(idx);                                    // (1) place
+  n.lastMove=idx; n.evicted=-1; n.ply=s.ply+1;
+  if(n.queues[p].length>n.K){                                              // (2) oldest goes
+    n.evicted=n.queues[p].shift(); n.board[n.evicted]=null;
+  }
+  const L=lineFor(n.board,p);                                              // (3) check
+  if(L){
+    n.over=true; n.line=L; n.winner = s.mode==='reverse' ? q : p; n.result=n.winner;
+    return n;
+  }
+  n.turn=q;                                                                // (4) pass turn
+  if(s.mode==='vanish'){                                                   // (5) repetition
+    const k=posKey(n); n.seen[k]=(n.seen[k]||0)+1;
+    if(n.seen[k]>=REPEATS){ n.over=true; n.result='tie'; }
+  } else if(n.ply>=9){ n.over=true; n.result='tie'; }
+  return n;
+}
+
+/* ---- classic + reverse: solved exactly --------------------------------------------------
+   Value for the player who makes move m: 10-ply for a win (sooner is better), ply-10 for a
+   loss (later is better), 0 for a tie. */
+const SOLVED=new Map();
+function solveGrid(s){                       // best value for the player to move
+  const key=s.mode+s.turn+s.board.map(v=>v||'.').join('');
+  if(SOLVED.has(key)) return SOLVED.get(key);
+  let best=-Infinity;
+  const moves=gridMoves(s);
+  for(let i=0;i<moves.length;i++){ const v=moveValue(s,moves[i]); if(v>best) best=v; }
+  SOLVED.set(key,best);
+  return best;
+}
+function moveValue(s, m){
+  const n=applyGrid(s,m);
+  if(n.over) return n.winner===s.turn ? 10-n.ply : n.winner ? n.ply-10 : 0;
+  return -solveGrid(n);
+}
+function aiGrid(s, rand, blunder){
+  rand = rand || Math.random;
+  if(blunder==null) blunder=LEVELS[s.level].blunder;
+  const evs=gridMoves(s).map(m=>({ idx:m, n:applyGrid(s,m) }));
+
+  /* 1. always take a win on the spot — the blunder roll never gets to touch it */
+  const wins=evs.filter(e=>e.n.winner===s.turn);
+  if(wins.length) return wins[Math.floor(rand()*wins.length)].idx;
+
+  /* 2. the deliberate blunder that keeps the owl beatable — but never a square that makes
+        the owl's OWN three in reverse mode, which would look like it forgot the rules */
+  if(blunder>0 && rand()<blunder){
+    const safe=evs.filter(e=>!e.n.winner), pool=safe.length ? safe : evs;
+    return pool[Math.floor(rand()*pool.length)].idx;
+  }
+
+  /* 3. perfect play, picking at random among equally good squares so games differ */
+  evs.forEach(e=>{ e.v=moveValue(s,e.idx); });
+  const best=Math.max.apply(null, evs.map(e=>e.v));
+  const top=evs.filter(e=>e.v===best);
+  return top[Math.floor(rand()*top.length)].idx;
+}
+
+/* ---- vanish: solved backwards ---------------------------------------------------------
+   A vanish game can go round in circles, so plain negamax can't solve it. Instead every
+   reachable position (each side's marks, oldest first, plus whose turn it is — ~120k of
+   them) is enumerated once, and the values are worked BACKWARDS from the positions that
+   have a winning move: a position is WON if some move wins or leads to a position LOST
+   for the other side, LOST if every move leads to a position WON for the other side, and
+   anything never decided is a DRAW (both sides can keep it going forever — the repetition
+   rule then ends it). `dist` is the number of moves to the end with best play, so the owl
+   wins as fast as it can and loses as slowly as it can. Built on first use (~0.3 s).
+
+   Draw positions are where the game is actually played, and "any drawing move" would make
+   a flat opponent, so among them the owl prefers the TRAPPY one: the move that leaves the
+   child the most replies that lose by force.
+
+   From the empty board the FIRST player (the child) has a forced win in 13 moves, so a
+   child who plays perfectly always wins. Against a "takes a win, blocks a threat,
+   otherwise random" player the perfect owl still wins ~99%, so it blunders: .45 measured
+   ~17% child wins (Node sweep, 2,000 games) — between Medium's ~28% and Expert's ~0%. */
+const VANISH_BLUNDER=.45;
+let VT=null;
+const qCode = q => { let c=0; for(let i=0;i<3;i++) c=c*10+(i<q.length ? q[i]+1 : 0); return c; };
+const vKey = (xq,oq,t) => (qCode(xq)*1000+qCode(oq))*2 + (t==='O'?1:0);
+const isLine = q => q.length===3 && LINES.some(L=>L.indexOf(q[0])>=0 && L.indexOf(q[1])>=0 && L.indexOf(q[2])>=0);
+/* the vanish rules on bare queues: the mover's queue after placing on m, oldest dropped */
+function vPlace(q, m){ const r=q.concat([m]); if(r.length>3) r.shift(); return r; }
+function vanishTable(){
+  if(VT) return VT;
+  const index=new Map(), states=[];          // state: [xq, oq, turn]
+  const add=(xq,oq,t)=>{ const k=vKey(xq,oq,t); if(!index.has(k)){ index.set(k,states.length); states.push([xq,oq,t]); } return index.get(k); };
+  add([],[],'X');
+  const kids=[], winNow=[];
+  for(let i=0;i<states.length;i++){          // states grows as we go: a breadth-first walk
+    const [xq,oq,t]=states[i], mine=t==='X'?xq:oq, occ=xq.concat(oq), ch=[];
+    let w=false;
+    for(let m=0;m<9;m++){
+      if(occ.indexOf(m)>=0) continue;
+      const nq=vPlace(mine,m);
+      if(isLine(nq)){ w=true; continue; }
+      ch.push(t==='X' ? add(nq,oq,'O') : add(xq,nq,'X'));
+    }
+    kids.push(ch); winNow.push(w);
+  }
+  const N=states.length, val=new Int8Array(N), dist=new Int16Array(N), left=new Int16Array(N);
+  const parents=Array.from({length:N},()=>[]);
+  for(let i=0;i<N;i++){ const ch=kids[i]; left[i]=ch.length; for(let j=0;j<ch.length;j++) parents[ch[j]].push(i); }
+  const WIN=1, LOSS=-1, queue=[];
+  for(let i=0;i<N;i++) if(winNow[i]){ val[i]=WIN; dist[i]=1; queue.push(i); }
+  for(let h=0;h<queue.length;h++){           // FIFO, so distances come out in order
+    const c=queue[h], ps=parents[c];
+    for(let j=0;j<ps.length;j++){ const p=ps[j];
+      if(val[p]) continue;
+      if(val[c]===LOSS){ val[p]=WIN; dist[p]=dist[c]+1; queue.push(p); }
+      else if(--left[p]===0){ val[p]=LOSS; dist[p]=dist[c]+1; queue.push(p); }
+    }
+  }
+  VT={ index, states, kids, winNow, val, dist };
+  return VT;
+}
+/* Value of move m for the player making it: 1000-dist for a forced win (sooner is better),
+   dist-1000 for a forced loss (later is better), and for a draw, how many of the other
+   side's replies lose by force (the trappiness, 0..8). */
+function vanishMoveValue(s, m){
+  const T=vanishTable(), p=s.turn;
+  const nq=vPlace(s.queues[p], m);
+  if(isLine(nq)) return 1000;
+  const c=T.index.get(p==='X' ? vKey(nq,s.queues.O,'O') : vKey(s.queues.X,nq,'X'));
+  if(T.val[c]<0) return 1000-T.dist[c];
+  if(T.val[c]>0) return T.dist[c]-1000;
+  let traps=0; const ch=T.kids[c];
+  for(let j=0;j<ch.length;j++) if(T.val[ch[j]]>0) traps++;
+  return traps;
+}
+function aiVanish(s, rand, blunder){
+  rand = rand || Math.random;
+  if(blunder==null) blunder=VANISH_BLUNDER;
+  const evs=gridMoves(s).map(m=>({ idx:m, v:vanishMoveValue(s,m) }));
+  /* 1. a win on the spot is always taken */
+  const wins=evs.filter(e=>e.v===1000);
+  if(wins.length) return wins[Math.floor(rand()*wins.length)].idx;
+  /* 2. the blunder: a random square, but never one that hands over a win next move */
+  if(blunder>0 && rand()<blunder){
+    const safe=evs.filter(e=>e.v!==-999), pool=safe.length ? safe : evs;
+    return pool[Math.floor(rand()*pool.length)].idx;
+  }
+  /* 3. best play, at random among equally good squares */
+  const best=Math.max.apply(null, evs.map(e=>e.v)), top=evs.filter(e=>e.v===best);
+  return top[Math.floor(rand()*top.length)].idx;
+}
+
+/* -1 until the player is AT the limit; then the mark that vanishes on their next placement */
+function fadingIndex(s,p){ const q=s.queues[p]; return q.length>=s.K ? q[0] : -1; }
+/* empty squares where p would finish a line on p's next move, under this level's rules */
+function threatSquares(s,p){
+  const t=cloneGrid(s); t.turn=p; t.over=false;
+  return gridMoves(t).filter(m=>applyGrid(t,m).winner===p);
+}
+
+/* the owl's move in any of the three 3x3 games */
+function aiMoveGrid(s, rand){ return s.mode==='vanish' ? aiVanish(s, rand) : aiGrid(s, rand); }
+
+/* ---- ultimate: Tic Tac Trek's engine with its Expert settings, copied unchanged ---------
+   9 small boards inside one big board, and the CELL you play in names the small BOARD your
+   opponent must play in next. `cells[81]` holds cell c of board b at b*9+c, `won[9]` holds
+   'X' | 'O' | 'D' (drawn) | null, and `forced` is the board to play in or -1 for a FREE
+   MOVE. Kept in its own scope because its names (newGame, applyMove, …) are Trek's own. */
+const Trek=(function(){
+  const BW=[3,2,3, 2,4,2, 3,2,3];            // centre > corner > edge, big board…
+  const CW=[3,2,3, 2,4,2, 3,2,3];            // …and cells inside one small board
+  const CLAIM=45, BIG2=190, BIG1=32, SMALL2=12, SMALL1=2, FREE=30;
+  const EXPERT={ depth:5, blunder:0, soft:1 };   // Tic Tac Trek's LEVELS.EXPERT
+
+  function newGame(){
+    return { level:"EXPERT",
+             cells:new Array(81).fill(null), won:new Array(9).fill(null),
+             forced:-1, turn:'X', ply:0, over:false,
+             winner:null, line:null, result:null, lastB:-1, lastC:-1 };
+  }
+  function cloneState(s){
+    return { level:s.level, cells:s.cells.slice(), won:s.won.slice(),
+             forced:s.forced, turn:s.turn, ply:s.ply, over:s.over, winner:s.winner,
+             line:s.line, result:s.result, lastB:s.lastB, lastC:s.lastC };
+  }
+  function boardOpen(s, b){
+    if(s.won[b] !== null) return false;
+    for(let c=0;c<9;c++) if(s.cells[b*9+c]===null) return true;
+    return false;
+  }
+  function openBoards(s){
+    const out=[]; for(let b=0;b<9;b++) if(boardOpen(s,b)) out.push(b);
+    return out;
+  }
+  function playableBoards(s){
+    if(s.over) return [];
+    return (s.forced>=0 && boardOpen(s,s.forced)) ? [s.forced] : openBoards(s);
+  }
+  function legalMoves(s){
+    const out=[]; if(s.over) return out;
+    const bs=playableBoards(s);
+    for(let i=0;i<bs.length;i++){ const b=bs[i];
+      for(let c=0;c<9;c++) if(s.cells[b*9+c]===null) out.push(b*9+c); }
+    return out;
+  }
+  function lineInBoard(cells, b, p){
+    const off=b*9;
+    for(let i=0;i<LINES.length;i++){ const L=LINES[i];
+      if(cells[off+L[0]]===p && cells[off+L[1]]===p && cells[off+L[2]]===p) return L; }
+    return null;
+  }
+  function bigLine(won, p){
+    for(let i=0;i<LINES.length;i++){ const L=LINES[i];
+      if(won[L[0]]===p && won[L[1]]===p && won[L[2]]===p) return L; }
+    return null;
+  }
+  /* place, claim the small board, check the big board, then send */
+  function applyMove(s, m){
+    if(s.over) return s;
+    const b=Math.floor(m/9), c=m%9;
+    if(m<0 || m>80 || s.cells[m]!==null) throw new Error("illegal move "+m);
+    if(!boardOpen(s,b)) throw new Error("board closed "+b);
+    if(s.forced>=0 && boardOpen(s,s.forced) && b!==s.forced) throw new Error("wrong board "+b);
+
+    const n=cloneState(s), p=s.turn;
+    n.cells[m]=p; n.lastB=b; n.lastC=c; n.ply=s.ply+1;                     // (1) place
+    if(lineInBoard(n.cells, b, p)) n.won[b]=p;                             // (2) claim
+    else { let full=true;
+           for(let i=0;i<9;i++) if(n.cells[b*9+i]===null){ full=false; break; }
+           if(full) n.won[b]='D'; }                                        //     …or draw it
+    if(n.won[b]===p){                                                      // (3) big board
+      const BL=bigLine(n.won,p);
+      if(BL){ n.over=true; n.winner=p; n.line=BL; n.result=p; }
+    }
+    n.forced = boardOpen(n,c) ? c : -1;                                    // (4) send, or free
+    n.turn = p==='X' ? 'O' : 'X';
+    if(!n.over && legalMoves(n).length===0){ n.over=true; n.result='tie'; }
+    return n;
+  }
+  function smallScore(cells, b, p, q){
+    const off=b*9; let s=0;
+    for(let i=0;i<LINES.length;i++){
+      const L=LINES[i]; let mine=0, theirs=0;
+      for(let j=0;j<3;j++){ const v=cells[off+L[j]];
+        if(v===p) mine++; else if(v===q) theirs++; }
+      if(theirs===0) s += mine===2 ? SMALL2 : mine===1 ? SMALL1 : 0;
+    }
+    for(let i=0;i<9;i++) if(cells[off+i]===p) s += CW[i];
+    return s;
+  }
+  function bigScore(won, p){
+    let s=0;
+    for(let i=0;i<LINES.length;i++){
+      const L=LINES[i]; let mine=0, blocked=false;
+      for(let j=0;j<3;j++){ const v=won[L[j]];
+        if(v===p) mine++; else if(v!==null) blocked=true; }
+      if(!blocked) s += mine===2 ? BIG2 : mine===1 ? BIG1 : 0;
+    }
+    return s;
+  }
+  function staticEval(s){
+    const me=s.turn, opp = me==='X' ? 'O' : 'X';
+    let sc=0;
+    for(let b=0;b<9;b++){
+      if(s.won[b]===me) sc += CLAIM*BW[b];
+      else if(s.won[b]===opp) sc -= CLAIM*BW[b];
+      else if(s.won[b]===null) sc += BW[b]*(smallScore(s.cells,b,me,opp) - smallScore(s.cells,b,opp,me));
+    }
+    sc += bigScore(s.won,me) - bigScore(s.won,opp);
+    if(s.forced<0) sc += FREE;
+    return sc;
+  }
+  function negamax(s, depth, alpha, beta){
+    const moves=legalMoves(s);
+    if(!moves.length) return 0;
+    if(moves.length>20 && depth>2) depth--;     // a free-move node: spend a ply, not the time
+    let best=-Infinity;
+    for(let i=0;i<moves.length;i++){
+      const n=applyMove(s,moves[i]);
+      let v;
+      if(n.over) v = n.winner ? 9000+depth : 0;
+      else if(depth<=1) v = -staticEval(n);
+      else v = -negamax(n, depth-1, -beta, -alpha);
+      if(v>best) best=v;
+      if(best>alpha) alpha=best;
+      if(alpha>=beta) break;
+    }
+    return best;
+  }
+  function searchValue(s, m, depth){
+    const n=applyMove(s,m);
+    if(n.over) return n.winner ? 9000+depth : 0;
+    if(depth<=1) return -staticEval(n);
+    return -negamax(n, depth-1, -Infinity, Infinity);
+  }
+  function effectiveDepth(s, depth){
+    const n=legalMoves(s).length;
+    if(n>45) return Math.max(2, depth-2);
+    if(n>18) return Math.max(2, depth-1);
+    return depth;
+  }
+  function aiMove(s, rand, opts){
+    rand = rand || Math.random;
+    const cfg = opts || EXPERT;
+    const moves=legalMoves(s);
+    if(moves.length<=1) return moves.length ? moves[0] : -1;
+    for(let i=0;i<moves.length;i++){                 // 1. always take an immediate win
+      if(applyMove(s,moves[i]).winner===s.turn) return moves[i];
+    }
+    if(cfg.blunder>0 && rand()<cfg.blunder) return moves[Math.floor(rand()*moves.length)];
+    const depth=effectiveDepth(s, cfg.depth);        // 3. rank by search
+    const evs=moves.map(m=>({ idx:m, sv:searchValue(s,m,depth) }));
+    evs.sort((a,b)=> b.sv-a.sv);
+    const bestSv=evs[0].sv;
+    if(bestSv>=9000 || cfg.soft<=1) return evs[0].idx;
+    const near=evs.filter(e=>e.sv>bestSv-45);
+    const top=(near.length?near:evs).slice(0,cfg.soft), w=[3,2,1];
+    let tot=0; for(let k=0;k<top.length;k++) tot+=w[k];
+    let r=rand()*tot;
+    for(let k=0;k<top.length;k++){ r-=w[k]; if(r<=0) return top[k].idx; }
+    return top[0].idx;
+  }
+  return { EXPERT, newGame, cloneState, boardOpen, openBoards, playableBoards, legalMoves,
+           lineInBoard, bigLine, applyMove, staticEval, aiMove };
+})();
+
+/* the same nine names do for a board on the big grid and a square inside a small one */
+const SPOT=["top-left","top-middle","top-right","middle-left","centre","middle-right",
+            "bottom-left","bottom-middle","bottom-right"];
+
+if(typeof module!=="undefined") module.exports={ LINES, REPEATS, LEVELS, isGridLevel, SPOT,
+  newGrid, cloneGrid, gridMoves, lineFor, applyGrid, posKey, solveGrid, moveValue, aiGrid,
+  VANISH_BLUNDER, vanishTable, vPlace, isLine, vKey, vanishMoveValue, aiVanish,
+  fadingIndex, threatSquares, aiMoveGrid, Trek };
+
+/* ===== DOM =============================================================================== */
+if(typeof document!=="undefined"){
+
+const GLYPH={ X:'✕', O:'◯' };
+const RC=i=>`row ${Math.floor(i/3)+1}, column ${(i%3)+1}`;
+let level="EASY", S=null, busy=false, round=0;
+const tiles=[], ucells=[], uboards=[], claims=[];
+const ult=()=>!isGridLevel(level);
+
+/* ---- build both boards once; the level decides which one is on screen ---- */
+(function buildBoards(){
+  const g=$("board");
+  for(let i=0;i<9;i++){
+    const t=document.createElement('button');
+    t.type='button'; t.className='tile'; t.dataset.i=i;
+    t.onclick=()=>gridHumanMove(i);
+    tiles.push(t); g.appendChild(t);
+  }
+  const u=$("uboard");
+  for(let b=0;b<9;b++){
+    const bd=document.createElement('div');
+    bd.className='ubrd'; bd.dataset.b=b; bd.setAttribute('role','group');
+    for(let c=0;c<9;c++){
+      const m=b*9+c;
+      const el=document.createElement('button');
+      el.type='button'; el.className='ucell'; el.dataset.m=m;
+      el.onclick=()=>ultHumanMove(m);
+      ucells.push(el); bd.appendChild(el);
+    }
+    const cl=document.createElement('div'); cl.className='claim'; bd.appendChild(cl); claims.push(cl);
+    uboards.push(bd); u.appendChild(bd);
+  }
+})();
+function showBoard(){
+  $("board").classList.toggle('hide', ult());
+  $("uboard").classList.toggle('hide', !ult());
+}
+
+/* Every beat is a timer, and Home / Skip / a level switch can land in the middle of one.
+   `round` is bumped whenever the board is torn down, and each beat drops out if it is no
+   longer the current round — otherwise a pending owl move lands on the next game. */
+function step(g, ms, fn){ setTimeout(()=>{ if(g===round) fn(); }, ms); }
+
+function turn(html, kind){
+  const t=$("turnbar");
+  t.className='turnbar'+(kind?' '+kind:'');
+  t.innerHTML = html ? '<span class="msg">'+html+'</span>' : '';
+}
+
+/* ===== the 3x3 games (Easy / Medium / Hard) ===== */
+
+/* Render from state. `anim` names the one square to animate: {pop:idx} for a freshly
+   placed mark, and for Hard {hold:idx} then {vanish:idx} for the mark on its way out —
+   applyGrid clears the evicted square at once, so those frames draw it back in. The ghost
+   belongs to whoever just moved, i.e. the opposite of whose turn it now is. */
+function renderGrid(anim){
+  const v=anim||{}, vanish = S.mode==='vanish';
+  const fade = vanish ? { X:fadingIndex(S,'X'), O:fadingIndex(S,'O') } : { X:-1, O:-1 };
+  const mover = S.turn==='X' ? 'O' : 'X';
+  const ghostIdx = reduceMotion ? -1 : (v.vanish>=0 ? v.vanish : (v.hold>=0 ? v.hold : -1));
+  for(let i=0;i<9;i++){
+    const t=tiles[i], p=S.board[i];
+    const isGhost = (i===ghostIdx && p===null);
+    const sym = p || (isGhost ? mover : null);
+    t.className='tile';
+    if(sym){
+      const cls='mark '+sym.toLowerCase()
+        + (v.pop===i && !reduceMotion ? ' pop' : '')
+        + (isGhost && v.vanish===i ? ' vanish' : '');
+      t.innerHTML=`<span class="${cls}">${GLYPH[sym]}</span>`;
+    } else t.innerHTML='';
+    const isFading = !!sym && !isGhost && fade[sym]===i;
+    if(isGhost) t.classList.add('ghost');
+    else if(isFading) t.classList.add('fading');
+    if(S.line && S.line.indexOf(i)>=0) t.classList.add(S.mode==='reverse' ? 'lost' : 'win');
+    t.disabled = !!sym || S.over || busy;
+    if(S.over || busy) t.classList.add('locked');
+    t.setAttribute('aria-label', (sym && !isGhost)
+      ? `${RC(i)}, ${sym==='X'?'your ✕':'owl ◯'}${isFading?', fading':''}`
+      : `${RC(i)}, empty`);
+  }
+}
+
+const PAUSE = reduceMotion ? 0 : 320;   // beat between "placed" and "oldest vanishes"
+const THINK = reduceMotion ? 120 : 520; // how long the owl appears to think
+
+function gridHumanMove(i){
+  if(ult() || busy || !S || S.over || S.turn!=='X' || S.board[i]!==null) return;
+  busy=true;
+  const g=round;
+  S=applyGrid(S,i);
+  sound('place');
+  renderGrid({pop:i, hold:S.evicted});           // new mark pops, the old one still sits there
+  flash('', '');
+  step(g, PAUSE, ()=>{
+    if(S.evicted>=0) renderGrid({vanish:S.evicted});
+    step(g, S.evicted>=0 ? PAUSE : 0, ()=>{
+      if(S.over) return finish();                 // a winning move can vanish a mark too
+      renderGrid();
+      setOwl('think'); turn('<span class="pip o">◯</span> The owl is thinking…');
+      step(g, THINK, gridOwlMove);
+    });
+  });
+}
+
+function gridOwlMove(){
+  const g=round;
+  S=applyGrid(S, aiMoveGrid(S));
+  sound('owl');
+  renderGrid({pop:S.lastMove, hold:S.evicted});
+  step(g, PAUSE, ()=>{
+    if(S.evicted>=0) renderGrid({vanish:S.evicted});
+    step(g, S.evicted>=0 ? PAUSE : 0, ()=>{
+      if(S.over) return finish();
+      busy=false; renderGrid(); gridYourTurn();
+    });
+  });
+}
+
+/* the turn strip carries the rule of THIS level, because the rules change between levels */
+function gridYourTurn(){
+  const you='<span class="pip x">✕</span> Your turn';
+  if(S.mode==='reverse'){
+    turn(you+' — <b>don\'t</b> make three in a row!');
+    flash('', ''); setOwl('idle');
+    return;
+  }
+  if(S.mode==='vanish' && fadingIndex(S,'X')>=0) turn(you+' — your <b>dashed</b> ✕ vanishes when you place');
+  else turn(you+' — get <b>three in a row</b>!');
+  const threat = threatSquares(S,'O').length>0;
+  setOwl(threat ? 'worried' : 'idle');
+  flash(threat ? "😬 The owl is one away — block it!" : '', threat ? 'bad' : '');
+}
+
+/* ===== the ultimate game (Expert) — Tic Tac Trek's Expert level ===== */
+
+/* Render from state. `v` names the one-off flourishes: {pop:cell, claimed:board}. */
+function renderUlt(v){
+  v=v||{};
+  const play=Trek.playableBoards(S), canMove = !S.over && !busy && S.turn==='X';
+  for(let b=0;b<9;b++){
+    const bd=uboards[b], w=S.won[b], open=play.indexOf(b)>=0;
+    bd.className='ubrd';
+    if(w) bd.classList.add('claimed');
+    bd.classList.add(open ? 'active' : 'dim');
+    if(S.line && S.line.indexOf(b)>=0) bd.classList.add('bigwin');
+
+    const cl=claims[b];
+    cl.className='claim' + (w ? ' '+(w==='D'?'d':w.toLowerCase()) : '')
+      + (v.claimed===b && !reduceMotion ? ' pop' : '');
+    cl.textContent = w==='D' ? '🤝' : (w ? GLYPH[w] : '');
+
+    bd.setAttribute('aria-label', SPOT[b]+' board, '
+      + (w==='X' ? 'won by you' : w==='O' ? 'won by the owl' : w==='D' ? 'drawn' : 'still open')
+      + (open && canMove ? ', play here now' : ''));
+
+    for(let c=0;c<9;c++){
+      const i=b*9+c, el=ucells[i], p=S.cells[i];
+      el.className='ucell' + (p ? '' : ' empty') + (open && canMove && !p ? ' ok' : '')
+        + (i===S.lastB*9+S.lastC && p ? ' last' : '');
+      el.innerHTML = p
+        ? '<span class="mk '+p.toLowerCase()+(v.pop===i && !reduceMotion ? ' pop':'')+'">'+GLYPH[p]+'</span>'
+        : '';
+      /* empty squares stay clickable even where you may NOT play: tapping one shakes the
+         board and calls out the right one (see nope()). Only filled squares are dead. */
+      el.disabled = !!p || S.over;
+      el.setAttribute('aria-disabled', String(!(open && canMove && !p)));
+      el.setAttribute('aria-label', SPOT[b]+' board, '+SPOT[c]+' square, '
+        + (p ? (p==='X' ? 'your ✕' : 'owl ◯') : open && canMove ? 'empty, playable' : 'empty, not playable yet'));
+    }
+  }
+}
+
+const U_THINK  = reduceMotion ? 120 : 520;
+const U_SETTLE = reduceMotion ? 0 : 320;
+const U_PAUSE  = reduceMotion ? 0 : 340;
+
+function ultHumanMove(i){
+  if(!ult() || busy || !S || S.over || S.turn!=='X') return;
+  const b=Math.floor(i/9);
+  if(S.cells[i]!==null) return;
+  if(Trek.playableBoards(S).indexOf(b)<0) return nope(b);
+
+  busy=true;
+  const g=round, claimedBefore=S.won[b];
+  S=Trek.applyMove(S,i);
+  const justClaimed = S.won[b]!==claimedBefore;
+  sound(justClaimed ? (S.won[b]==='D' ? 'draw' : 'claim') : 'place');
+  renderUlt({pop:i, claimed:justClaimed?b:-1});
+  flash('', '');
+  if(S.over) return step(g, U_PAUSE, finish);
+  setOwl('think');
+  turn('<span class="pip o">◯</span> The owl is thinking…');
+  step(g, U_THINK, ultOwlMove);
+}
+
+function ultOwlMove(){
+  const g=round;
+  const m=Trek.aiMove(S), b=Math.floor(m/9);
+  const claimedBefore=S.won[b];
+  S=Trek.applyMove(S,m);
+  const justClaimed = S.won[b]!==claimedBefore;
+  sound(justClaimed ? (S.won[b]==='D' ? 'draw' : 'claim') : 'owl');
+  renderUlt({pop:m, claimed:justClaimed?b:-1});
+  if(S.over) return step(g, U_PAUSE, finish);
+  ultTurnPrompt();       // the owl has already moved — don't leave "thinking…" on screen
+  step(g, U_SETTLE, ()=>{ busy=false; renderUlt(); ultYourTurn(); });
+}
+
+function ultTurnPrompt(){
+  if(S.forced>=0) turn('<span class="pip x">✕</span> Your turn');
+  else turn('🎁 <b>FREE MOVE!</b> Play in any glowing board.', 'free');
+}
+function ultYourTurn(){
+  ultTurnPrompt();
+  if(S.forced<0) sound('free');
+  setOwl('idle');
+}
+
+/* tapping a board you may not use shakes it and calls out the right one */
+function nope(b){
+  const bd=uboards[b];
+  bd.classList.remove('nope'); void bd.offsetWidth; bd.classList.add('nope');
+  sound('nope');
+  flash("🚫 Not that board.", 'bad');
+  const g=round, play=Trek.playableBoards(S);
+  play.forEach(i=>uboards[i].classList.add('callout'));
+  step(g, 900, ()=>play.forEach(i=>uboards[i].classList.remove('callout')));
+}
+
+/* ===== shared round flow ===== */
+
+function finish(){
+  busy=false;
+  if(ult()) renderUlt(); else renderGrid();
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");     // keeps its box, so the top bar can't shift
+  $("next-btn").classList.remove("hide");
+  turn(''); flash('', '');
+  const mode=LEVELS[level].mode, res=$("result");
+  const TEXT={
+    classic: { X:["🎉 Three in a row — you win!", "You beat the owl on "+LEVELS[level].label+"!"],
+               O:["😅 The owl got three in a row!", "Block its lines — then try again!"],
+               tie:["Whew — a tie!", "Nobody got three in a row. Great blocking!"] },
+    reverse: { X:["🎉 The owl made three in a row — you win!", "You dodged every line on "+LEVELS[level].label+"!"],
+               O:["😅 Oops — you made three in a row!", "On this level three in a row loses. Try again!"],
+               tie:["Whew — a tie!", "The board filled up and nobody made three. Great dodging!"] },
+    vanish:  { X:["🎉 Three in a row — you win!", "You beat the owl on "+LEVELS[level].label+"!"],
+               O:["😅 The owl got three in a row!", "Watch which marks are fading — then try again!"],
+               tie:["Whew — a tie!", "The same position came up three times. Great blocking!"] },
+    ultimate:{ X:["🎉 Three boards in a row — you win!", "You out-played the owl on "+LEVELS[level].label+"!"],
+               O:["😅 The owl claimed three boards in a row!", "Think about where your move sends the owl — then try again!"],
+               tie:["Whew — nobody got three in a row!", "Every board is finished. Great defending!"] },
+  }[mode];
+  const key = S.winner || 'tie';
+  res.className='result';
+  $("rlabel").textContent=TEXT[key][0];
+  $("rsub").textContent=TEXT[key][1];
+  if(key==='X'){
+    $("stars").textContent="★★★";
+    setOwl('win'); sound('win');
+    if(!reduceMotion) miniConfetti();
+  } else if(key==='O'){
+    res.classList.add('lose');
+    $("stars").textContent="☆☆☆";
+    setOwl('worried'); sound('lose');
+  } else {
+    res.classList.add('tie');
+    $("stars").textContent="🤝";
+    setOwl('happy'); sound('tie');
+  }
+  $("next-btn").focus();
+}
+
+function newRound(fromHome){
+  round++;                                      // invalidate any beat still in flight
+  busy=false;
+  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  $("q-level-label").textContent=LEVELS[level].label;
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible");
+  stopConfetti();
+  showBoard();
+  flash('', ''); setOwl('idle');
+  if(ult()){
+    S=Trek.newGame();
+    renderUlt();
+    turn('🎁 <b>You go first!</b> Your very first move can be anywhere.', 'free');
+  } else {
+    S=newGrid(level);
+    if(S.turn==='O'){                           // Medium: the owl opens (see the engine note)
+      busy=true; renderGrid();
+      setOwl('think'); turn('<span class="pip o">◯</span> The owl goes first on this level…');
+      step(round, THINK, gridOwlMove);
+    } else { renderGrid(); gridYourTurn(); }
+  }
+}
+
+function goHome(){
+  round++;
+  stopConfetti(); busy=false; S=null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl('idle');
+}
+
+/* ---- levels ---- */
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
+  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+}
+document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
+
+(function buildLevelMenu(){
+  const menu=$("level-menu");
+  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
+    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
+  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
+})();
+/* every level is a different game, so switching always starts a fresh one */
+function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newRound(false); }
+wireLevelMenu();
+
+/* ---- rules sheet (chrome + wiring live in site.css / site.js) ---- */
+/* one 3x3 board: cells map square -> {t, o?, fade?, lost?, hi?} */
+function soloHTML(cells){
+  let h='';
+  for(let c=0;c<9;c++){
+    const m=cells[c];
+    h += m ? '<i class="'+(m.o?'o ':'')+(m.fade?'fade ':'')+(m.lost?'lost ':'')+(m.hi?'hi':'')+'"><span>'+m.t+'</span></i>' : '<i></i>';
+  }
+  return '<div class="rsolo" aria-hidden="true">'+h+'</div>';
+}
+/* one ultimate board, for the Expert section */
+function miniHTML(o){
+  o=o||{};
+  const claim=o.claim||{}, hi=o.hi||[], marks=o.marks||{}, hiCell=o.hiCell||[], tag=o.tag||{};
+  let h='';
+  for(let b=0;b<9;b++){
+    let inner='';
+    for(let c=0;c<9;c++){
+      const k=b+'.'+c;
+      inner+='<i class="rcell'+(hiCell.indexOf(k)>=0?' hi':'')+'">'+(marks[k]||'')+'</i>';
+    }
+    if(claim[b]) inner+='<b class="rclaim '+(claim[b]==='✕'?'x':'o')+'">'+claim[b]+'</b>';
+    if(tag[b]) inner+='<u class="rtag">'+tag[b]+'</u>';
+    h+='<div class="rbrd'+(hi.indexOf(b)>=0?' hi':'')+'">'+inner+'</div>';
+  }
+  return '<div class="rbig" aria-hidden="true">'+h+'</div>';
+}
+const X=()=>({t:'✕'}), Xf=()=>({t:'✕',fade:true}), O=()=>({t:'◯',o:true}), Ol=()=>({t:'◯',o:true,lost:true});
+const Of=()=>({t:'◯',o:true,fade:true}), Xh=()=>({t:'✕',hi:true}), Xl=()=>({t:'✕',lost:true}), Hi=()=>({t:'',hi:true});
+const rrow=(...parts)=>'<div class="rrow">'+parts.join('<span class="rarrow">➡️</span>')+'</div>';
+const cap=t=>'<span class="cap">'+t+'</span>';
+const rule=(h,body)=>'<div class="rule"><h3>'+h+'</h3>'+body+'</div>';
+
+/* Two sheets share one overlay. The start screen's "Read the full rules" shows ALL — a
+   tour of every level. The in-game 📖 Rules shows the detailed rules of the level being
+   played, and nothing else, because each level is a different game. */
+const RULES={
+ALL:()=>(    '<div class="rule"><h3>🎯 The basics</h3>'
+    + '<p>You are <b>✕</b> and the owl is <b>◯</b>. You take turns tapping an empty square — you '
+    + 'go first, except on Medium. Every level plays a <b>different kind</b> of tic-tac-toe — '
+    + 'switch any time with the level button at the top.</p></div>'
+
+    + '<div class="rule"><h3>🌱 Easy — classic</h3>'
+    + '<p>Get <b>three in a row</b> — across, down or corner to corner — and you win. If all nine '
+    + 'squares fill up and nobody has three in a row, it is a <b>tie</b>.</p>'
+    + '<div class="rrow">' + soloHTML({0:X(),4:X(),8:X(),1:O(),2:O()}) + '</div>'
+    + '<span class="cap">Three ✕ corner to corner — ✕ wins!</span></div>'
+
+    + '<div class="rule"><h3>⭐ Medium — reverse</h3>'
+    + '<p>Everything is <b>upside down</b>: whoever makes <b>three in a row loses</b>! Try to fill '
+    + 'squares that are safe for you, and leave the owl with nowhere to go except a line of its own. '
+    + 'On this level <b>the owl goes first</b> — going first is the hard part here, because the '
+    + 'first player has to fill more squares.</p>'
+    + '<div class="rrow">' + soloHTML({3:Ol(),4:Ol(),5:Ol(),0:X(),8:X(),2:X()}) + '</div>'
+    + '<span class="cap">The owl had to make three ◯ in a row — so the owl <b>loses</b> and you win!</span></div>'
+
+    + '<div class="rule"><h3>🔥 Hard — vanishing marks</h3>'
+    + '<p>You each can have only <b>3 marks</b> on the board. When you already have 3 and place '
+    + 'a 4th, your <b>oldest mark disappears</b> straight away. The mark that is about to go has a '
+    + '<b>dashed outline</b>.</p>'
+    + '<div class="rrow">'
+    + soloHTML({0:Xf(),1:X(),5:X()}) + '<span class="rarrow">➡️</span>' + soloHTML({1:Xf(),5:X(),2:X()})
+    + '</div>'
+    + '<span class="cap">✕ plays the top-right square. The dashed ✕ vanishes <b>first</b> — so the '
+    + 'top row is <b>not</b> three in a row!</span>'
+    + '<p style="margin-top:10px;">So a fading mark <b>can\'t</b> help you finish three in a row. But '
+    + 'it is still on the board until you place again, so it still <b>blocks the owl</b>. If the '
+    + 'exact same position comes up <b>three times</b>, the game is a tie.</p></div>'
+
+    + '<div class="rule"><h3>🏆 Expert — nine boards in one</h3>'
+    + '<p>There are <b>9 little boards</b> inside one big board. Win a little board to <b>claim</b> '
+    + 'it, and claim <b>three little boards in a row</b> to win the game.</p>'
+    + '<p>The big rule: <b>the square you play in decides which little board the owl must play in '
+    + 'next</b> — and the owl\'s square sends you.</p>'
+    + '<div class="rrow">'
+    + miniHTML({hi:[4], marks:{'4.2':'✕'}, hiCell:['4.2']})
+    + '<span class="rarrow">➡️</span>'
+    + miniHTML({hi:[2], tag:{2:'owl plays here'}})
+    + '</div>'
+    + '<span class="cap">✕ played the <b>top-right square</b>, so the owl must play in the '
+    + '<b>top-right board</b>.</span>'
+    + '<p style="margin-top:10px;">Your very first move can go anywhere. If you are sent to a board '
+    + 'that is already won or full, you get a <b>free move</b> — play in any glowing board. A little '
+    + 'board that fills up with no winner is a <b>draw</b> and closes.</p></div>'
+
+    + '<div class="rule"><h3>💡 Tips to beat the owl</h3>'
+    + '<p><b>Easy:</b> try to make two lines at once — the owl can only block one. '
+    + '<b>Medium:</b> the middle square is on the most lines, so it is the riskiest. '
+    + '<b>Hard:</b> don\'t build your line with your dashed mark — it will be gone. And watch the '
+    + 'owl\'s dashed mark: when it vanishes, the square it was blocking opens up. <b>Expert:</b> before you tap, ask: where will this send the owl?</p></div>'),
+
+EASY:()=>(
+    rule('🎯 How to win',
+      '<p>You are <b>✕</b> and the owl is <b>◯</b>. Get <b>three of your marks in a row</b> and you '
+      + 'win. A row can go <b>across</b>, <b>down</b>, or <b>corner to corner</b>.</p>'
+      + '<div class="rrow">' + soloHTML({3:X(),4:X(),5:X()}) + soloHTML({1:X(),4:X(),7:X()})
+      + soloHTML({2:X(),4:X(),6:X()}) + '</div>'
+      + cap('Across, down and corner to corner — all three count.'))
+    + rule('👆 Taking turns',
+      '<p><b>You go first.</b> Tap any empty square to put your ✕ there, then the owl puts its ◯ '
+      + 'somewhere. You can\'t play on a square that is already taken, and marks never move.</p>'
+      + '<p>On a keyboard, keys <b>1</b> to <b>9</b> pick the squares, top-left to bottom-right.</p>')
+    + rule('🛡️ Blocking the owl',
+      '<p>The owl is trying to get three in a row too. If it has <b>two in a row</b> with the third '
+      + 'square empty, it will win on its next turn — so put your ✕ in that square to <b>block</b> '
+      + 'it. The owl will warn you when it is one away!</p>'
+      + rrow(soloHTML({0:O(),1:O(),4:X(),2:Hi()}), soloHTML({0:O(),1:O(),4:X(),2:Xh()}))
+      + cap('The owl has two in the top row — ✕ blocks the last square.'))
+    + rule('🤝 A tie',
+      '<p>If all <b>nine squares fill up</b> and nobody has three in a row, the game is a '
+      + '<b>tie</b>. Between two careful players, that happens a lot!</p>'
+      + '<div class="rrow">' + soloHTML({0:X(),1:O(),2:X(),3:X(),4:O(),5:O(),6:O(),7:X(),8:X()}) + '</div>'
+      + cap('A full board with no three in a row — a tie.'))
+    + rule('💡 Tips to beat the owl',
+      '<p>The <b>centre</b> square is part of four lines, and each <b>corner</b> is part of three, '
+      + 'so they are the strongest squares to start in.</p>'
+      + '<p>The best trick is a <b>double threat</b>: a move that makes two lines at once. The owl '
+      + 'can only block one of them, so you win with the other!</p>'
+      + rrow(soloHTML({0:X(),8:X(),4:O(),2:O(),6:Xh()}))
+      + cap('✕ blocks the owl at bottom-left — and now threatens the left side <b>and</b> the bottom row!'))
+),
+
+MEDIUM:()=>(
+    rule('🙃 How to win — upside down!',
+      '<p>This level flips the rules: <b>whoever makes three in a row LOSES</b>. So you must '
+      + '<b>avoid</b> getting three ✕ in a line — across, down or corner to corner — and try to '
+      + 'force the owl into making three ◯ instead.</p>'
+      + rrow(soloHTML({0:Xl(),1:Xl(),2:Xl(),4:O(),6:O(),7:O()}), soloHTML({3:Ol(),4:Ol(),5:Ol(),0:X(),8:X()}))
+      + cap('Left: ✕ made three — ✕ <b>loses</b>. Right: the owl made three — you <b>win</b>!'))
+    + rule('🦉 The owl goes first',
+      '<p>On this level the <b>owl starts</b>. That is a present for you: the player who goes first '
+      + 'has to place <b>5</b> of the 9 marks, and more marks means more chances to be forced into a '
+      + 'line. You only place 4.</p>')
+    + rule('👆 Taking turns',
+      '<p>Tap any empty square to place your ✕. You <b>can\'t skip a turn</b> — so near the end, '
+      + 'every empty square might be a bad one, and you have to take one anyway. That is how '
+      + 'players get trapped!</p>'
+      + rrow(soloHTML({0:X(),3:X(),4:X(),1:O(),2:O(),6:O(),7:O(),5:Hi(),8:Hi()}))
+      + cap('Two squares are left, and <b>both</b> finish a ✕ line — ✕ has to take one. Trapped!'))
+    + rule('🤝 A tie',
+      '<p>If the board fills up and <b>nobody</b> made three in a row, it is a <b>tie</b>.</p>')
+    + rule('💡 Tips to beat the owl',
+      '<p>Be careful with <b>two ✕ on one line</b> with the third square empty: that empty square '
+      + 'becomes a <b>no-go square</b> for you. The more no-go squares you have, the easier you are '
+      + 'to trap.</p>'
+      + '<p>The <b>centre</b> is on four lines, so it is the riskiest square to fill. And try to leave '
+      + 'the owl squares that only <b>it</b> can\'t use safely — then it runs out of safe moves first.</p>')
+),
+
+HARD:()=>(
+    rule('🎯 How to win',
+      '<p>You are <b>✕</b> and the owl is <b>◯</b>, and you go first. Get <b>three in a row</b> — '
+      + 'across, down or corner to corner — to win. The twist: your marks <b>don\'t stay</b>.</p>')
+    + rule('⏳ Only 3 marks each',
+      '<p>Each player can have at most <b>3 marks</b> on the board. When you already have 3 and '
+      + 'place a 4th, your <b>oldest</b> mark vanishes. The owl follows the same rule.</p>'
+      + '<p>The mark that will vanish next has a <b>dashed outline</b> and looks faded — for your '
+      + 'marks and for the owl\'s.</p>'
+      + rrow(soloHTML({0:Xf(),4:X(),5:X(),1:Of(),2:O(),8:O()}), soloHTML({4:Xf(),5:X(),6:X(),1:Of(),2:O(),8:O()}))
+      + cap('✕ places bottom-left: the dashed ✕ (top-left, the oldest) disappears.'))
+    + rule('⚡ The oldest goes FIRST',
+      '<p>Your oldest mark vanishes <b>before</b> the game checks for three in a row. So your dashed '
+      + 'mark <b>can\'t</b> help you finish a line — by the time your new mark lands, it is gone.</p>'
+      + rrow(soloHTML({0:Xf(),1:X(),5:X()}), soloHTML({1:Xf(),5:X(),2:X()}))
+      + cap('✕ plays top-right. The dashed ✕ vanishes first — so the top row is <b>not</b> three in a row!'))
+    + rule('🛡️ Fading marks still block',
+      '<p>A dashed mark is still on the board until its owner places again, so it still '
+      + '<b>blocks</b> the other player\'s line. When it vanishes, that square opens up — for '
+      + 'either player.</p>'
+      + rrow(soloHTML({0:O(),8:O(),4:Xf()}))
+      + cap('The owl wants 0-4-8, but your dashed ✕ is in the way — until you place your next ✕.'))
+    + rule('🤝 A tie',
+      '<p>Marks keep vanishing, so a game can go round in circles. If the <b>exact same position</b> '
+      + '(the same marks, just as old, with the same player to move) comes up <b>three times</b>, '
+      + 'the game is a tie.</p>')
+    + rule('💡 Tips to beat the owl',
+      '<p>Don\'t build your line around your <b>dashed</b> mark — it will be gone. Line up your '
+      + 'two <b>newest</b> marks instead.</p>'
+      + '<p>Watch the owl\'s dashed mark: if it is blocking your line, the square opens up the '
+      + 'moment the owl plays again. And before blocking, check the owl\'s marks — a threat that '
+      + 'uses its dashed mark will vanish on its own!</p>')
+),
+
+EXPERT:()=>(
+    rule('🎯 How to win',
+      '<p>There are <b>9 little boards</b> inside one big board. Win a little board and you '
+      + '<b>claim</b> it. Claim <b>three little boards in a row</b> — across, down or corner to '
+      + 'corner — and you win the whole game.</p>'
+      + '<div class="rrow">' + miniHTML({claim:{0:'✕',1:'✕',2:'✕'}}) + '</div>'
+      + cap('✕ claimed the top three boards — ✕ wins!'))
+    + rule('🧭 The big rule: your move sends the owl',
+      '<p><b>The square you play in decides which little board the owl must play in next</b> — '
+      + 'and the square the owl plays in sends you. The board you must use has a ring around it.</p>'
+      + rrow(miniHTML({hi:[4], marks:{'4.2':'✕'}, hiCell:['4.2']}), miniHTML({hi:[2], tag:{2:'owl plays here'}}))
+      + cap('✕ played the <b>top-right square</b>, so the owl must play in the <b>top-right board</b>.')
+      + '<p style="margin-top:10px;">Your very <b>first move</b> is free — it can go anywhere.</p>')
+    + rule('🏅 Winning a little board',
+      '<p>Each little board is normal tic-tac-toe. Get <b>three in a row</b> inside it and it '
+      + 'becomes yours — it turns into one big mark, and nobody can play in it again.</p>'
+      + rrow(soloHTML({0:X(),4:X(),8:X()}), miniHTML({claim:{0:'✕'}}))
+      + cap('Three ✕ in a row claims that little board.'))
+    + rule('🎁 Free move',
+      '<p>If you are sent to a board that is <b>already won or completely full</b>, you get a '
+      + '<b>free move</b>: play in <b>any</b> board that is still going. Look for the glowing boards!</p>'
+      + '<div class="rrow">' + miniHTML({claim:{2:'◯'}, hi:[0,1,3,4,5,6,7,8]}) + '</div>'
+      + cap('Sent to the finished top-right board? Every glowing board is yours to pick.'))
+    + rule('🤝 Draws and ties',
+      '<p>If a little board fills up with no three in a row, it is a <b>draw</b>: nobody claims it, '
+      + 'and it closes. If every board is finished and nobody has three boards in a row, the whole '
+      + 'game is a tie.</p>')
+    + rule('💡 Tips to beat the owl',
+      '<p>Before you tap, ask: <b>where will this send the owl?</b> Don\'t send it to a board where '
+      + 'it is about to get three in a row, and try not to send it to a finished board — that hands '
+      + 'it a free move.</p>')
+),
+};
+
+let rulesShown=null;                  // which sheet is in #rules-body now — rebuilt only on change
+function showRules(scope, opener){
+  if(rulesShown!==scope){
+    $("rules-h").textContent = scope==='ALL' ? "📖 How to play Tic Tac Toe" : "📖 "+LEVELS[scope].label+" rules";
+    $("rules-body").innerHTML = RULES[scope]();
+    rulesShown=scope;
+  }
+  openRulesSheet(opener);
+}
+wireRulesSheet();                     // the shared close/focus/Escape wiring; the openers are ours:
+$("rules-home").onclick=()=>showRules('ALL', $("rules-home"));
+$("rules-btn").onclick=()=>showRules(level, $("rules-btn"));
+
+$("start-btn").onclick=()=>newRound(true);
+$("home-btn").onclick=goHome;
+$("skip-btn").onclick=()=>newRound(false);
+$("next-btn").onclick=()=>newRound(false);
+
+document.addEventListener("keydown", e=>{
+  if(rulesSheetOpen()) return;          // the sheet owns the keyboard while it is up
+  if(e.key==='Escape'){ closeLevelMenu(); }
+  if($("screen-game").classList.contains("hide") || !S) return;
+  if(e.key==='Enter' && S.over){ e.preventDefault(); newRound(false); return; }
+  if(!ult() && e.key>='1' && e.key<='9'){ gridHumanMove(parseInt(e.key,10)-1); }
+});
+
+/* ---- sound + confetti (shared stopConfetti/#confetti live in site.js) ---- */
+function sound(kind){
+  if(kind==="place") beep(560,.09,"triangle",0,.09);
+  else if(kind==="owl") beep(360,.10,"sine",0,.08);
+  else if(kind==="claim"){ beep(660,.10,"triangle",0,.09); beep(880,.14,"triangle",.10,.09); }
+  else if(kind==="draw"){ beep(420,.12,"sine",0,.07); beep(380,.14,"sine",.11,.07); }
+  else if(kind==="free"){ beep(880,.08,"triangle",0,.07); beep(1175,.10,"triangle",.08,.07); }
+  else if(kind==="nope") beep(150,.14,"sawtooth",0,.08);
+  else if(kind==="lose") beep(230,.22,"sawtooth",0,.09);
+  else if(kind==="tie"){ beep(440,.12,"sine",0,.08); beep(560,.14,"sine",.12,.08); }
+  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
+}
+function miniConfetti(){
+  const cv=$("confetti"); cv.style.display="block";
+  const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
+  const parts=Array.from({length:75},()=>({x:cv.width/2, y:cv.height*0.35, r:5+Math.random()*7,
+    c:colors[Math.floor(Math.random()*colors.length)], vy:-5+Math.random()*2,
+    vx:-6+Math.random()*12, rot:Math.random()*6, vr:.25}));
+  let f=0;
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=.22; p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.4); ctx.restore();
+    });
+    f++;
+    if(f<76) confettiRAF=requestAnimationFrame(draw); else stopConfetti();
+  })();
+}
+
+initBouncyTitle("Tic Tac Toe");
+setLevel("EASY");
+
+}
+</script>
+</body>
+</html>
