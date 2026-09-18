@@ -69,7 +69,7 @@ function bootGame(slug, opts = {}) {
       /* jsdom has no canvas backend: getContext() returns null and the shared confetti code
          would throw. Stub just enough 2d context for it to run. */
       w.HTMLCanvasElement.prototype.getContext = () => ({
-        clearRect() {}, fillRect() {}, save() {}, restore() {}, translate() {}, rotate() {}, set fillStyle(v) {}
+        clearRect() {}, fillRect() {}, save() {}, restore() {}, translate() {}, rotate() {}, beginPath() {}, arc() {}, fill() {}, set fillStyle(v) {}
       });
     }
   });

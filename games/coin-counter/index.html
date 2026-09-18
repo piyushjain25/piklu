@@ -13,7 +13,34 @@
   .app{max-width:600px;}
   .title{font-size:clamp(26px,5.2vw,40px);}
   .topbar{margin-bottom:14px;}
-  .goal{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:14px 16px; margin-bottom:12px; text-align:center;}
+  /* shop scene: an animal customer/shopkeeper with a speech bubble holding the goal */
+  .shop{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  .shopper{position:relative; flex:0 0 auto; width:78px; height:78px; border-radius:50%; background:var(--shopper-bg,#FFE1C2);
+    display:flex; align-items:center; justify-content:center; box-shadow:0 4px 0 rgba(51,35,107,.14);}
+  .shopper .face{font-size:48px; line-height:1; display:block;}
+  .shopper.bob .face{animation:sbob 2.4s ease-in-out infinite;}
+  @keyframes sbob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-3deg)}}
+  .shopper .tag{position:absolute; right:-12px; bottom:-6px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:12px;}
+  .shopper .tag.cash{background:linear-gradient(180deg,#A6E0BE,var(--note)); color:#12482e; border-radius:6px; padding:3px 6px; box-shadow:0 2px 0 var(--note-dark); transform:rotate(-8deg);}
+  .shopper .tag.item{font-size:26px; line-height:1; filter:drop-shadow(0 2px 0 rgba(51,35,107,.18));}
+  .shopper.enter{animation:swalk .6s ease-out;}
+  @keyframes swalk{0%{transform:translateX(-110px) rotate(-10deg); opacity:0}35%{transform:translateX(-50px) translateY(-8px) rotate(6deg); opacity:1}
+    65%{transform:translateX(-12px) translateY(0) rotate(-4deg)}85%{transform:translateX(4px) translateY(-4px)}100%{transform:none}}
+  .shopper.huh{animation:shuh .45s ease;}
+  @keyframes shuh{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg)}50%{transform:rotate(10deg)}80%{transform:rotate(-5deg)}}
+  .shopper.cheer{animation:scheer .5s ease 2;}
+  @keyframes scheer{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-16px) scale(1.08,.95)}70%{transform:translateY(0) scale(1.05,.92)}}
+  .shopper.gulp{animation:mpop .25s ease;}
+  .heart{position:absolute; left:50%; top:4px; font-size:18px; pointer-events:none; animation:hfloat 1.1s ease-out forwards;}
+  @keyframes hfloat{0%{transform:translate(-50%,0) scale(.5); opacity:0}20%{opacity:1}100%{transform:translate(calc(-50% + var(--dx,0px)),-54px) scale(1.1); opacity:0}}
+  .flyer{position:fixed; z-index:40; margin:0; pointer-events:none; transition:transform .6s cubic-bezier(.45,-0.35,.6,1), opacity .6s ease-in;}
+  .goal{flex:1; min-width:0; position:relative; background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:12px 14px; text-align:center;}
+  .goal::before,.goal::after{content:""; position:absolute; top:50%; transform:translateY(-50%); border-style:solid; border-color:transparent;}
+  .goal::before{left:-15px; border-width:11px 14px 11px 0; border-right-color:var(--paper-line);}
+  .goal::after{left:-9px; border-width:8px 10px 8px 0; border-right-color:var(--paper);}
+  .goal .who{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape); font-size:13px; text-transform:uppercase; letter-spacing:1px;}
+  .goal .make.thanks{color:var(--leaf-dark);}
+  @media (max-width:420px){ .shop{gap:12px;} .shopper{width:62px; height:62px;} .shopper .face{font-size:38px;} .shopper .tag.item{font-size:22px;} }
   .goal .ctx{font-weight:700; color:var(--ink-soft); font-size:14px;}
   .goal .make{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(22px,6vw,32px); color:var(--grape-dark); margin-top:2px;}
   .goal .make b{color:var(--leaf-dark);}
@@ -67,11 +94,12 @@
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">coins to ₹20</div></button>
         <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">to ₹50</div></button>
         <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">give change</div></button>
-        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">change to ₹190</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">work out change</div></button>
       </div>
       <div class="howto">
-        💰 <b>How to play:</b> Tap coins and notes to build up to the target amount — you can't go over! Reach it exactly and press <b>Pay</b>.
-        Use the <b>fewest coins</b> for three stars ⭐. On harder levels you'll work out someone's <b>change</b> first.
+        💰 <b>How to play:</b> A friendly animal visits your shop! Tap coins and notes to make the exact amount, then press <b>Pay</b>.
+        Use the <b>fewest coins</b> for three stars ⭐. On <b>Hard</b> you give a customer their <b>change</b> — and every coin stays tappable, so
+        stop at the right amount yourself! On <b>Expert</b> you work out how much change they need, too.
       </div>
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
     </section>
@@ -103,7 +131,10 @@
 
       <div class="stats-row"><span class="chip par hide" id="par-chip">🎯 Fewest: 0</span></div>
 
-      <div class="goal" id="goal"></div>
+      <div class="shop">
+        <div class="shopper" id="shopper" aria-hidden="true"><span class="face" id="shopper-face">🐻</span><span class="tag" id="shopper-tag"></span></div>
+        <div class="goal" id="goal" aria-live="polite"></div>
+      </div>
 
       <div class="totrow">
         <div class="total" id="total">₹0</div>
@@ -150,6 +181,17 @@ const LEVELS={
   HARD:  { denoms:[1,2,5,10,20,50],     tmin:15, tmax:90,  change:true,  par:true,  label:"🔥 Hard" },
   EXPERT:{ denoms:[1,2,5,10,20,50,100], tmin:30, tmax:190, change:true,  par:true,  label:"🏆 Expert" },
 };
+// UI-only rules per level: `free` = every coin stays tappable, you can go over, and Pay is always
+// live (the player must judge the total themselves); `hideChange` = the change amount isn't shown.
+const RULES={ EASY:{free:false,hideChange:false}, MEDIUM:{free:false,hideChange:false},
+              HARD:{free:true,hideChange:false},  EXPERT:{free:true,hideChange:true} };
+const SHOPPERS=[
+  {e:'🐻',n:'Bear',bg:'#FFE1C2'},{e:'🐰',n:'Bunny',bg:'#FFE3EC'},{e:'🦊',n:'Fox',bg:'#FFE0CC'},
+  {e:'🐼',n:'Panda',bg:'#E4EEF9'},{e:'🐸',n:'Frog',bg:'#DDF5E6'},{e:'🐯',n:'Tiger',bg:'#FFF0C2'},
+  {e:'🐨',n:'Koala',bg:'#E8E6F5'},{e:'🐷',n:'Piggy',bg:'#FFE3EC'},{e:'🐵',n:'Monkey',bg:'#F5E6D6'},
+  {e:'🦁',n:'Lion',bg:'#FFF0C2'},{e:'🐧',n:'Penguin',bg:'#E0F2FB'},{e:'🐘',n:'Ellie',bg:'#E4EEF9'},
+];
+const THANKS=["Thank you! 😄","Yay, thanks! 🎉","Perfect, thanks! 💛","You're a star! ⭐","Wow, thank you! 🥳"];
 const NOTES_FOR={ HARD:[50,100], EXPERT:[100,200,500] };
 const ITEMS=['🧸','⚽','📕','🍭','🎈','🧁','🚗','🪁','🍦','🧩','🥁','🧢'];
 function greedyCoins(T,denoms){ const ds=denoms.slice().sort((a,b)=>b-a); const out=[]; let r=T;
@@ -169,6 +211,8 @@ function starsFor(count,optimal){ if(count===optimal) return {stars:3,label:"⭐
 
 /* ===== state ===== */
 let level="EASY", P=null, pile=[], phase='build', prevSig=null;
+let shopper=SHOPPERS[0], shopItem='🍭', wrongPays=0, changeHinted=false, flyTimers=[];
+const R=()=>RULES[P.level];
 function setLevel(l){
   level=l;
   document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
@@ -200,21 +244,57 @@ function newPuzzle(fromHome){
   // fresh puzzle, different from the one just shown (Skip/Next never repeat the current puzzle)
   let p; for(let a=0;a<15;a++){ p=genPuzzle(level); if(!prevSig || puzzleSig(p)!==prevSig) break; }
   P=p; prevSig=puzzleSig(P);
-  pile=[]; phase='build';
+  pile=[]; phase='build'; wrongPays=0; changeHinted=false; clearFlight();
+  // a new animal walks into the shop each round (never the same one twice in a row)
+  const others=SHOPPERS.filter(s=>s!==shopper); shopper=others[rnd(others.length)];
+  shopItem=P.item || ITEMS[rnd(ITEMS.length)];
   if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
   setLevel(level);
   const par=$("par-chip"); if(P.par){ par.classList.remove("hide"); par.textContent=`🎯 Fewest: ${P.optimal}`; } else par.classList.add("hide");
   $("build-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("serve-view").classList.remove("hide"); $("pay-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
   $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
-  renderGoal(); renderTray(); render(); setOwl('idle'); flash("Tap coins and notes to build the amount!", '');
+  renderGoal(); renderShopper(); renderTray(); render(); setOwl('idle');
+  flash(R().hideChange ? "Work out the change, then count it out!" : "Tap coins and notes to build the amount!", '');
 }
 function renderGoal(){
-  const g=$("goal");
-  if(P.change) g.innerHTML=`<div class="ctx">${P.item} costs ₹${P.cost} · you paid ₹${P.paid}</div><div class="make">Give <b>₹${P.target}</b> change</div>`;
-  else g.innerHTML=`<div class="make">Make <b>₹${P.target}</b></div>`;
+  const g=$("goal"), n=shopper.n;
+  if(P.change){
+    const ask = R().hideChange ? `How much <b>change</b>?` : `Give <b>₹${P.target}</b> change`;
+    g.innerHTML=`<div class="who">${n}</div><div class="ctx">“I'll buy this ${P.item} for ₹${P.cost}. Here's ₹${P.paid}!”</div><div class="make">${ask}</div>`;
+  } else g.innerHTML=`<div class="who">${n}'s shop</div><div class="ctx">“This ${shopItem} costs ₹${P.target}, please!”</div><div class="make">Pay <b>₹${P.target}</b></div>`;
   g.dataset.target=P.target;
 }
+function renderShopper(){
+  const s=$("shopper"), tag=$("shopper-tag");
+  $("shopper-face").textContent=shopper.e; s.style.setProperty('--shopper-bg', shopper.bg);
+  // HARD/EXPERT: the animal is your customer, waving the note they paid with; EASY/MEDIUM: they're selling you a toy
+  if(P.change){ tag.className='tag cash'; tag.textContent='₹'+P.paid; } else { tag.className='tag item'; tag.textContent=shopItem; }
+  s.querySelectorAll('.heart').forEach(h=>h.remove());
+  s.className='shopper';
+  if(!reduceMotion){ void s.offsetWidth; s.classList.add('enter'); s.addEventListener('animationend', ()=>{ if(s.classList.contains('enter')) s.className='shopper bob'; }, {once:true}); }
+}
+function shopperDo(cls){ if(reduceMotion) return; const s=$("shopper"); s.className='shopper'; void s.offsetWidth; s.classList.add(cls);
+  s.addEventListener('animationend', ()=>{ if(s.classList.contains(cls)) s.className='shopper bob'; }, {once:true}); }
+function hearts(n){ if(reduceMotion) return; const s=$("shopper");
+  for(let i=0;i<n;i++) flyTimers.push(setTimeout(()=>{ const h=document.createElement('span'); h.className='heart'; h.textContent=['💛','💖','✨'][i%3];
+    h.style.setProperty('--dx', (rnd(41)-20)+'px'); s.appendChild(h); h.addEventListener('animationend',()=>h.remove()); }, i*160)); }
+// the money in the pile flies over to the animal, then the animal cheers (and hands over the toy on EASY/MEDIUM)
+function payAnimation(done){
+  const pieces=[...$("pile").querySelectorAll('.money')];
+  if(reduceMotion || !pieces.length){ done(); return; }
+  const to=$("shopper").getBoundingClientRect(), tx=to.left+to.width/2, ty=to.top+to.height/2;
+  const step=Math.min(90, 700/pieces.length);
+  pieces.forEach((el,i)=>{
+    const r=el.getBoundingClientRect(), c=el.cloneNode(true);
+    c.classList.add('flyer'); Object.assign(c.style,{left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px', transitionDelay:(i*step)+'ms'});
+    document.body.appendChild(c); el.style.visibility='hidden';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ c.style.transform=`translate(${tx-r.left-r.width/2}px,${ty-r.top-r.height/2}px) scale(.35) rotate(${rnd(2)?200:-200}deg)`; c.style.opacity='.2'; }));
+    flyTimers.push(setTimeout(()=>{ c.remove(); sound('clink'); shopperDo('gulp'); }, 600+i*step));
+  });
+  flyTimers.push(setTimeout(done, 650+(pieces.length-1)*step));
+}
+function clearFlight(){ flyTimers.forEach(clearTimeout); flyTimers=[]; document.querySelectorAll('.flyer').forEach(c=>c.remove()); }
 function moneyHTML(d, mini){ return `<span class="money ${IS_NOTE(d)?'note':'coin'}${mini?' mini':''}">₹${d}</span>`; }
 function renderTray(){
   const el=$("tray"); el.innerHTML="";
@@ -225,7 +305,8 @@ function renderTray(){
 }
 function render(){
   const t=total(), rem=P.target-t;
-  const tEl=$("total"); tEl.textContent='₹'+t; tEl.className='total'+(t===P.target?' exact':'');
+  const free=R().free;
+  const tEl=$("total"); tEl.textContent='₹'+t; tEl.className='total'+(!free && t===P.target?' exact':'');
   $("pieces").textContent = pile.length+(pile.length===1?' piece':' pieces');
   // pile
   const pl=$("pile");
@@ -233,23 +314,42 @@ function render(){
   else { const sorted=pile.slice().sort((a,b)=>b-a);
     pl.innerHTML=sorted.map(d=>`<button class="money mini ${IS_NOTE(d)?'note':'coin'}" data-denom="${d}">₹${d}</button>`).join('');
     pl.querySelectorAll('.money').forEach(m=> m.onclick=()=>removeOne(+m.dataset.denom)); }
-  // tray affordability
-  $("tray").querySelectorAll('.money').forEach(b=>{ const d=+b.dataset.denom; b.classList.toggle('disabled', t+d>P.target); });
-  $("pay-btn").disabled = t!==P.target; $("pay-btn").className='btn '+(t===P.target?'ready':'btn-go');
+  // EASY/MEDIUM grey out money that would go over and only light Pay when exact.
+  // HARD/EXPERT give no such clues: every coin stays tappable and Pay always looks the same.
+  $("tray").querySelectorAll('.money').forEach(b=>{ const d=+b.dataset.denom; b.classList.toggle('disabled', !free && t+d>P.target); });
+  $("pay-btn").disabled = free ? false : t!==P.target;
+  $("pay-btn").className='btn '+(!free && t===P.target?'ready':'btn-go');
 }
-function addMoney(d, btn){
-  if(phase!=='build') return; clearHint();
-  if(total()+d > P.target){ if(btn){ btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake'); } flash(`That's too much — you'd go over ₹${P.target}!`, 'bad'); setOwl('worried'); sound('bad'); return; }
-  pile.push(d); if(btn){ btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); } sound('coin');
-  render();
+// running message after the pile changes — EASY/MEDIUM count down for you; HARD/EXPERT leave the sums to the player
+function pileMsg(){
   const rem=P.target-total();
+  if(R().free){ flash(pile.length?`You're holding ₹${total()}.`:"Tap coins and notes to build the amount!", ''); setOwl('idle'); return; }
   if(rem===0){ flash("That's exactly right — press Pay! ✓", 'good'); setOwl('win'); }
   else { flash(`₹${rem} to go…`, ''); setOwl('idle'); }
 }
-function removeOne(d){ if(phase!=='build') return; const i=pile.lastIndexOf(d); if(i>=0){ pile.splice(i,1); sound('tick'); clearHint(); render(); flash(`₹${P.target-total()} to go…`, ''); } }
+function addMoney(d, btn){
+  if(phase!=='build') return; clearHint();
+  if(!R().free && total()+d > P.target){ if(btn){ btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake'); } flash(`That's too much — you'd go over ₹${P.target}!`, 'bad'); setOwl('worried'); sound('bad'); return; }
+  pile.push(d); if(btn){ btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); } sound('coin');
+  render(); pileMsg();
+}
+function removeOne(d){ if(phase!=='build') return; const i=pile.lastIndexOf(d); if(i>=0){ pile.splice(i,1); sound('tick'); clearHint(); render(); pileMsg(); } }
 function pay(){
-  if(total()!==P.target) return; phase='result'; clearHint();
-  const {stars,label}=starsFor(pile.length, P.optimal);
+  if(phase!=='build') return;
+  const t=total();
+  if(t!==P.target){
+    if(!R().free) return;
+    if(!pile.length){ flash(`Add some money first — ${shopper.n} is waiting!`, 'hint'); return; }
+    // a wrong payment: the animal shakes their head and the round carries on (max ★★ from here)
+    wrongPays++; shopperDo('huh'); setOwl('worried'); sound('bad');
+    const who=shopper.n;
+    if(R().hideChange) flash(t>P.target ? `Hmm, ${who} says that's too much change! Check your sum.` : `${who} says that's not enough change! Check again.`, 'bad');
+    else flash(t>P.target ? `Too much! ${who} only needs ₹${P.target} back — take some away.` : `Not enough! ${who} needs ₹${P.target} back.`, 'bad');
+    return;
+  }
+  phase='result'; clearHint();
+  let {stars,label}=starsFor(pile.length, P.optimal);
+  if(wrongPays && stars===3){ stars=2; label="Fewest coins — after one more try!"; }
   $("build-view").classList.add("hide"); $("result-view").classList.remove("hide");
   $("serve-view").classList.add("hide"); $("hint-link").classList.add("off");
   $("stars").textContent="★".repeat(stars)+"☆".repeat(3-stars);
@@ -258,25 +358,45 @@ function pay(){
   $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("pay-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   flash('', ''); setOwl(stars>=2?'win':'idle');
-  if(!reduceMotion){ if(stars===3){ coinRain(); sound('win'); } else { miniConfetti(); sound('good'); } } else if(stars===3) sound('win');
+  const paidTo=P;
+  payAnimation(()=>{
+    if(P!==paidTo || phase!=='result') return;   // player already moved on
+    const thanks=THANKS[rnd(THANKS.length)];
+    const g=$("goal"), ctx=g.querySelector('.ctx'), make=g.querySelector('.make');
+    if(ctx) ctx.textContent = P.change ? `“₹${P.target} change — just right!”` : `“The ${shopItem} is all yours!”`;
+    if(make){ make.textContent=thanks; make.classList.add('thanks'); }
+    $("pile").innerHTML = `<span class="ph">${P.change ? `💸 ${shopper.n} got the change!` : `🛍️ You bought the ${shopItem}!`}</span>`;
+    if(!P.change) $("shopper-tag").textContent='';
+    sound('kaching'); shopperDo('cheer'); hearts(stars+1);
+    if(!reduceMotion){ if(stars===3){ coinRain(); sound('win'); } else { miniConfetti(); sound('good'); } } else if(stars===3) sound('win');
+  });
 }
 function giveHint(){
   if(phase!=='build') return; const rem=P.target-total();
+  setOwl('think');
+  // EXPERT: the first hint shows how to work out the change before suggesting any coins
+  if(R().hideChange && !changeHinted){ changeHinted=true; flash(`💡 Change = what they gave − the price: ₹${P.paid} − ₹${P.cost}.`, 'hint'); return; }
   if(rem===0){ flash("You've got it — press Pay! ✓", 'hint'); return; }
+  if(rem<0){
+    const back=pile.slice().sort((a,b)=>a-b).find(d=>d>=-rem) ?? Math.max(...pile);
+    const el=[...$("pile").querySelectorAll('.money')].find(b=>+b.dataset.denom===back);
+    if(el) el.classList.add('hintit');
+    flash(`💡 You're ₹${-rem} over — tap the ₹${back} in your pile to take it back.`, 'hint'); return;
+  }
   const best=P.denoms.slice().sort((a,b)=>b-a).find(d=>d<=rem);
   const btn=[...$("tray").querySelectorAll('.money')].find(b=>+b.dataset.denom===best);
   if(btn) btn.classList.add('hintit');
-  flash(`💡 Add a ₹${best} — it's the biggest that still fits in ₹${rem}.`, 'hint'); setOwl('think');
+  flash(`💡 Add a ₹${best} — it's the biggest that still fits in ₹${rem}.`, 'hint');
 }
 function clearHint(){ document.querySelectorAll('.money.hintit').forEach(b=>b.classList.remove('hintit')); }
-function goHome(){ stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){ stopConfetti(); clearFlight(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
   if($("screen-game").classList.contains("hide") || !P) return;
   if(e.target && e.target.id==='hint-link') return;
   if(e.key==='Backspace' && phase==='build'){ e.preventDefault(); if(pile.length){ pile.pop(); clearHint(); render(); } return; }
-  if(e.key==='Enter'){ if(phase==='result'){ e.preventDefault(); newPuzzle(false); } else if(total()===P.target){ e.preventDefault(); pay(); } return; }
+  if(e.key==='Enter'){ if(phase==='result'){ e.preventDefault(); newPuzzle(false); } else if(R().free || total()===P.target){ e.preventDefault(); pay(); } return; }
   if(e.key==='Escape' && phase==='build'){ e.preventDefault(); $("reset-btn").click(); return; }
   if(e.key.toLowerCase()==='h' && phase==='build') giveHint();
 });
@@ -284,6 +404,8 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="tick") beep(520,.05,"square",0,.05); else if(kind==="coin"){ beep(880,.05,"square",0,.05); beep(1250,.07,"square",.04,.04); }
   else if(kind==="good") beep(660,.09,"triangle",0,.07); else if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
+  else if(kind==="clink") beep(1400+rnd(500),.04,"triangle",0,.04);
+  else if(kind==="kaching"){ beep(1568,.06,"square",0,.05); beep(2093,.22,"triangle",.06,.07); }
   else if(kind==="win") [523,659,784,1047,1319].forEach((f,i)=>beep(f,.2,"triangle",i*.09)); }
 function burst(colors,count,round){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
   const parts=Array.from({length:count},()=>({x:cv.width/2,y:cv.height*0.4,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25,round}));

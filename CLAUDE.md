@@ -204,6 +204,11 @@ don't redefine these classes in a game's own `<style>`.
   the bottom slot holds `Next ▶` with `.invisible` (the same placeholder pattern as
   `lights-out`) until then. At **HARD/EXPERT** the answer is a number rather than a physical
   state, so `Check ✓` is the primary `.btn`, replaced in place by `Next ▶`.
+- **Clues by level:** `coin-counter` greys out money that would go over and lights `Pay` only
+  on the exact amount at **EASY/MEDIUM**. At **HARD/EXPERT** it gives no such clues on purpose:
+  every coin stays tappable, the player can go over, `Pay` is always live and looks the same, and
+  a wrong payment is refused (the round goes on, capped at ★★). EXPERT also hides the change
+  amount — the player works it out from the price and the note paid.
 - **On a correct answer, replace the primary button *in place* with a `Next ▶` button**
   in that same bottom slot (Next here is a real `.btn`, not a link), hide Skip, and show
   the result message just above it — so Next appears exactly where the player's eye/finger
