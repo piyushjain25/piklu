@@ -464,6 +464,20 @@ Then wait for the page to finish loading the data before driving it. Since rule 
 extensible content list in JSON, this applies to most new games — `bootGame(slug, { data:
 { … } })` is the normal path for a play-through, not a special case.
 
+### Building a game in stages
+
+**Building a game runs in three stages, each a pinned slash command:** `/game-engine`
+(Opus — generator/solver plus its engine test), `/game-ui` (Sonnet — page, styles, wiring),
+`/game-wire` (Haiku — catalog entry, DOM test, docs, full test run). Staging keeps each
+reply small enough to finish, so an interruption costs one stage rather than a whole file,
+and puts the expensive model only where the reasoning is. Each stage reads
+`_ref/snippets.md` rather than opening a reference game. The commands live in
+`.claude/commands/`; the model is pinned by each file's `model:` frontmatter.
+
+Subagent file-searching runs on Haiku when the shell sets
+`export CLAUDE_CODE_SUBAGENT_MODEL=haiku` (in `~/.zshrc`), so the main model gets a summary
+rather than the raw files.
+
 ## Publishing (how changes go live)
 
 The site auto-deploys from GitHub: after editing, the human commits and pushes
