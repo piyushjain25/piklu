@@ -116,4 +116,7 @@ window.GAMES = [
 
   { slug: "tic-tac-toe",         title: "Tic Tac Toe",         emoji: "❌", accent: "coral",  ageGroup: "6+",
     tagline: "Classic, reverse, vanishing and nine-boards-in-one — beat the owl!", skills: ["Strategy", "Logic"], badge: "New" },
+
+  { slug: "circuit-builder",     title: "Circuit Builder",     emoji: "💡", accent: "sun",    ageGroup: "9+",
+    tagline: "Wire it up and make the bulb light.",            skills: ["Science", "Logic"], badge: "New" },
 ];

@@ -5,7 +5,10 @@ Not part of the website. Never deployed, never reachable by URL.
 ## Running
 
 ```sh
-./_tests/run.sh          # installs jsdom on first run, then runs every *.test.js
+./_tests/run.sh               # everything (installs jsdom on first run)
+./_tests/run.sh site          # only site/*.test.js
+./_tests/run.sh <slug>        # site/* plus games/<slug>/*
+STRESS=quick ./_tests/run.sh  # fewer random samples (STRESS=deep: 5x more)
 ```
 
 Node only. Nothing here is needed to build, serve, or open the site — the site itself

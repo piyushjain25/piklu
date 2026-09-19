@@ -22,7 +22,7 @@ online toy store later. Read the rules below before changing anything.
    the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
    two places and lets it silently drift out of sync. If the fetch fails, the game is
    simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`,
-   `mystery-word`, `what-am-i`); that's expected,
+   `mystery-word`, `what-am-i`, `circuit-builder`); that's expected,
    not a bug.
 4. **Each game is one file plus three shared assets.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
@@ -284,7 +284,8 @@ don't redefine these classes in a game's own `<style>`.
   its behaviour. The body is a series of `.rule` sections (an `<h3>` with an emoji, short `<p>`s,
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
-  `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`.
+  `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`,
+  `circuit-builder`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Shared JS helpers (`assets/site.js`)
@@ -375,8 +376,24 @@ site. The site itself stays plain static files with no build step and no depende
 (rule 3). The suite's own dependency (jsdom) is confined to `_tests/package.json`.
 
 ```sh
-./_tests/run.sh          # installs jsdom on first run, then runs every *.test.js
+./_tests/run.sh                 # everything (installs jsdom on first run)
+./_tests/run.sh site            # only _tests/site/*.test.js
+./_tests/run.sh <slug>          # _tests/site/* PLUS _tests/games/<slug>/*
+STRESS=quick ./_tests/run.sh    # ~2% of the random samples (min 50), for a fast pass
+STRESS=deep  ./_tests/run.sh    # 5x the random samples, for a paranoid pre-release run
 ```
+
+- `./_tests/run.sh site` — after touching `games.js`, `assets/site.css` or `assets/site.js`.
+  These are shared by every game, so a careless edit here breaks all of them at once; the
+  site tests are the cheap check that it didn't.
+- `./_tests/run.sh <slug>` — the normal loop while building or editing one game. Runs the
+  site tests too, so a broken catalog entry can't slip through. An unknown slug is an error,
+  never a silent pass.
+- `./_tests/run.sh` — everything, before you commit and sync.
+- `STRESS=quick` in front of any of these for a fast pass with reduced random sampling; the
+  full counts still run by default. The header always says which mode ran.
+
+`run.sh` exits non-zero if any suite fails, in every form — so "the tests pass" means exit 0.
 
 **The one rule: a test never keeps its own copy of a game's code.** `_tests/lib/harness.js`
 slices the engine out of the real `games/<slug>/index.html` at run time and boots the real
@@ -384,10 +401,19 @@ page in jsdom, so a passing test is a statement about the file the site actually
 copied engine drifts from the game and silently stops proving anything — the same reason
 rule 4 forbids an inline copy of a data file.
 
+Adding a game is never purely additive — it always edits `games.js`, and often
+`assets/site.css` or `assets/site.js` when the game needs a new shared class or helper.
+Those shared edits are the ones that break *other* games, which is why `_tests/site/` runs
+on every invocation of `run.sh`, including the single-slug form.
+
+A generative test wraps its **random-sample** counts in the harness's `stress(n)` —
+`for (let i = 0; i < stress(2000); i++)` — so the `STRESS` dial can scale them. Only sample
+counts: never a fixture, a scenario, an assertion or a termination guard.
+
 Layout:
 
 ```
-_tests/lib/harness.js           loadEngine(), bootGame(), loadCatalog(), tally(), mulberry32();
+_tests/lib/harness.js           loadEngine(), bootGame(), loadCatalog(), tally(), mulberry32(), stress();
                                 tally() also arms a 5-minute watchdog, so a stalled suite
                                 fails by name instead of hanging run.sh
 _tests/site/catalog.test.js     games.js + the hub — every game: real folder, valid accent,
@@ -439,14 +465,32 @@ word-guess · guess-the-capital · math-monsters · shape-sorter · color-match 
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
-balance-scales · tic-tac-toe
+balance-scales · tic-tac-toe · circuit-builder
 
-`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word` and
-`what-am-i` are the **data-driven** games: each loads its data from JSON in its own folder
+`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word`,
+`what-am-i` and `circuit-builder` are the **data-driven** games: each loads its data from JSON in its own folder
 (`word-guess/words.json`, `guess-the-capital/capitals.json`, `spell-a-bee/words.json`,
 `spot-the-words/words.json`, `mystery-word/words.json` + `dictionary.json`, and
-`what-am-i/easy.json` … `expert.json` + an optional `my.json`) via the shared
-`loadGameData()` helper.
+`what-am-i/easy.json` … `expert.json` + an optional `my.json`, and
+`circuit-builder/components.json`) via the shared `loadGameData()` helper.
+
+`circuit-builder/components.json` is `{ "components": [ { id, name, emoji, kind, ends, bend?, says? } ] }`:
+`kind` is `source | conductor | insulator | load | switch`, `ends` is 2 (or 3 for a junction
+wire), `bend: true` makes a 2-ended conductor a corner piece, and a load's optional `says` names
+its three states (`["lit","dim","off"]` by default; a buzzer says `buzz / soft / off`). The
+generator needs a battery, a load (it prefers id `bulb`), a switch, a straight conductor (it
+prefers id `wire`), a corner, a junction and at least one insulator; every other conductor,
+insulator and load in the file is used as it appears, so a new part is a data edit. EASY and
+MEDIUM always build with the bulb; HARD and EXPERT use every load. The simulation is real nodal
+analysis (loads are equal resistors), which is what makes parts sharing a path run weakly.
+HARD deals either a single loop or a two-path "ladder" (sometimes behind a switch) with exactly
+one fault (insulator in the circuit, a part turned so an end doesn't touch, an open switch, or a
+load wired to one contact). EXPERT deals one of four tasks — `pair` (two loads, a path each),
+`trio` (three), `eachSwitch` (a switch on each path) and `master` (one switch for all) — with
+only the battery and a few wires left on the bench. HARD and EXPERT trays always hold at least
+three spare parts beyond what the circuit needs. `_tests/games/circuit-builder/engine.test.js`
+proves every level solvable, every HARD fault single and fixable, and every EXPERT solution
+doing what its task says — **run it after editing the parts list or the generator.**
 
 `spot-the-words/words.json` is `{ "themes": [ { name, emoji, grid, dirs, words } ] }`:
 `grid` is the N of an N×N board (8–11, which also sets the round size: 8→5 words, 9→6,

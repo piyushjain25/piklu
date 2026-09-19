@@ -1,0 +1,25 @@
+{
+  "components": [
+    { "id": "battery",   "name": "Battery",            "emoji": "🔋", "kind": "source",    "ends": 2 },
+    { "id": "bulb",      "name": "Bulb",               "emoji": "💡", "kind": "load",      "ends": 2, "says": ["lit", "dim", "off"] },
+    { "id": "buzzer",    "name": "Buzzer",             "emoji": "🔔", "kind": "load",      "ends": 2, "says": ["buzz", "soft", "off"] },
+    { "id": "motor",     "name": "Motor",              "emoji": "⚙️", "kind": "load",      "ends": 2, "says": ["spin", "slow", "off"] },
+    { "id": "switch",    "name": "Switch",             "emoji": "🔘", "kind": "switch",    "ends": 2 },
+    { "id": "wire",      "name": "Wire",               "emoji": "➖", "kind": "conductor", "ends": 2 },
+    { "id": "corner",    "name": "Corner wire",        "emoji": "↪️", "kind": "conductor", "ends": 2, "bend": true },
+    { "id": "junction",  "name": "Junction wire",      "emoji": "🔀", "kind": "conductor", "ends": 3 },
+    { "id": "paperclip", "name": "Paperclip",          "emoji": "📎", "kind": "conductor", "ends": 2 },
+    { "id": "key",       "name": "Key",                "emoji": "🔑", "kind": "conductor", "ends": 2 },
+    { "id": "coin",      "name": "Coin",               "emoji": "🪙", "kind": "conductor", "ends": 2 },
+    { "id": "nail",      "name": "Iron nail",          "emoji": "🔩", "kind": "conductor", "ends": 2 },
+    { "id": "fork",      "name": "Metal fork",         "emoji": "🍴", "kind": "conductor", "ends": 2 },
+    { "id": "pin",       "name": "Safety pin",         "emoji": "🧷", "kind": "conductor", "ends": 2 },
+    { "id": "spoon",     "name": "Plastic spoon",      "emoji": "🥄", "kind": "insulator", "ends": 2 },
+    { "id": "band",      "name": "Rubber band",        "emoji": "➰", "kind": "insulator", "ends": 2 },
+    { "id": "stick",     "name": "Wooden lolly stick", "emoji": "🪵", "kind": "insulator", "ends": 2 },
+    { "id": "crayon",    "name": "Wax crayon",         "emoji": "🖍️", "kind": "insulator", "ends": 2 },
+    { "id": "balloon",   "name": "Balloon",            "emoji": "🎈", "kind": "insulator", "ends": 2 },
+    { "id": "sock",      "name": "Wool sock",          "emoji": "🧦", "kind": "insulator", "ends": 2 },
+    { "id": "cup",       "name": "Plastic cup",        "emoji": "🥤", "kind": "insulator", "ends": 2 }
+  ]
+}

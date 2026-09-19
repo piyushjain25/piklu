@@ -105,6 +105,21 @@ function tally() {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+/* The STRESS dial: scales a generative test's RANDOM-SAMPLE count, never its scenarios.
+     STRESS=quick  ~2% of full (at least 50)  — a fast pass
+     (unset)       full                       — the default, what "tests pass" means
+     STRESS=deep   5× full                    — a paranoid pre-release run
+   Wrap only the number of random samples: `for (let i = 0; i < stress(2000); i++)`. Fixture
+   checks, termination guards and assertions stay exactly as they are in every mode. */
+const STRESS = (process.env.STRESS || "full").toLowerCase();
+if (!["quick", "full", "deep"].includes(STRESS))
+  throw new Error("STRESS must be quick, full or deep — got " + JSON.stringify(process.env.STRESS));
+function stress(full) {
+  if (STRESS === "quick") return Math.min(full, Math.max(50, Math.round(full / 50)));
+  if (STRESS === "deep") return full * 5;
+  return full;
+}
+
 /* the catalog, evaluated the way the hub loads it — games.js just assigns a GAMES global */
 function loadCatalog() {
   const sandbox = {};
@@ -113,4 +128,4 @@ function loadCatalog() {
 }
 
 module.exports = { ROOT, read, gameHTML, inlineScript, loadEngine, bootGame,
-                   mulberry32, tally, sleep, loadCatalog, JSDOM };
+                   mulberry32, tally, sleep, loadCatalog, stress, STRESS, JSDOM };

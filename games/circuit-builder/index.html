@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Circuit Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  /* workbench theme — local vars only, the design system itself lives in site.css */
+  :root{ --copper:#7a5230; --glow:#FFE680; --ray:#e6a800; }
+  .app{max-width:560px;}
+  .title{font-size:clamp(26px,5.4vw,40px);}
+  .topbar{margin-bottom:10px;}
+  .task{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:15px; margin:0 0 10px;}
+  .loadmsg{text-align:center; font-weight:700; color:var(--ink-soft); font-size:14px; margin-top:12px;}
+  .loadmsg.bad{color:var(--coral-dark);}
+
+  /* ---- the workbench: a grid of square cells, sized from the container ---- */
+  .bench{display:grid; grid-template-columns:repeat(var(--cols),1fr); width:min(100%, calc(var(--cols) * 76px));
+    margin:0 auto; background:var(--paper); border:3px solid var(--paper-line); border-radius:16px; overflow:hidden;}
+  .cell{position:relative; aspect-ratio:1/1; border:0; margin:0; padding:0; background:transparent; cursor:pointer;
+    box-shadow:inset 0 0 0 1px rgba(214,190,150,.55); container-type:inline-size; touch-action:manipulation; font:inherit; color:var(--ink);}
+  .cell:focus-visible{outline:3px solid var(--grape); outline-offset:-3px; z-index:2;}
+  .cell.locked{background:rgba(234,217,188,.45); cursor:default;}
+  .cell svg{position:absolute; inset:0; width:100%; height:100%;}
+  .cell .w{stroke:var(--copper); stroke-width:9; stroke-linecap:round; stroke-linejoin:round; fill:none;}
+  .cell .jn,.cell .ct{fill:var(--copper);}
+  .cell .ct.open{fill:#fff; stroke:var(--copper); stroke-width:3;}
+  .cell .lever{stroke:var(--ink); stroke-width:7; stroke-linecap:round; fill:none;}
+  /* ends: a filled dot where two ends touch, a hollow ring where an end touches nothing (shape, not colour) */
+  .cell .pj{fill:var(--ink);}
+  .cell .pd{fill:#fff; stroke:var(--coral-dark); stroke-width:3.5;}
+  .cell .glow{fill:var(--glow);}
+  .cell .rays path{stroke:var(--ray); stroke-width:5; stroke-linecap:round;}
+  .cell.dim .glow,.cell.dim .rays{opacity:.4;}            /* dimmer = the one opacity value */
+  .emo{position:absolute; left:50%; top:50%; transform:translate(-50%,-55%); font-size:36cqw; line-height:1; pointer-events:none;}
+  .cell.off .emo{filter:grayscale(1); opacity:.55;}
+  .cell.out .emo{transform:translate(-50%,-110%); opacity:.45;}
+  .tag{position:absolute; left:50%; bottom:3%; transform:translateX(-50%); font-family:'Nunito',sans-serif; font-weight:800;
+    font-size:max(9px,15cqw); line-height:1.1; background:rgba(255,255,255,.9); border-radius:6px; padding:0 3px; pointer-events:none; white-space:nowrap;}
+  .pole{position:absolute; font-family:'Fredoka',sans-serif; font-weight:700; font-size:max(10px,18cqw); line-height:1; pointer-events:none;}
+  .pole0{top:3%; left:64%;} .pole1{top:16%; right:6%;} .pole2{bottom:3%; left:64%;} .pole3{top:16%; left:6%;}
+  .cell.ghost svg,.cell.ghost .emo,.cell.ghost .tag,.cell.ghost .pole{opacity:.28;}
+  .cell.ghost{box-shadow:inset 0 0 0 3px var(--grape);}
+
+  /* ---- the parts tray ---- */
+  .holding{min-height:20px; text-align:center; font-weight:700; font-size:13.5px; color:var(--ink-soft); margin:10px 0 4px;}
+  .tray{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
+  .part{display:inline-flex; align-items:center; gap:6px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--ink);
+    background:#fff; border:2px solid var(--key-line); border-radius:12px; padding:6px 10px; cursor:pointer; touch-action:manipulation;}
+  .part .pe{font-size:18px; line-height:1;}
+  .part .n{font-size:12px; color:var(--ink-soft);}
+  .part[aria-pressed="true"]{border-color:var(--grape); background:#F1EDFA; transform:translateY(-2px); box-shadow:0 6px 14px rgba(72,45,130,.18);}
+  .part:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+
+  /* ---- rules-sheet diagrams (the sheet chrome itself is in site.css) ---- */
+  .mini{display:grid; grid-template-columns:repeat(var(--cols),30px); background:var(--paper); border:2px solid var(--paper-line); border-radius:8px; overflow:hidden; flex:0 0 auto;}
+  .mini .cell{cursor:default;}
+  .mini .tag,.mini .pole{display:none;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home"></svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">⚡ Wire up a circuit and make the bulb light!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">close the loop</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">add a switch</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">spot the break</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">own paths</div></button>
+      </div>
+      <div class="howto">
+        🔋 <b>How to play:</b> Tap a part in the tray, then tap a square on the workbench to put it there.
+        Tap a part again to pick it up, and tap its square to turn it. When you're ready, press <b>Switch on ⚡</b> —
+        the bulb only lights if current can flow <b>all the way round</b>, from one end of the battery back to the other.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="loadmsg" id="loadmsg">Loading the parts…</div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg" disabled>Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <p class="task" id="task"></p>
+      <div class="bench" id="bench" role="group" aria-label="Workbench"></div>
+      <div class="holding" id="holding" aria-live="polite"></div>
+      <div class="tray" id="tray" role="group" aria-label="Parts tray"></div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="power-btn" class="btn btn-go">Switch on ⚡</button>
+        <button id="next-btn" class="btn btn-primary hide">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+
+/* ===== engine (pure, DOM-free, stress-tested offline) =====================================
+   The workbench is a grid of cells. Each placed part sits in one cell and has two ends (a
+   junction wire has three), each end on one SIDE of its cell: N, E, S or W. Two ends touch
+   when neighbouring cells both have an end on their shared side — so every shared side is a
+   node of the circuit, and every part is an edge between the nodes of its ends.
+
+   A placement is a plain object:
+     { uid, id, name, emoji, kind, shape, r, c, rot, closed?, oneEnd?, locked? }
+   `shape` is straight | corner | tee (from the catalogue's `ends` and `bend`), `rot` turns it
+   by quarter turns, `closed` is a switch's state, and `oneEnd` marks a bulb whose two wires
+   both go to the same one of its contacts (HARD's "wired to one terminal" fault).          */
+
+const DIRS = [[-1,0],[0,1],[1,0],[0,-1]];          /* N E S W */
+const TRANS = [3,2,1,0];                            /* the same sides after swapping rows and columns */
+const SHAPES = {
+  straight: { base:[3,1],   turns:2 },              /* W–E, then N–S */
+  corner:   { base:[0,1],   turns:4 },              /* N–E, E–S, S–W, W–N */
+  tee:      { base:[3,1,2], turns:4 },
+};
+const KINDS = ["source","conductor","insulator","load","switch"];
+
+/* Mechanics, not content: grid sizes, loop sizes, how much each level takes away, and how many
+   spare parts HARD and EXPERT throw into the tray on top of what the circuit needs. */
+const LEVELS = {
+  EASY:   { label:"🌱 Easy",   rows:3, cols:4, loopW:[3,4], loopH:[2,3], gaps:[2,3], things:.25 },
+  MEDIUM: { label:"⭐ Medium", rows:4, cols:4, loopW:[3,4], loopH:[3,4], gaps:[2,3], things:.3, decoys:[1,2] },
+  HARD:   { label:"🔥 Hard",   rows:4, cols:5, loopW:[3,5], loopH:[3,4], things:[1,2], ladder:.5, extras:[3,5] },
+  EXPERT: { label:"🏆 Expert", rows:4, cols:5, keep:.4, extras:[4,6] },
+};
+const FAULTS = ["insulator","gap","switch","oneEnd"];
+/* EXPERT deals one of these each round:
+     pair        two parts, each on its own path            trio   three parts, each on its own path
+     eachSwitch  two parts, each with its own switch        master two parts on their own paths, one switch for both */
+const TASKS = ["pair","trio","eachSwitch","master"];
+const SAYS = ["lit","dim","off"];
+
+const rint = (rng, lo, hi) => lo + Math.floor(rng() * (hi - lo + 1));
+const pickOne = (rng, a) => a[Math.floor(rng() * a.length)];
+function shuffle(a, rng){
+  a = a.slice();
+  for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+const clone = x => JSON.parse(JSON.stringify(x));
+
+function portsOf(p){ return SHAPES[p.shape].base.map(d => (d + p.rot) % 4); }
+/* the id of the side of cell (r,c) facing d — shared by the neighbour on that side */
+function nodeKey(r, c, d){
+  if(d === 0) return "h" + r + "," + c;
+  if(d === 2) return "h" + (r + 1) + "," + c;
+  if(d === 3) return "v" + r + "," + c;
+  return "v" + r + "," + (c + 1);
+}
+function fitRot(shape, need){
+  const want = need.slice().sort().join();
+  for(let rot = 0; rot < SHAPES[shape].turns; rot++)
+    if(portsOf({ shape, rot }).sort().join() === want) return rot;
+  return -1;
+}
+const nextRot = p => (p.rot + 1) % SHAPES[p.shape].turns;
+function dirTo(a, b){ return DIRS.findIndex(d => d[0] === b[0] - a[0] && d[1] === b[1] - a[1]); }
+
+/* ---- the catalogue ---- */
+function validateCatalog(data){
+  if(!data || !Array.isArray(data.components)) return null;
+  const out = [], seen = new Set();
+  for(const c of data.components){
+    if(!c || typeof c.id !== "string" || !/^[a-z0-9-]+$/.test(c.id) || seen.has(c.id)) continue;
+    if(typeof c.name !== "string" || !c.name || typeof c.emoji !== "string" || !c.emoji) continue;
+    if(KINDS.indexOf(c.kind) < 0 || (c.ends !== 2 && c.ends !== 3)) continue;
+    if(c.ends === 3 && c.kind !== "conductor") continue;     /* only a junction wire has three ends */
+    if(c.bend && (c.kind !== "conductor" || c.ends !== 2)) continue;
+    /* a load may name its three states (a bulb is lit / dim / off, a buzzer buzz / soft / off) */
+    if(c.says !== undefined && (c.kind !== "load" || !Array.isArray(c.says) || c.says.length !== 3
+       || !c.says.every(w => typeof w === "string" && w.length >= 2 && w.length <= 8))) continue;
+    seen.add(c.id);
+    const e = { id:c.id, name:c.name, emoji:c.emoji, kind:c.kind, ends:c.ends, bend:!!c.bend,
+                shape: c.ends === 3 ? "tee" : c.bend ? "corner" : "straight" };
+    if(c.kind === "load") e.says = (c.says || SAYS).slice();
+    out.push(e);
+  }
+  return rolesOf(out) ? out : null;
+}
+/* what the generator needs from the catalogue; everything else in it is used as it appears */
+function rolesOf(cat){
+  const straight = k => cat.filter(c => c.kind === k && c.shape === "straight");
+  const conductors = straight("conductor"), loads = straight("load");
+  const wire = conductors.find(c => c.id === "wire") || conductors[0];
+  const R = {
+    battery: straight("source")[0], loads, bulb: loads.find(c => c.id === "bulb") || loads[0],
+    sw: straight("switch")[0], wire, things: conductors.filter(c => c !== wire),
+    corner: cat.find(c => c.kind === "conductor" && c.shape === "corner"),
+    junction: cat.find(c => c.kind === "conductor" && c.shape === "tee"),
+    insulators: straight("insulator"),
+  };
+  if(!R.battery || !R.bulb || !R.sw || !R.wire || !R.corner || !R.junction || !R.insulators.length) return null;
+  return R;
+}
+function makePiece(comp, r, c, rot, uid){
+  const p = { uid, id:comp.id, name:comp.name, emoji:comp.emoji, kind:comp.kind, shape:comp.shape, r, c, rot };
+  if(p.kind === "switch") p.closed = false;
+  if(p.kind === "load") p.says = (comp.says || SAYS).slice();
+  return p;
+}
+function compOf(p){
+  const c = { id:p.id, name:p.name, emoji:p.emoji, kind:p.kind, shape:p.shape };
+  if(p.says) c.says = p.says.slice();
+  return c;
+}
+
+/* Tray order never gives the answer away: battery, bulbs, switch, the plain wires, then every
+   everyday object — metal and non-metal mixed together, alphabetically. */
+function trayRank(c){
+  if(c.kind === "source") return 0;
+  if(c.kind === "load") return 1;
+  if(c.kind === "switch") return 2;
+  if(c.kind === "conductor" && c.id === "wire") return 3;
+  if(c.shape === "corner") return 4;
+  if(c.shape === "tee") return 5;
+  return 6;
+}
+function sortTray(tray){
+  return tray.sort((a, b) => trayRank(a) - trayRank(b) || a.name.localeCompare(b.name));
+}
+function trayOf(comps){
+  const tray = [];
+  for(const c of comps){
+    const t = tray.find(x => x.id === c.id);
+    if(t) t.n++; else tray.push(Object.assign(compOf(c), { n:1 }));
+  }
+  return sortTray(tray);
+}
+
+/* ---- simulation -------------------------------------------------------------------------
+   Every conductor, closed switch and junction joins its ends into one node (zero resistance),
+   so they are merged with union-find. What is left is a small network of bulbs (one unit of
+   resistance each) between the battery's two ends, solved exactly with nodal analysis. That
+   gives real physics for free: a bulb alone on its path gets the whole battery (full), two
+   sharing a path get half each (dim), and a bulb with a wire across it gets nothing.
+   If the battery's two ends end up in the SAME node, there is a path with no bulb on it at
+   all — a short.
+
+   Returns { lit, dim, off, shorted, complete, current } — the id lists are placement uids. */
+function simulate(placements){
+  const parent = new Map();
+  const find = k => {
+    if(!parent.has(k)) parent.set(k, k);
+    let r = k; while(parent.get(r) !== r) r = parent.get(r);
+    while(parent.get(k) !== r){ const n = parent.get(k); parent.set(k, r); k = n; }
+    return r;
+  };
+  const union = (a, b) => { const ra = find(a), rb = find(b); if(ra !== rb) parent.set(ra, rb); };
+  const keys = p => portsOf(p).map(d => nodeKey(p.r, p.c, d));
+  const loads = placements.filter(p => p.kind === "load");
+  const bat = placements.find(p => p.kind === "source");
+  const res = { lit:[], dim:[], off:[], shorted:false, complete:false, current:{} };
+  const allOff = () => { loads.forEach(p => { res.off.push(p.uid); res.current[p.uid] = 0; }); return res; };
+
+  const edges = [];
+  for(const p of placements){
+    if(p.kind === "source") continue;        /* the battery is the thing being tested across */
+    const k = keys(p);
+    k.forEach(find);
+    const joins = p.kind === "conductor" || (p.kind === "switch" && p.closed) || (p.kind === "load" && p.oneEnd);
+    if(joins) for(let i = 1; i < k.length; i++) union(k[0], k[i]);
+    else if(p.kind === "load") edges.push({ uid:p.uid, a:k[0], b:k[1] });
+    /* insulators, open switches: no edge at all */
+  }
+  if(!bat) return allOff();
+  const bk = keys(bat), P = find(bk[0]), N = find(bk[1]);
+  if(P === N){ res.shorted = true; return allOff(); }
+
+  const E = edges.map(e => ({ uid:e.uid, a:find(e.a), b:find(e.b) }));
+  const adj = new Map();
+  const link = (x, y) => { if(!adj.has(x)) adj.set(x, []); adj.get(x).push(y); };
+  for(const e of E) if(e.a !== e.b){ link(e.a, e.b); link(e.b, e.a); }
+  const seen = new Set([P]), stack = [P];
+  while(stack.length){ const x = stack.pop(); for(const y of adj.get(x) || []) if(!seen.has(y)){ seen.add(y); stack.push(y); } }
+
+  const V = new Map();
+  if(seen.has(N)){
+    V.set(P, 1); V.set(N, 0);
+    const unk = [...seen].filter(x => x !== P && x !== N), idx = new Map(unk.map((x, i) => [x, i]));
+    const n = unk.length, A = unk.map(() => new Array(n + 1).fill(0));
+    for(const e of E){
+      if(e.a === e.b || !seen.has(e.a)) continue;
+      for(const [u, v] of [[e.a, e.b], [e.b, e.a]]){
+        if(!idx.has(u)) continue;
+        const i = idx.get(u);
+        A[i][i] += 1;
+        if(idx.has(v)) A[i][idx.get(v)] -= 1; else A[i][n] += V.get(v);
+      }
+    }
+    /* Gaussian elimination with partial pivoting — the matrix is tiny and positive definite */
+    for(let col = 0; col < n; col++){
+      let piv = col;
+      for(let r = col + 1; r < n; r++) if(Math.abs(A[r][col]) > Math.abs(A[piv][col])) piv = r;
+      const t = A[col]; A[col] = A[piv]; A[piv] = t;
+      for(let r = 0; r < n; r++){
+        if(r === col || !A[r][col]) continue;
+        const f = A[r][col] / A[col][col];
+        for(let k = col; k <= n; k++) A[r][k] -= f * A[col][k];
+      }
+    }
+    unk.forEach((u, i) => V.set(u, A[i][n] / A[i][i]));
+  }
+  for(const p of loads){
+    const e = E.find(x => x.uid === p.uid);
+    const I = e && V.has(e.a) && V.has(e.b) ? Math.abs(V.get(e.a) - V.get(e.b)) : 0;
+    res.current[p.uid] = I;
+    if(I > 0.95) res.lit.push(p.uid); else if(I > 0.02) res.dim.push(p.uid); else res.off.push(p.uid);
+  }
+  res.complete = res.lit.length + res.dim.length > 0;
+  return res;
+}
+
+/* which of each part's ends touch another end — what the board draws as ● or ○ */
+function connections(placements){
+  const count = new Map();
+  for(const p of placements) for(const d of portsOf(p)){ const k = nodeKey(p.r, p.c, d); count.set(k, (count.get(k) || 0) + 1); }
+  const out = new Map();
+  for(const p of placements) out.set(p.uid, portsOf(p).map(d => ({ d, joined: count.get(nodeKey(p.r, p.c, d)) > 1 })));
+  return out;
+}
+
+/* the turn that joins up the most ends with the neighbours already on the bench */
+function autoRot(placements, shape, r, c, rows, cols){
+  const at = new Map(placements.map(p => [p.r + "," + p.c, p]));
+  let best = 0, bestScore = -Infinity;
+  for(let rot = 0; rot < SHAPES[shape].turns; rot++){
+    let s = 0;
+    for(const d of portsOf({ shape, rot })){
+      const nr = r + DIRS[d][0], nc = c + DIRS[d][1];
+      if(nr < 0 || nr >= rows || nc < 0 || nc >= cols){ s -= 1; continue; }
+      const q = at.get(nr + "," + nc);
+      if(q) s += portsOf(q).indexOf((d + 2) % 4) >= 0 ? 3 : -1;
+    }
+    if(s > bestScore){ bestScore = s; best = rot; }
+  }
+  return best;
+}
+
+/* ---- puzzle generation ---- */
+function loopCells(r0, c0, h, w){
+  const cells = [];
+  for(let c = c0; c < c0 + w; c++) cells.push([r0, c]);
+  for(let r = r0 + 1; r < r0 + h; r++) cells.push([r, c0 + w - 1]);
+  for(let c = c0 + w - 2; c >= c0; c--) cells.push([r0 + h - 1, c]);
+  for(let r = r0 + h - 2; r > r0; r--) cells.push([r, c0]);
+  return cells.map((rc, i, a) => {
+    const need = [dirTo(rc, a[(i - 1 + a.length) % a.length]), dirTo(rc, a[(i + 1) % a.length])];
+    return { r:rc[0], c:rc[1], need, shape: (need[0] + 2) % 4 === need[1] ? "straight" : "corner" };
+  });
+}
+
+/* one rectangular loop: battery, a load, a switch from MEDIUM up, a few everyday metal things
+   standing in for wire, and wire everywhere else. EASY and MEDIUM always use the bulb; HARD
+   uses any load in the catalogue. */
+function dealLoop(level, R, rng){
+  const L = LEVELS[level], minStraight = { EASY:2, MEDIUM:3, HARD:4 }[level];
+  let w = L.loopW[1], h = L.loopH[1];
+  for(let a = 0; a < 50; a++){
+    const tw = rint(rng, L.loopW[0], L.loopW[1]), th = rint(rng, L.loopH[0], L.loopH[1]);
+    if(2 * (tw - 2) + 2 * (th - 2) >= minStraight){ w = tw; h = th; break; }
+  }
+  const cells = loopCells(rint(rng, 0, L.rows - h), rint(rng, 0, L.cols - w), h, w);
+  const straight = shuffle(cells.map((x, i) => i).filter(i => cells[i].shape === "straight"), rng);
+  const role = cells.map(() => null);
+  let k = 0;
+  const bat = straight[k++], bulb = straight[k++], sw = level === "EASY" ? -1 : straight[k++];
+  role[bat] = R.battery; role[bulb] = level === "HARD" ? pickOne(rng, R.loads) : R.bulb;
+  if(sw >= 0) role[sw] = R.sw;
+  const nThings = Array.isArray(L.things) ? rint(rng, L.things[0], L.things[1]) : (rng() < L.things ? 1 : 0);
+  for(let t = 0; t < nThings && k < straight.length && R.things.length; t++) role[straight[k++]] = pickOne(rng, R.things);
+  const sol = cells.map((cell, i) => {
+    const comp = role[i] || (cell.shape === "corner" ? R.corner : R.wire);
+    const p = makePiece(comp, cell.r, cell.c, fitRot(comp.shape, cell.need), "p" + i);
+    if(p.kind === "switch") p.closed = true;
+    return p;
+  });
+  return sol;
+}
+
+/* A ladder: two rails joined by rungs, every rung its own path between the rails. `rungs`
+   lists the parts on each rung (the battery's rung among them); a rung's other squares are
+   wire. Rung order, spacing and length are random, laid out across or down the bench. */
+function dealLadder(R, rng, rows, cols, rungs){
+  const flip = rng() < .5;
+  const RR = flip ? cols : rows, CC = flip ? rows : cols;
+  const need = Math.max(...rungs.map(x => x.length));
+  if(need > RR - 2 || rungs.length > CC) return null;
+  const len = rint(rng, need, RR - 2), top = rint(rng, 0, RR - len - 2), bot = top + len + 1;
+  const order = shuffle(rungs, rng);
+  const xs = shuffle([...Array(CC).keys()], rng).slice(0, rungs.length).sort((a, b) => a - b);
+  const a = xs[0], z = xs[xs.length - 1], cells = [];
+  for(let x = a; x <= z; x++){
+    const mid = xs.indexOf(x) > 0 && x !== z;
+    cells.push({ r:top, c:x, need: x === a ? [1,2] : x === z ? [3,2] : mid ? [3,1,2] : [3,1] });
+    cells.push({ r:bot, c:x, need: x === a ? [1,0] : x === z ? [3,0] : mid ? [3,1,0] : [3,1] });
+  }
+  xs.forEach((x, j) => {
+    const at = shuffle([...Array(len).keys()], rng).slice(0, order[j].length);
+    for(let y = 0; y < len; y++){
+      const k = at.indexOf(y);
+      cells.push({ r:top + 1 + y, c:x, need:[0,2], comp: k >= 0 ? order[j][k] : null });
+    }
+  });
+  if(flip) cells.forEach(cl => { const r = cl.r; cl.r = cl.c; cl.c = r; cl.need = cl.need.map(d => TRANS[d]); });
+  return cells.map((cl, i) => {
+    const comp = cl.comp || (cl.need.length === 3 ? R.junction : (cl.need[0] + 2) % 4 === cl.need[1] ? R.wire : R.corner);
+    const p = makePiece(comp, cl.r, cl.c, fitRot(comp.shape, cl.need), "p" + i);
+    if(p.kind === "switch") p.closed = true;
+    return p;
+  });
+}
+
+/* spare parts for the harder trays: more of everything, so the tray never says what's needed */
+function extras(R, rng, range){
+  const pool = [R.wire, R.wire, R.corner, R.corner, R.junction, R.sw, ...R.loads, ...R.insulators, ...R.things];
+  return Array.from({ length: rint(rng, range[0], range[1]) }, () => pickOne(rng, pool));
+}
+
+function dealEasyMedium(level, R, rng){
+  const L = LEVELS[level], sol = dealLoop(level, R, rng);
+  const bat = sol.findIndex(p => p.kind === "source"), sw = sol.findIndex(p => p.kind === "switch");
+  const cand = shuffle(sol.map((p, i) => i).filter(i => i !== bat && i !== sw), rng);
+  const gaps = new Set(cand.slice(0, rint(rng, L.gaps[0], L.gaps[1])));
+  if(sw >= 0) gaps.add(sw);
+  const opening = sol.filter((p, i) => !gaps.has(i)).map(p => Object.assign(clone(p), { locked:true }));
+  const comps = sol.filter((p, i) => gaps.has(i)).map(compOf);
+  if(L.decoys) for(let i = rint(rng, L.decoys[0], L.decoys[1]); i > 0; i--) comps.push(pickOne(rng, R.insulators));
+  return { level, rows:L.rows, cols:L.cols, opening, tray:trayOf(comps), solution:sol, fault:null, task:null };
+}
+
+/* HARD: an intact circuit — a single loop, or a ladder with its own path for each of two parts
+   (sometimes behind a switch) — then exactly ONE thing wrong with it. The tray holds plenty of
+   spare parts, only some of them useful. */
+function dealHard(R, rng){
+  const L = LEVELS.HARD;
+  let sol;
+  if(rng() < L.ladder){
+    const batRung = rng() < .6 ? [R.battery, R.sw] : [R.battery];
+    sol = dealLadder(R, rng, L.rows, L.cols, [batRung, [pickOne(rng, R.loads)], [pickOne(rng, R.loads)]]);
+    if(!sol) return null;
+    /* a few everyday metal things standing in for plain wire, as in the loops */
+    const wires = shuffle(sol.map((p, i) => i).filter(i => sol[i].id === R.wire.id), rng);
+    for(let t = rint(rng, L.things[0], L.things[1]); t > 0 && wires.length && R.things.length; t--){
+      const i = wires.pop(), was = sol[i];
+      sol[i] = makePiece(pickOne(rng, R.things), was.r, was.c, was.rot, was.uid);
+    }
+  } else sol = dealLoop("HARD", R, rng);
+
+  const opening = sol.map(p => Object.assign(clone(p), p.kind === "source" ? { locked:true } : {}));
+  const plain = sol.map((p, i) => i).filter(i => sol[i].kind === "conductor" && sol[i].shape !== "tee");
+  const loads = sol.map((p, i) => i).filter(i => sol[i].kind === "load");
+  const sws = sol.map((p, i) => i).filter(i => sol[i].kind === "switch");
+  const straight = plain.filter(j => sol[j].shape === "straight");
+  /* only the faults this circuit has room for (a tight ladder may have no plain straight wire) */
+  const type = pickOne(rng, FAULTS.filter(f => f === "switch" ? sws.length : f === "insulator" ? straight.length : f === "gap" ? plain.length : true));
+  let fault, spareThing = R.things.length ? pickOne(rng, R.things) : R.wire;
+  if(type === "insulator"){
+    const i = pickOne(rng, straight);
+    const ins = pickOne(rng, R.insulators), was = sol[i];
+    opening[i] = makePiece(ins, was.r, was.c, was.rot, was.uid);
+    if(was.id !== R.wire.id) spareThing = compOf(was);     /* the tray always holds what it replaced */
+    fault = { type, uid:was.uid, name:ins.name, emoji:ins.emoji };
+  } else if(type === "gap"){
+    const i = pickOne(rng, plain), p = opening[i], turns = SHAPES[p.shape].turns;
+    p.rot = (p.rot + rint(rng, 1, turns - 1)) % turns;
+    fault = { type, uid:p.uid, name:p.name, emoji:p.emoji };
+  } else if(type === "switch"){
+    const i = pickOne(rng, sws);
+    opening[i].closed = false;
+    fault = { type, uid:opening[i].uid, name:opening[i].name };
+  } else {
+    const i = pickOne(rng, loads);
+    opening[i].oneEnd = true;
+    fault = { type, uid:opening[i].uid, name:opening[i].name };
+  }
+  const tray = [R.wire, spareThing, pickOne(rng, R.insulators)].concat(extras(R, rng, L.extras));
+  return { level:"HARD", rows:L.rows, cols:L.cols, opening, solution:sol, fault, task:null, tray:trayOf(tray) };
+}
+
+/* EXPERT: one of four tasks (see TASKS), always solved by a ladder, with a bulb plus one or two
+   other loads from the catalogue. Only the battery and a few plain wires stay on the bench;
+   every load, switch and junction goes to the tray with a handful of spares. */
+function dealExpert(R, rng){
+  const L = LEVELS.EXPERT, kind = pickOne(rng, TASKS), load = () => pickOne(rng, R.loads);
+  const loads = kind === "trio" ? [R.bulb, load(), load()] : [R.bulb, load()];
+  const rungs = kind === "eachSwitch" ? [[R.battery], [loads[0], R.sw], [loads[1], R.sw]]
+              : kind === "master"     ? [[R.battery, R.sw], [loads[0]], [loads[1]]]
+              : [[R.battery]].concat(loads.map(l => [l]));
+  const sol = dealLadder(R, rng, L.rows, L.cols, rungs);
+  if(!sol) return null;
+  const keep = sol.map(p => p.kind === "source" || (p.kind === "conductor" && p.shape !== "tee" && rng() < L.keep));
+  const opening = sol.filter((p, i) => keep[i]).map(p => Object.assign(clone(p), { locked:true }));
+  const comps = sol.filter((p, i) => !keep[i]).map(compOf).concat(extras(R, rng, L.extras));
+  return { level:"EXPERT", rows:L.rows, cols:L.cols, opening, tray:trayOf(comps), solution:sol, fault:null,
+           task:{ kind, loads: loads.map(l => l.id) } };
+}
+
+function puzzleKey(p){
+  return JSON.stringify([p.level, p.solution.map(x => [x.id, x.r, x.c, x.rot]),
+    p.opening.map(x => [x.id, x.r, x.c, x.rot, !!x.closed, !!x.oneEnd]), p.fault && p.fault.type, p.task && p.task.kind]);
+}
+/* `avoidKey` is the outgoing puzzle's key, so Skip and Next never hand back the same one */
+function newPuzzle(level, catalog, rng = Math.random, avoidKey = null){
+  const R = rolesOf(catalog);
+  let p = null;
+  for(let a = 0; a < 80; a++){
+    const q = level === "EXPERT" ? dealExpert(R, rng) : level === "HARD" ? dealHard(R, rng) : dealEasyMedium(level, R, rng);
+    if(!q) continue;
+    q.key = puzzleKey(q);
+    if(!check(q, q.solution).ok || check(q, q.opening).ok) continue;     /* solvable, and not already solved */
+    p = q;
+    if(q.key !== avoidKey) break;
+  }
+  return p;
+}
+
+function startState(puzzle){
+  return { placements: clone(puzzle.opening), tray: clone(puzzle.tray), next: 0 };
+}
+function stateKey(placements){
+  return placements.map(p => [p.r, p.c, p.id, p.rot, !!p.closed, !!p.oneEnd].join(":")).sort().join("|");
+}
+
+/* ---- is it right? ------------------------------------------------------------------------
+   EASY / HARD: with the circuit exactly as it stands, every load on the bench works.
+   MEDIUM: it lights with the switch closed AND goes out with it open — the switch must be
+   part of the loop, not just somewhere on the bench (so its current position doesn't matter).
+   EXPERT: every load the task names is on the bench and works (with the switches closed), and
+   pulling ANY one of them out leaves all the others working. Then, by task:
+     eachSwitch — each load has a switch that turns off that load and nothing else
+     master     — one switch turns every load off at once                                 */
+const withSwitch = (ps, s, closed) => ps.map(p => p === s ? Object.assign({}, p, { closed }) : p);
+function check(puzzle, placements){
+  const lv = puzzle.level;
+  if(lv === "MEDIUM" || lv === "EXPERT"){
+    const closed = placements.map(p => p.kind === "switch" ? Object.assign({}, p, { closed:true }) : p);
+    const sim = simulate(closed), sws = closed.filter(p => p.kind === "switch");
+    if(lv === "MEDIUM"){
+      if(sim.shorted) return { ok:false, reason:"short", sim };
+      if(!sim.complete) return { ok:false, reason:"open", sim };
+      return sws.some(s => !simulate(withSwitch(closed, s, false)).complete) ? { ok:true, sim } : { ok:false, reason:"noSwitch", sim };
+    }
+    const loads = closed.filter(p => p.kind === "load"), t = puzzle.task, have = {};
+    loads.forEach(p => { have[p.id] = (have[p.id] || 0) + 1; });
+    for(const id of t.loads) if(!(have[id]--)) return { ok:false, reason:"missing", sim };
+    if(sim.shorted) return { ok:false, reason:"short", sim };
+    if(!sim.complete) return { ok:false, reason:"open", sim };
+    if(sim.off.length) return { ok:false, reason:"someOff", sim };
+    for(const b of loads){
+      const s2 = simulate(closed.filter(p => p !== b));
+      if(s2.shorted || s2.off.length) return { ok:false, reason:"series", sim };
+    }
+    if(t.kind === "eachSwitch" && !loads.every(L => sws.some(s => {
+      const s2 = simulate(withSwitch(closed, s, false));
+      return !s2.shorted && s2.off.length === 1 && s2.off[0] === L.uid;
+    }))) return { ok:false, reason:"eachSwitch", sim };
+    if(t.kind === "master" && !sws.some(s => {
+      const s2 = simulate(withSwitch(closed, s, false));
+      return !s2.shorted && !s2.complete;
+    })) return { ok:false, reason:"master", sim };
+    return { ok:true, sim };
+  }
+  const sim = simulate(placements);
+  if(sim.shorted) return { ok:false, reason:"short", sim };
+  if(!sim.complete) return { ok:false, reason:"open", sim };
+  if(sim.off.length) return { ok:false, reason:"someOff", sim };
+  return { ok:true, sim };
+}
+
+/* Hint: names the KIND of problem, never the part. First problem found wins. */
+function diagnose(puzzle, placements){
+  const lv = puzzle.level, sim = simulate(placements), conn = connections(placements);
+  const bothJoined = p => conn.get(p.uid).every(j => j.joined);
+  if(lv === "EXPERT" && check(puzzle, placements).reason === "missing") return "missing";
+  if(placements.some(p => p.kind === "load" && p.oneEnd)) return "oneEnd";
+  if(sim.shorted) return "short";
+  if(lv !== "HARD"){
+    const at = new Set(placements.map(p => p.r + "," + p.c));
+    for(const p of placements) for(const j of conn.get(p.uid)){
+      if(j.joined) continue;
+      const nr = p.r + DIRS[j.d][0], nc = p.c + DIRS[j.d][1];
+      if(nr >= 0 && nr < puzzle.rows && nc >= 0 && nc < puzzle.cols && !at.has(nr + "," + nc)) return "gap";
+    }
+  }
+  if(placements.some(p => p.kind === "insulator" && bothJoined(p))) return "insulator";
+  /* MEDIUM and EXPERT judge a switch in both positions, so an open one isn't a problem there */
+  if((lv === "EASY" || lv === "HARD") && placements.some(p => p.kind === "switch" && !p.closed && bothJoined(p))) return "switch";
+  if(placements.some(p => conn.get(p.uid).some(j => !j.joined))) return "loose";
+  const res = check(puzzle, placements);
+  if(res.ok) return "ready";
+  return ["noSwitch", "series", "someOff", "eachSwitch", "master", "open"].indexOf(res.reason) >= 0 ? res.reason : "loose";
+}
+
+/* first Switch on right and no hints: 3; one miss OR one or two hints: 2; otherwise 1 */
+function starsFor(fails, hints){
+  if(!fails && !hints) return 3;
+  if((fails === 1 && !hints) || (!fails && hints <= 2)) return 2;
+  return 1;
+}
+
+if(typeof module !== "undefined") module.exports = { LEVELS, FAULTS, TASKS, SHAPES, DIRS, newPuzzle, simulate, check,
+  diagnose, starsFor, validateCatalog, rolesOf, portsOf, nodeKey, fitRot, nextRot, autoRot, connections,
+  loopCells, dealLadder, makePiece, startState, stateKey, puzzleKey, trayOf, sortTray };
+
+/* ===== DOM =============================================================================== */
+/* round state lives at the top level so the offline play-through can read the dealt puzzle */
+let CATALOG = null, P = null, S = null, level = "EASY";
+let held = null, powered = false, won = false, fails = 0, hints = 0, lastChecked = null;
+let cursor = { zone:"grid", r:0, c:0, i:0 };
+
+if(typeof document !== "undefined"){
+
+/* This game only works when served (fetch() is blocked under file://) — no embedded
+   fallback data, by design: see CLAUDE.md. */
+loadGameData("components.json").then(d => {
+  CATALOG = validateCatalog(d);
+  if(CATALOG){ $("loadmsg").classList.add("hide"); $("start-btn").disabled = false; }
+  else {
+    $("loadmsg").textContent = "Couldn't load the parts list. This game needs to be served over http(s), not opened as a local file.";
+    $("loadmsg").classList.add("bad");
+  }
+});
+
+/* the task line above the bench — EXPERT's names the parts this round actually uses */
+const partName = id => { const c = CATALOG.find(x => x.id === id); return c ? c.emoji + " " + c.name.toLowerCase() : id; };
+const listParts = ids => { const n = ids.map(partName); return n.length > 1 ? n.slice(0, -1).join(", ") + " and " + n[n.length - 1] : n[0]; };
+function goalText(p){
+  if(p.level === "EASY")   return "Close the loop so the bulb lights.";
+  if(p.level === "MEDIUM") return "Finish the loop — with a switch that turns the bulb off and on.";
+  if(p.level === "HARD")   return "This looks finished, but it doesn't work. Find the one thing that's wrong and fix it.";
+  const t = p.task, parts = listParts(t.loads);
+  if(t.kind === "eachSwitch") return "Wire the " + parts + " so each has its own switch that turns off only that one.";
+  if(t.kind === "master") return "Wire the " + parts + " so pulling out either one leaves the other working — and one switch turns off both.";
+  return "Wire the " + parts + " so pulling out any one of them leaves the " + (t.loads.length > 2 ? "others" : "other") + " working.";
+}
+const FAIL_MSG = {
+  short:     "💨 Nothing there to slow the current down — it zooms straight back to the battery without going through a bulb.",
+  open:      "Nothing works yet — the current can't get all the way round.",
+  noSwitch:  "💡 It lights! But there's no switch in the loop to turn it off.",
+  missing:   "Every part the task names needs a place on the workbench first.",
+  someOff:   "Something works, but not everything — one part isn't on a path round.",
+  series:    "Everything works, but some parts share one path. Tap one to pull it out and watch the others!",
+  eachSwitch:"Everything works — but each switch should turn off only its own part.",
+  master:    "Everything works — but no single switch turns them all off.",
+};
+const HINTS = {
+  missing:   "Every part the task names needs a place on the workbench.",
+  oneEnd:    "A bulb, buzzer or motor has two contacts. Current has to go in one and out of the other — look at how each one is wired.",
+  short:     "Current can get back to the battery without going through anything that uses it. Every path needs something to slow it down.",
+  gap:       "There's still a gap — a space in the circuit needs a part.",
+  insulator: "Something in this circuit isn't letting current through.",
+  switch:    "Something in the circuit is breaking it on purpose.",
+  loose:     "One end isn't connected to anything. Look for an end that doesn't touch another.",
+  noSwitch:  "The bulb can light, but there's no switch in the loop to turn it off.",
+  series:    "Some parts are on one shared path, so if one comes out the path breaks. Give each its own path from one end of the battery to the other.",
+  someOff:   "One part isn't on a path from the battery and back.",
+  open:      "The current can't get all the way round yet.",
+  eachSwitch:"A switch only controls the path it sits on. Put each switch on the same path as its own part.",
+  master:    "Where could one switch break every path at once? Think about the path the battery is on.",
+  ready:     "It looks ready — press Switch on ⚡ to test it!",
+};
+const FIXED_MSG = {
+  insulator: f => "🔧 Fixed! The " + f.name.toLowerCase() + " was stopping the current.",
+  gap:       () => "🔧 Fixed! One end wasn't touching — now the circuit is closed.",
+  switch:    () => "🔧 Fixed! A switch was open, breaking the circuit.",
+  oneEnd:    f => "🔧 Fixed! The " + f.name.toLowerCase() + " was wired to only one of its contacts.",
+};
+const EXPERT_WIN = {
+  pair:       "⚡ Two parts, two paths!",
+  trio:       "⚡ Three parts, three paths!",
+  eachSwitch: "🔘🔘 A switch each!",
+  master:     "🔘 One switch for everything!",
+};
+
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "place")      beep(520, .06, "triangle", 0, .08);
+  else if(kind === "pick")  beep(380, .05, "triangle", 0, .06);
+  else if(kind === "turn")  beep(460, .05, "sine", 0, .07);
+  else if(kind === "click"){ beep(1400, .025, "square", 0, .03); beep(900, .03, "square", .03, .025); }
+  else if(kind === "light") [440, 587, 784, 1175].forEach((f, i) => beep(f, .12, "sine", i * .05, .08));
+  else if(kind === "bad")   beep(220, .18, "sine", 0, .07);
+  else if(kind === "hint"){ beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
+  else if(kind === "win")   [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", .3 + i * .08));
+}
+
+/* ---- drawing one part (shared by the bench and the rules diagrams) ---- */
+const EDGE = [[50,0],[100,50],[50,100],[0,50]], INSET = [[50,11],[89,50],[50,89],[11,50]];
+const isPlainWire = p => p.kind === "conductor" && (p.shape !== "straight" || p.id === "wire");
+function pieceHTML(p, joins, state){
+  let g;
+  if(p.shape === "corner") g = '<path class="w" d="M50 0 V36 Q50 50 64 50 H100"/>';
+  else if(p.shape === "tee") g = '<path class="w" d="M0 50 H100 M50 50 V100"/><circle class="jn" cx="50" cy="50" r="8"/>';
+  else if(isPlainWire(p)) g = '<path class="w" d="M0 50 H100"/>';
+  else if(p.kind === "switch")
+    g = '<path class="w" d="M0 50 H24 M76 50 H100"/>'
+      + (p.closed ? '<path class="lever" d="M24 50 L76 50"/>' : '<path class="lever" d="M24 50 L66 18"/>')
+      + '<circle class="ct" cx="24" cy="50" r="6"/><circle class="ct" cx="76" cy="50" r="6"/>';
+  else if(p.kind === "load" && p.oneEnd)   /* both wires run to the SAME contact; the other one is empty */
+    g = '<path class="w" d="M0 50 H26 M100 50 H88 Q80 50 74 64 Q60 86 36 72 Q28 66 26 56"/>'
+      + '<circle class="ct" cx="26" cy="50" r="6"/><circle class="ct open" cx="74" cy="50" r="6"/>';
+  else g = '<path class="w" d="M0 50 H26 M74 50 H100"/><circle class="ct" cx="26" cy="50" r="6"/><circle class="ct" cx="74" cy="50" r="6"/>';
+  if(p.kind === "load" && (state === "lit" || state === "dim"))
+    g = '<circle class="glow" cx="50" cy="50" r="24"/><g class="rays">'
+      + [45, 90, 135, 225, 270, 315].map(a => { const s = Math.sin(a * Math.PI / 180), c = Math.cos(a * Math.PI / 180);
+          return '<path d="M' + (50 + 30 * c).toFixed(1) + " " + (50 - 30 * s).toFixed(1) + " L" + (50 + 44 * c).toFixed(1) + " " + (50 - 44 * s).toFixed(1) + '"/>'; }).join("")
+      + "</g>" + g;
+  let svg = '<svg viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(' + p.rot * 90 + ' 50 50)">' + g + "</g>";
+  for(const j of joins || []){
+    const [x, y] = j.joined ? EDGE[j.d] : INSET[j.d];
+    svg += '<circle class="' + (j.joined ? "pj" : "pd") + '" cx="' + x + '" cy="' + y + '" r="6"/>';
+  }
+  let html = svg + "</svg>";
+  if(!isPlainWire(p) && p.kind !== "switch") html += '<span class="emo">' + p.emoji + "</span>";
+  if(p.kind === "switch") html += '<span class="tag">' + (p.closed ? "closed" : "open") + "</span>";
+  if(p.kind === "load") html += '<span class="tag">' + sayState(p, state) + "</span>";
+  if(p.kind === "source"){ const pp = portsOf(p); html += '<span class="pole pole' + pp[0] + '">+</span><span class="pole pole' + pp[1] + '">−</span>'; }
+  return html;
+}
+/* the word under a load: its own for each state (lit / dim / off, buzz / soft / off…), or "out" */
+const sayState = (p, state) => state === "out" ? "out" : (p.says || SAYS)[Math.max(0, SAYS.indexOf(state || "off"))];
+const loadState = (p, sim) => p.pulled ? "out" : !sim ? "off"
+  : sim.lit.indexOf(p.uid) >= 0 ? "lit" : sim.dim.indexOf(p.uid) >= 0 ? "dim" : "off";
+
+/* ---- the bench ---- */
+const active = () => S.placements.filter(p => !p.pulled);
+const pieceAt = (r, c) => S.placements.find(p => p.r === r && p.c === c);
+
+function buildBench(){
+  const b = $("bench");
+  b.style.setProperty("--cols", P.cols);
+  b.innerHTML = "";
+  for(let r = 0; r < P.rows; r++) for(let c = 0; c < P.cols; c++){
+    const cell = document.createElement("button");
+    cell.type = "button"; cell.className = "cell";
+    cell.dataset.r = r; cell.dataset.c = c;
+    cell.onclick = () => tapCell(r, c);
+    b.appendChild(cell);
+  }
+}
+function paint(){
+  const act = active(), conn = connections(act), sim = powered ? simulate(act) : null;
+  for(const cell of $("bench").children){
+    const r = +cell.dataset.r, c = +cell.dataset.c, p = pieceAt(r, c);
+    const ghost = !p && held && held.src === "grid" && held.r === r && held.c === c;
+    const shown = p || (ghost ? held.p : null);
+    const state = shown && shown.kind === "load" ? (p ? loadState(p, sim) : "off") : "";
+    cell.className = "cell" + (p && p.locked ? " locked" : "") + (ghost ? " ghost" : "") + (state ? " " + state : "");
+    cell.innerHTML = shown ? pieceHTML(shown, p && !p.pulled ? conn.get(p.uid) : null, state) : "";
+    cell.dataset.id = p ? p.id : ""; cell.dataset.rot = p ? p.rot : "";
+    cell.title = shown ? shown.name : "";
+    cell.tabIndex = cursor.zone === "grid" && cursor.r === r && cursor.c === c ? 0 : -1;
+    cell.setAttribute("aria-label", "Row " + (r + 1) + ", column " + (c + 1) + ": "
+      + (!shown ? "empty" : shown.name + (ghost ? ", in your hand" : "")
+        + (state ? ", " + sayState(shown, state) : "") + (shown.kind === "switch" ? ", " + (shown.closed ? "closed" : "open") : "")
+        + (p && p.locked ? ", fixed in place" : "")));
+  }
+  paintTray();
+}
+function paintTray(){
+  const box = $("tray"), hadFocus = box.contains(document.activeElement);
+  const shown = S.tray.filter(t => t.n > 0 || (held && held.src === "tray" && held.id === t.id));
+  box.innerHTML = "";
+  shown.forEach((t, i) => {
+    const b = document.createElement("button");
+    const holding = held && held.src === "tray" && held.id === t.id;
+    b.type = "button"; b.className = "part"; b.dataset.id = t.id;
+    b.setAttribute("aria-pressed", holding ? "true" : "false");
+    b.innerHTML = '<span class="pe" aria-hidden="true">' + t.emoji + "</span><span>" + t.name + '</span><span class="n">×' + t.n + "</span>";
+    b.setAttribute("aria-label", t.name + ", " + t.n + " in the tray" + (holding ? ", in your hand" : ""));
+    b.tabIndex = (cursor.zone === "tray" ? cursor.i === i : i === 0) ? 0 : -1;
+    b.onclick = () => { cursor = { zone:"tray", i, r:cursor.r, c:cursor.c }; tapPart(t.id); };
+    box.appendChild(b);
+  });
+  if(cursor.zone === "tray") cursor.i = Math.min(cursor.i, Math.max(0, shown.length - 1));
+  if(hadFocus && box.children.length) box.children[Math.min(cursor.i, box.children.length - 1)].focus();
+  const h = held && (held.src === "tray" ? S.tray.find(t => t.id === held.id) : held.p);
+  $("holding").textContent = !h ? (won ? "" : "Tap a part in the tray, then a square on the bench.")
+    : "✋ Holding: " + h.emoji + " " + h.name + (held.src === "grid" ? " — tap its square to turn it, or the tray to put it back" : " — tap a square");
+}
+
+/* ---- the tray ---- */
+function trayTake(id){ const t = S.tray.find(x => x.id === id); t.n--; return t; }
+function trayPut(p){
+  const t = S.tray.find(x => x.id === p.id);
+  if(t) t.n++; else { S.tray.push(Object.assign(compOf(p), { n:1 })); sortTray(S.tray); }
+}
+
+/* ---- play ---- */
+function edited(){
+  powered = false;
+  S.placements.forEach(p => { delete p.pulled; });
+  setOwl("think");
+  paint();
+}
+function tapPart(id){
+  if(!P || won) return;
+  if(held && held.src === "grid"){ trayPut(held.p); held = null; sound("pick"); flash("Back in the tray.", ""); edited(); return; }
+  held = held && held.id === id ? null : { src:"tray", id };
+  if(held) flash("Now tap a square on the workbench.", "");
+  paint();
+}
+function tapCell(r, c){
+  if(!P) return;
+  cursor = { zone:"grid", r, c, i:cursor.i };
+  const p = pieceAt(r, c);
+  if(p && p.kind === "load" && powered && level === "EXPERT" && !held){ togglePull(p); return; }
+  if(p && p.kind === "switch" && !held){ toggleSwitch(p); return; }
+  if(won) return;
+  if(p && p.locked){ flash("That part is fixed in place.", "hint"); paint(); return; }
+  if(held){
+    if(p){   /* swap: the part that was there goes back to the tray */
+      S.placements.splice(S.placements.indexOf(p), 1);
+      trayPut(p);
+      flash(p.emoji + " " + p.name + " went back to the tray.", "");
+      dropHeld(r, c, false);
+    } else dropHeld(r, c, held.src === "grid" && held.r === r && held.c === c);
+    return;
+  }
+  if(!p){ flash("Pick a part from the tray first, then tap a square.", "hint"); paint(); return; }
+  S.placements.splice(S.placements.indexOf(p), 1);
+  const copy = clone(p); delete copy.oneEnd; delete copy.pulled;
+  held = { src:"grid", p:copy, r, c, orig:p, fixed:!!p.oneEnd };
+  sound("pick");
+  flash("Tap the same square to turn it, another square to move it, or the tray to put it back.", "");
+  edited();
+}
+function dropHeld(r, c, inPlace){
+  const h = held; held = null;
+  let piece;
+  if(h.src === "tray") piece = makePiece(trayTake(h.id), r, c, 0, "n" + (S.next++));
+  else piece = Object.assign(clone(h.p), { r, c });
+  /* back in its own square: turn it — unless picking it up just rewired a bulb */
+  if(inPlace) piece.rot = h.fixed ? h.p.rot : nextRot(h.p);
+  else piece.rot = autoRot(S.placements, piece.shape, r, c, P.rows, P.cols);
+  S.placements.push(piece);
+  sound(inPlace ? "turn" : "place");
+  if(inPlace) flash(h.fixed ? "Wired back up — one wire on each contact." : "Turned it.", "");
+  else if(h.src === "tray" || !$("feedback").textContent.includes("went back")) flash("", "");
+  edited();
+}
+function cancelHeld(){
+  if(!held) return;
+  if(held.src === "grid") S.placements.push(held.orig);
+  held = null;
+}
+function toggleSwitch(p){
+  const before = powered ? simulate(active()) : null;
+  p.closed = !p.closed;
+  sound("click");
+  if(!powered){ flash("Switch " + (p.closed ? "closed" : "open") + ".", ""); paint(); return; }
+  paint();
+  const now = simulate(active());
+  if(now.lit.length + now.dim.length > before.lit.length + before.dim.length) sound("light");
+  if(!won){ const res = check(P, active()); if(res.ok){ win(); return; } }
+  flash(p.closed ? "Switch closed — the loop is complete again." : "Switch open — the loop is broken, so the current stops.", won ? "good" : "");
+}
+function togglePull(p){
+  p.pulled = !p.pulled;
+  sound(p.pulled ? "pick" : "place");
+  paint();
+  const s = simulate(active());
+  const name = p.name.toLowerCase();
+  if(!p.pulled) flash("The " + name + " is back in.", won ? "good" : "");
+  else if(!s.shorted && s.off.length === 0 && s.lit.length + s.dim.length) flash("⚡ Everything else keeps working — each has its own path round!", "good");
+  else flash("Pulling out the " + name + " stopped something else too — they were sharing a path.", "bad");
+}
+function switchOn(){
+  if(!P || won) return;
+  cancelHeld();
+  S.placements.forEach(p => { delete p.pulled; });
+  powered = true;
+  const res = check(P, S.placements);
+  paint();
+  if(res.ok){ win(); return; }
+  const key = stateKey(S.placements);
+  if(key !== lastChecked){ fails++; lastChecked = key; }   /* pressing again on the same circuit isn't another miss */
+  setOwl("worried"); sound("bad");
+  flash(FAIL_MSG[res.reason] || FAIL_MSG.open, "bad");
+}
+function win(){
+  won = true;
+  if(level === "MEDIUM" || level === "EXPERT") S.placements.forEach(p => { if(p.kind === "switch") p.closed = true; });
+  paint();
+  sound("light"); sound("win");
+  const n = starsFor(fails, hints);
+  $("stars").textContent = "★".repeat(n) + "☆".repeat(3 - n);
+  $("rlabel").textContent = level === "HARD" ? FIXED_MSG[P.fault.type](P.fault)
+    : level === "MEDIUM" ? "🔘 Your switch works!" : level === "EXPERT" ? EXPERT_WIN[P.task.kind] : "💡 It lights — you closed the loop!";
+  const bits = [];
+  if(fails) bits.push(fails + " tr" + (fails === 1 ? "y" : "ies") + " that didn't work");
+  if(hints) bits.push(hints + " hint" + (hints === 1 ? "" : "s") + " used");
+  $("rsub").textContent = bits.length ? "(" + bits.join(" · ") + ")" : "First try, no hints!";
+  $("result-view").classList.remove("hide");
+  $("power-btn").classList.add("hide");
+  $("next-btn").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
+  $("next-btn").focus();
+  setOwl("win");
+  flash(level === "EXPERT" ? "Tap a bulb, buzzer or motor to pull it out — and watch the others."
+      : level === "MEDIUM" ? "Tap the switch to turn the bulb off and on." : "", "good");
+  if(!reduceMotion) throwConfetti({ colors:[...CONFETTI_COLORS, "#FFE680"] });
+}
+function giveHint(){
+  if(!P || won) return;
+  cancelHeld();
+  hints++;
+  flash("💡 " + HINTS[diagnose(P, active())], "hint");
+  setOwl("think"); sound("hint");
+  paint();
+}
+function resetRound(){
+  if(!P || won) return;
+  S = startState(P); held = null; powered = false; lastChecked = null;
+  setOwl("think");
+  flash("Back to how it started.", "");
+  paint();
+}
+
+/* ---- rounds ---- */
+function newRound(){
+  stopConfetti();
+  P = newPuzzle(level, CATALOG, Math.random, P ? P.key : null);
+  S = startState(P);
+  held = null; powered = false; won = false; fails = 0; hints = 0; lastChecked = null;
+  cursor = { zone:"grid", r:0, c:0, i:0 };
+  $("task").textContent = goalText(P);
+  $("result-view").classList.add("hide");
+  $("power-btn").classList.remove("hide");
+  $("next-btn").classList.add("hide");
+  $("skip-btn").classList.remove("invisible");
+  setOwl("think");
+  flash("", "");
+  buildBench();
+  paint();
+}
+function setLevel(l){ level = l; markLevel(l, LEVELS[l].label); }
+function goHome(){
+  stopConfetti();
+  held = null;
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+/* ---- wiring ---- */
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = () => {
+  if(!CATALOG) return;
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  newRound();
+};
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => newRound();
+$("next-btn").onclick = () => newRound();
+$("reset-btn").onclick = resetRound;
+$("hint-link").onclick = giveHint;
+$("power-btn").onclick = switchOn;
+
+buildLevelMenu(LEVELS, pickLevel);
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(); }
+wireLevelMenu();
+
+/* ---- keyboard: one focus ring across the bench and the tray; Enter/Space press the button ---- */
+function moveCursor(d){
+  const parts = $("tray").children;
+  if(cursor.zone === "grid"){
+    let r = cursor.r + DIRS[d][0], c = cursor.c + DIRS[d][1];
+    if(r >= P.rows && parts.length){ cursor = { zone:"tray", i:Math.min(cursor.c, parts.length - 1), r:cursor.r, c:cursor.c }; }
+    else cursor = { zone:"grid", r:Math.max(0, Math.min(P.rows - 1, r)), c:Math.max(0, Math.min(P.cols - 1, c)), i:cursor.i };
+  } else {
+    if(d === 0) cursor = { zone:"grid", r:P.rows - 1, c:Math.min(cursor.i, P.cols - 1), i:cursor.i };
+    else if(d === 1 || d === 3) cursor.i = Math.max(0, Math.min(parts.length - 1, cursor.i + (d === 1 ? 1 : -1)));
+  }
+  focusCursor();
+}
+function focusCursor(){
+  const el = cursor.zone === "grid" ? $("bench").children[cursor.r * P.cols + cursor.c] : $("tray").children[cursor.i];
+  [...$("bench").children, ...$("tray").children].forEach(x => { x.tabIndex = x === el ? 0 : -1; });
+  if(el) el.focus();
+}
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){ closeLevelMenu(); if(held){ cancelHeld(); flash("", ""); paint(); } return; }
+  if($("screen-game").classList.contains("hide") || !P) return;
+  const d = { ArrowUp:0, ArrowRight:1, ArrowDown:2, ArrowLeft:3 }[e.key];
+  if(d === undefined) return;
+  const t = e.target, inPlay = t && t.closest && (t.closest("#bench") || t.closest("#tray"));
+  if(!inPlay && t !== document.body) return;
+  e.preventDefault();
+  if(inPlay) moveCursor(d); else focusCursor();
+});
+
+/* ---- the rules sheet ---- */
+const ART = {
+  battery:{ id:"battery", name:"Battery", emoji:"🔋", kind:"source", shape:"straight" },
+  bulb:   { id:"bulb", name:"Bulb", emoji:"💡", kind:"load", shape:"straight" },
+  buzzer: { id:"buzzer", name:"Buzzer", emoji:"🔔", kind:"load", shape:"straight", says:["buzz","soft","off"] },
+  wire:   { id:"wire", name:"Wire", emoji:"➖", kind:"conductor", shape:"straight" },
+  corner: { id:"corner", name:"Corner wire", emoji:"↪️", kind:"conductor", shape:"corner" },
+  tee:    { id:"junction", name:"Junction wire", emoji:"🔀", kind:"conductor", shape:"tee" },
+  sw:     { id:"switch", name:"Switch", emoji:"🔘", kind:"switch", shape:"straight" },
+  clip:   { id:"paperclip", name:"Paperclip", emoji:"📎", kind:"conductor", shape:"straight" },
+  spoon:  { id:"spoon", name:"Plastic spoon", emoji:"🥄", kind:"insulator", shape:"straight" },
+};
+function mini(rows, cols, pieces){
+  const conn = connections(pieces), sim = simulate(pieces);
+  let h = '<div class="mini" style="--cols:' + cols + '" aria-hidden="true">';
+  for(let r = 0; r < rows; r++) for(let c = 0; c < cols; c++){
+    const p = pieces.find(q => q.r === r && q.c === c), st = p && p.kind === "load" ? loadState(p, sim) : "";
+    h += '<div class="cell' + (st ? " " + st : "") + '">' + (p ? pieceHTML(p, conn.get(p.uid), st) : "") + "</div>";
+  }
+  return h + "</div>";
+}
+/* a 2-row loop, `w` wide; slots name what sits at each place round it (1,2 on top; 5,6 below) */
+function artLoop(w, slots, closed){
+  return loopCells(0, 0, 2, w).map((cl, i) => {
+    const k = slots[i] || (cl.shape === "corner" ? "corner" : "wire");
+    if(k === "gap") return null;
+    const p = makePiece(ART[k], cl.r, cl.c, fitRot(ART[k].shape, cl.need), "a" + i);
+    if(p.kind === "switch") p.closed = !!closed;
+    return p;
+  }).filter(Boolean);
+}
+/* a ladder of rungs, each rung listing its parts top to bottom (a rung's other squares are wire) */
+function artLadder(rungs, open){
+  const len = Math.max(...rungs.map(r => r.length)), n = rungs.length, out = [];
+  const put = (k, r, c, need) => { const p = makePiece(ART[k], r, c, fitRot(ART[k].shape, need), "l" + out.length); if(p.kind === "switch") p.closed = !open; out.push(p); };
+  rungs.forEach((parts, c) => {
+    put(c === 0 ? "corner" : c === n - 1 ? "corner" : "tee", 0, c, c === 0 ? [1,2] : c === n - 1 ? [3,2] : [3,1,2]);
+    put(c === 0 ? "corner" : c === n - 1 ? "corner" : "tee", len + 1, c, c === 0 ? [1,0] : c === n - 1 ? [3,0] : [3,1,0]);
+    for(let y = 0; y < len; y++) put(parts[y] || "wire", y + 1, c, [0,2]);
+  });
+  return out;
+}
+const arrow = '<span class="rarrow">➡️</span>';
+function listOf(kind){
+  const names = (CATALOG || []).filter(c => c.kind === kind && c.shape === "straight").map(c => c.emoji + " " + c.name.toLowerCase());
+  return names.length ? names.join(", ") : "";
+}
+wireRulesSheet(function(){
+  const metal = listOf("conductor").replace(/➖ wire, ?/, ""), not = listOf("insulator");
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🔁 Current needs a complete loop</h3>'
+    + '<p>A battery pushes <b>current</b> out of one end, round the wires, and back into its other end. '
+    + 'The bulb lights only if the current can get <b>all the way round</b>. One gap anywhere and it stops.</p>'
+    + '<div class="rrow">' + mini(2, 4, artLoop(4, { 1:"bulb", 2:"gap", 5:"battery" })) + arrow + mini(2, 4, artLoop(4, { 1:"bulb", 5:"battery" })) + "</div>"
+    + '<span class="cap">A gap keeps the bulb dark. Close the loop and it <b>lights</b>.</span>'
+    + '<p style="margin-top:10px;">Watch the ends: a filled dot <b>●</b> means two ends touch. A hollow ring <b>○</b> means an end is touching nothing.</p></div>'
+
+    + '<div class="rule"><h3>🥄 Some things let current through — some don\'t</h3>'
+    + '<p><b>Conductors</b> let current flow. Metal things are conductors' + (metal ? " — " + metal : "") + '.</p>'
+    + '<p><b>Insulators</b> stop it. Plastic, rubber, wood and wax are insulators' + (not ? " — " + not : "") + '.</p>'
+    + '<div class="rrow">' + mini(2, 4, artLoop(4, { 1:"bulb", 2:"clip", 5:"battery" })) + mini(2, 4, artLoop(4, { 1:"bulb", 2:"spoon", 5:"battery" })) + "</div>"
+    + '<span class="cap">With a paperclip the bulb <b>lights</b>. With a plastic spoon it stays <b>off</b>.</span></div>'
+
+    + '<div class="rule"><h3>🔘 A switch breaks the loop on purpose</h3>'
+    + '<p>A switch is a gap you can open and close. <b>Open</b>, the loop is broken and the bulb goes off. '
+    + '<b>Closed</b>, the loop is complete and it lights. Tap a switch any time to flip it.</p>'
+    + '<div class="rrow">' + mini(2, 4, artLoop(4, { 1:"bulb", 2:"sw", 5:"battery" }, false)) + arrow + mini(2, 4, artLoop(4, { 1:"bulb", 2:"sw", 5:"battery" }, true)) + "</div>"
+    + '<span class="cap">Open switch: <b>off</b>. Closed switch: <b>lit</b>.</span></div>'
+
+    + '<div class="rule"><h3>💡💡 Two bulbs: one path, or one each</h3>'
+    + '<p>Put two bulbs on <b>one path</b> and they share the push, so both glow <b>dim</b>. Pull one out and the path is broken — the other goes out too.</p>'
+    + '<p>Give each bulb <b>its own path</b> from one end of the battery to the other, using <b>junction wires</b> to split the path. '
+    + 'Now both are fully <b>lit</b>, and pulling one out leaves the other shining.</p>'
+    + '<div class="rrow">' + mini(2, 4, artLoop(4, { 1:"bulb", 2:"bulb", 5:"battery" })) + mini(3, 3, artLadder([["battery"], ["bulb"], ["bulb"]])) + "</div>"
+    + '<span class="cap">One shared path: both <b>dim</b>. A path each: both <b>lit</b>.</span></div>'
+
+    + '<div class="rule"><h3>🔔 Buzzers and motors</h3>'
+    + '<p>A <b>buzzer</b> and a <b>motor</b> use current just like a bulb: they need a complete path through them, '
+    + 'they work more weakly when they share a path, and each one needs a wire on both of its contacts. '
+    + 'A buzzer says <b>buzz</b>, <b>soft</b> or <b>off</b>; a motor says <b>spin</b>, <b>slow</b> or <b>off</b>.</p></div>'
+
+    + '<div class="rule"><h3>🔘🔘 Where you put a switch matters</h3>'
+    + '<p>A switch only breaks <b>the path it sits on</b>. Put a switch on a part\'s own path and it turns off just that part. '
+    + 'Put it on the battery\'s path and it turns off <b>everything</b>, because every path goes through the battery.</p>'
+    + '<div class="rrow">' + mini(4, 3, artLadder([["battery", "wire"], ["bulb", "sw"], ["buzzer", "wire"]], true)) + "</div>"
+    + '<span class="cap">The open switch turns off the bulb — the buzzer on its own path keeps <b>buzzing</b>.</span></div>'
+
+    + '<div class="rule"><h3>💨 A path with no bulb</h3>'
+    + '<p>If current can get back to the battery <b>without going through a bulb</b>, it takes that shortcut. '
+    + 'There\'s nothing there to slow it down, so the bulb stays dark. Every path needs a bulb on it.</p>'
+    + '<div class="rrow">' + mini(2, 3, artLoop(3, { 4:"battery" })) + "</div>"
+    + '<span class="cap">Just wire all the way round: no bulb to light.</span></div>'
+
+    + '<div class="rule"><h3>🧰 How to build</h3>'
+    + '<p>Tap a part in the tray, then tap a square to put it there — it turns itself to join up with its neighbours. '
+    + 'Tap a part on the bench to <b>pick it up</b>. Then tap the same square to <b>turn</b> it, another square to move it, or the tray to put it back. '
+    + 'Holding a part and tapping another one <b>swaps</b> them. Parts with a darker square are fixed in place.</p>'
+    + '<p>Press <b>Switch on ⚡</b> to test your circuit. Each bulb says <b>lit</b>, <b>dim</b> or <b>off</b>.</p>'
+    + '<p>🌱 <b>Easy</b> — fill the gaps. ⭐ <b>Medium</b> — add a switch that works. '
+    + '🔥 <b>Hard</b> — the circuit has one thing wrong: find it and fix it. The tray has spare parts, and not all of them help. '
+    + '🏆 <b>Expert</b> — give each part its own path, and sometimes its own switch, or one switch for everything. '
+    + 'Read the task at the top: it changes every round. After a win, tap a part to pull it out and see what happens.</p>'
+    + '<p>Keyboard: the arrow keys move around the bench and tray, and Enter picks up, places or flips.</p></div>'
+
+    + '<div class="rule"><h3>⭐ Stars</h3>'
+    + '<p><b>★★★</b> for lighting it on your first Switch on with no hints. <b>★★</b> for one try that didn\'t work, '
+    + 'or one or two hints. <b>★</b> otherwise. A hint tells you what <b>kind</b> of problem there is, never which part.</p></div>';
+});
+
+initBouncyTitle("Circuit Builder");
+setLevel("EASY");
+}
+</script>
+</body>
+</html>
