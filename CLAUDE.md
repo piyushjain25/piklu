@@ -49,9 +49,10 @@ online toy store later. Read the rules below before changing anything.
 /                       root — redirects to /games/ (future store home)
 /games.js               THE CATALOG — single source of truth for the game list
 /assets/site.css        shared styles — hub layout AND the shared game-page design
-                        system (colours, owl, buttons, topbar/tlink/level-switch, etc.)
+                        system (colours, owl moods, buttons, topbar/tlink/level-switch, etc.)
 /assets/site.js         shared JS helpers every game links before its own inline script
-                        ($, reduceMotion, flash, setOwl, level-menu, beep, confetti, title,
+                        (the owl drawing itself — MASCOT_SVG/drawMascots — and
+                        $, reduceMotion, flash, setOwl, level-menu, beep, confetti, title,
                         loadGameData for JSON data files, wireRulesSheet, speak/stopSpeech)
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
@@ -124,10 +125,22 @@ The card, its link, and the search filter appear automatically.
 - **Design system:** display font **Fredoka**, body font **Nunito** (Google Fonts).
   Palette: grape `#6C4AB6`, coral `#FF6B7A`, leaf `#2FB37D`, sun `#FFCF43` /
   `#e6a800`, sky `#3FA7E0`, ink `#33236B`; sky→green background with floating clouds.
-  Reuse the **owl mascot** SVG with mood states (idle / happy / worried / win / think).
+  The **owl mascot** has mood states (idle / happy / worried / win / think). Its drawing
+  lives **once**, as `MASCOT_SVG` in `assets/site.js` — swap the site's mascot there and
+  every game and the hub change together. A page holds only **empty placeholders**:
+  `<svg class="owl" id="owl-home"></svg>` on the start screen and
+  `<svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>` in the top bar
+  (`#owl-quiz` in `guess-the-capital`; `<svg class="hub-owl"></svg>` on the hub). Never paste
+  the owl's paths into a page — `_tests/site/conventions.test.js` fails on an inline copy.
+  A game may put its **own extras** inside a placeholder (sentence-doctor's stethoscope,
+  drawn on top of the owl); an extra marked `data-under` (word-guess's shadow) is drawn
+  beneath it.
   All of this — colours as CSS vars, the owl mood CSS, `.btn`/`.card`/`.chip`/`.diff`
-  etc. — is defined once in `assets/site.css` and shared by every game via `<link>`; a
-  game only adds its own extra CSS vars (theme colors like `--paper`) and components.
+  etc. — is defined once in `assets/site.css` (and the owl drawing in `assets/site.js`)
+  and shared by every game via `<link>`/`<script>`; a game only adds its own extra CSS
+  vars (theme colors like `--paper`) and components. That includes the standard
+  wrong-answer wobble: use `animation:wrongShake .35s ease` rather than declaring your own
+  ±7px shake keyframes.
 - **Four difficulty levels** — `EASY`, `MEDIUM`, `HARD`, `EXPERT` — each meaningfully
   different. Exception: `guess-the-capital` has no difficulty levels — it's purely a
   choice of game (Indian States vs World Countries), so it has no level chip at all (see
@@ -229,7 +242,8 @@ don't redefine these classes in a game's own `<style>`.
 - **No bottom footer** — Home/Skip live in the top bar; Reset/Hint under the game; the
   primary button (→ Next) at the bottom.
 - **Level chip is a switcher:** tapping it opens a small dropdown built from the game's
-  `LEVELS`, listing all levels with the current one marked. Picking a different level
+  `LEVELS` by the shared `buildLevelMenu(LEVELS, pickLevel)`, listing all levels with the
+  current one marked (`markLevel()` — see "Shared JS helpers"). Picking a different level
   switches difficulty, starts a fresh puzzle at that level **while staying in the game**,
   and closes the menu. Close the menu on **Escape** or an outside click.
   Exception: a game with no difficulty levels (`guess-the-capital`) omits the level chip
@@ -244,10 +258,9 @@ don't redefine these classes in a game's own `<style>`.
   it rather than inventing a different rules UI. Two triggers, both `.tlink`s: a
   `📖 Read the full rules` link (`#rules-home`) centred at the bottom of the start screen's
   `.howto` block, and a `📖 Rules` link (`#rules-btn`) as the **last** item of the in-game
-  `.actions` row. Both open the same modal sheet: the `.sheet-ov#rules-ov` markup (with
-  `#rules-h`, `#rules-body`, `#rules-close`, `#rules-ok`) placed after `.app` and before the
-  confetti canvas, wired with `wireRulesSheet(buildBody)` — see "Shared JS helpers" for its
-  behaviour. The body is a series of `.rule` sections (an `<h3>` with an emoji, short `<p>`s,
+  `.actions` row. Both open the same modal sheet, which `wireRulesSheet(buildBody)` builds
+  and wires — the game carries **no** sheet markup of its own; see "Shared JS helpers" for
+  its behaviour. The body is a series of `.rule` sections (an `<h3>` with an emoji, short `<p>`s,
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`.
@@ -262,18 +275,42 @@ globals the game calls directly:
 - `$(id)` — `document.getElementById(id)`.
 - `reduceMotion` — `matchMedia("(prefers-reduced-motion: reduce)").matches`, computed once.
 - `flash(msg, kind)` — writes into `#feedback` (`kind` is `''`/`'good'`/`'bad'`/`'hint'`).
+- `MASCOT_SVG` / `drawMascots()` — the one copy of the owl drawing, and the helper that
+  draws it into every empty `svg.owl` (and the hub's `svg.hub-owl`) placeholder. It runs by
+  itself as `site.js` loads (which is after the page's markup, so the owl is there before
+  first paint) — a game never calls it. It sets `viewBox="0 0 64 64"` and
+  `aria-hidden="true"` (the mascot is decorative), keeps a placeholder's own extras (on top,
+  or beneath if marked `data-under`), and is plain inline SVG, so it works under `file://`
+  (no external `.svg`, no `<use href>`). A replacement mascot must keep the `.pupil`,
+  `.brow-l`, `.brow-r` and `.beak` classes — they are what `site.css`'s mood states move.
+  It has no motion of its own; the mood transitions are already switched off under
+  `prefers-reduced-motion` by `site.css`'s global rule.
 - `setOwl(mood)` — toggles the mood class (`idle`/`happy`/`worried`/`win`/`think`) on
   whichever of `#owl-game`/`#owl-quiz`/`#owl-home` exist on the page.
 - `wireLevelMenu()` — wires the `#q-level` chip's click-to-open and an outside-click-to-close
   listener for `#level-menu` (a game with no level chip just doesn't call it). Use
   `toggleLevelMenu()` / `closeLevelMenu()` directly, and `wireLevelMenuOutsideClick()`
   alone, if a game needs to wire `#q-level`'s `onclick` itself (e.g. to add a guard clause).
+- `buildLevelMenu(levels, onPick)` — fills `#level-menu` with one `.level-opt` entry per
+  level; tapping one calls `onPick(key)`. `levels` is the game's `LEVELS` table
+  (`{ EASY: { label }, … }`, or `{ EASY: "🌱 Easy", … }`) or a list of `[key, label]` pairs
+  (spot-the-words passes its themes; spell-a-bee and what-am-i call it again to add their
+  optional `MY` level once its data loads). Never build `.level-opt` buttons in a game.
+- `markLevel(key, label)` — shows `key` as the current level everywhere at once: the start
+  screen's `.diff` cards (`aria-pressed`), the menu entries (`aria-current`) and, when
+  `label` is given, the chip's `#q-level-label`. A game's `setLevel(l)` is typically just
+  `level = l; markLevel(l, LEVELS[l].label);`.
 - `beep(freq, dur, type, when, gain)` — a single WebAudio oscillator beep; build a game's
   `sound(kind)` dispatcher out of calls to this.
+- `throwConfetti(options)` — every game's celebration, drawn on `#confetti` by one shared
+  particle loop; call it as `if (!reduceMotion) throwConfetti(...)`. No options gives the
+  small burst most games use; a game tunes its own look with options (`colors` — extend the
+  default with `[...CONFETTI_COLORS, "#FF8C42"]` — `count`, `frames`, `rain` to fall from the
+  top, `y`, `wide`, `rMin`/`size`, `lift`, `spread`, `gravity`, `spin`, `vr`, `w`/`h` piece
+  shape, `round` coins, `mirror` pairs; the full list is in `site.js`). Never write a
+  confetti loop in a game.
 - `stopConfetti()` — clears and hides `#confetti` and cancels the shared `confettiRAF`
-  handle. A game's own confetti *launcher* (particle count/colors/shapes vary per game)
-  stays inline in the game's script, and should assign into the shared `confettiRAF`
-  (don't redeclare it with `let`).
+  handle; call it when leaving a round.
 - `initBouncyTitle(text)` — builds the animated per-letter `<h1 id="title">` and injects
   its keyframes (a no-op past text into the bouncing title, respecting `reduceMotion`).
 - `loadGameData(path)` — `async`; `fetch`es a relative **JSON** path (`cache: "no-store"`)
@@ -284,11 +321,13 @@ globals the game calls directly:
   shape itself before use. Don't write a game-specific `fetch()`/`try`/`catch` block.
 - `wireRulesSheet(buildBody)` — wires the shared **rules sheet**: a scrollable "how to play"
   panel for games whose rules need more room than the start screen's `.howto` block (the
-  games using it are listed under the "Game rules" panel bullet above). The game supplies the
-  standard markup (a `.sheet-ov#rules-ov` block holding `#rules-body`, `#rules-close`,
-  `#rules-ok` — copy it from one of those games), a `📖 Read the full rules` `.tlink`
-  (`#rules-home`) on the start screen, a `📖 Rules` `.tlink` (`#rules-btn`) in the `.actions`
-  row, and a callback that fills `#rules-body` with that game's own copy. The body is built
+  games using it are listed under the "Game rules" panel bullet above). It builds the sheet
+  itself — a `.sheet-ov#rules-ov` dialog just before the confetti canvas, holding `#rules-h`
+  ("📖 How to play " + the page's `<title>`, or pass a name as a second argument),
+  `#rules-body`, `#rules-close` and `#rules-ok` — so a game carries none of that markup. The
+  game supplies a `📖 Read the full rules` `.tlink` (`#rules-home`) on the start screen, a
+  `📖 Rules` `.tlink` (`#rules-btn`) in the `.actions` row, and a callback that fills
+  `#rules-body` with that game's own copy. The body is built
   lazily on first open. Escape, the backdrop and both buttons close it; focus moves in and
   returns to the opener. A game's own `keydown` handler must start with
   `if (rulesSheetOpen()) return;` so play keys do nothing while the sheet is up. The chrome
@@ -327,12 +366,17 @@ rule 4 forbids an inline copy of a data file.
 Layout:
 
 ```
-_tests/lib/harness.js           loadEngine(), bootGame(), loadCatalog(), tally(), mulberry32()
+_tests/lib/harness.js           loadEngine(), bootGame(), loadCatalog(), tally(), mulberry32();
+                                tally() also arms a 5-minute watchdog, so a stalled suite
+                                fails by name instead of hanging run.sh
 _tests/site/catalog.test.js     games.js + the hub — every game: real folder, valid accent,
                                 on-scale age band, renders as a card, findable by search
 _tests/site/conventions.test.js the structural rules of this file — every game: the three
                                 shared assets linked, no redeclared site.js global, no
-                                re-styled shared class, no stray host, no storage, JSON parses
+                                re-styled shared class, no stray host, no storage, JSON parses,
+                                empty mascot placeholders that site.js really draws into,
+                                and no game-local copy of the level menu, confetti loop,
+                                rules-sheet markup or wrong-answer shake
 _tests/site/rules-sheet.test.js the shared rules sheet, in the games that use it
 _tests/games/<slug>/*.test.js   per-game engine stress tests and jsdom play-throughs
 ```

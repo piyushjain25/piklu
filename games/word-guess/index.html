@@ -93,17 +93,8 @@
       <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
         <!-- owl mascot -->
-        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
-          <ellipse cx="32" cy="58" rx="16" ry="3" fill="#00000012"/>
-          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
-          <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
-          <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-          <g class="eye-l"><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-          <g class="eye-r"><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        <svg class="owl" id="owl-home">
+          <ellipse data-under cx="32" cy="58" rx="16" ry="3" fill="#00000012"/>
         </svg>
         <h1 class="title" id="title"></h1>
       </div>
@@ -155,17 +146,7 @@
       <div class="topbar">
         <button id="home-btn" class="tlink">🏠 Home</button>
         <div class="tb-center">
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
-            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
-            <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
-            <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-            <g class="eye-l"><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-            <g class="eye-r"><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
-          </svg>
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
           <div class="level-switch">
             <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
               <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
@@ -257,7 +238,7 @@ $("mode-custom").onclick = ()=>setMode("custom");
 
 function setLevel(l){
   level=l;
-  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  markLevel(l);
 }
 document.querySelectorAll(".diff").forEach(btn=>{
   btn.onclick = ()=>setLevel(btn.dataset.diff);
@@ -280,12 +261,7 @@ function bandForLength(n){
 }
 
 // level switcher (tap the chip at the top to change difficulty mid-game) — random mode only
-(function buildLevelMenu(){
-  const menu=$("level-menu");
-  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
-    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
-  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
-})();
+buildLevelMenu(LEVELS, pickLevel);
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); startNext(); }
 $("q-level").onclick=(e)=>{ if(mode==="custom") return; e.stopPropagation(); toggleLevelMenu(); };
 wireLevelMenuOutsideClick();
@@ -294,7 +270,7 @@ function updateLevelChip(){
   lbl.textContent = LEVELS[level].label;
   chip.classList.toggle("static", mode==="custom");
   chip.setAttribute("aria-haspopup", mode==="random");
-  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===level));
+  markLevel(level);
 }
 
 // ---------- start / pick word ----------
@@ -524,7 +500,7 @@ function win(){
   $("word-guess-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setMessage("", "");
   setOwl("win"); sound("win");
-  if(!reduceMotion) launchConfetti();
+  if(!reduceMotion) throwConfetti({ rain:true, colors:["#6C4AB6","#FF6B7A","#2FB37D","#FFCF43","#3FA7E0"] });
 }
 function lose(){
   state.status="lost"; disableInputs(); renderWord(); renderLives();
@@ -567,28 +543,6 @@ function sound(kind){
 }
 
 // ---------- confetti (stopConfetti is shared in site.js) ----------
-function launchConfetti(){
-  const cv=$("confetti"); cv.style.display="block";
-  const ctx=cv.getContext("2d");
-  cv.width=innerWidth; cv.height=innerHeight;
-  const colors=["#6C4AB6","#FF6B7A","#2FB37D","#FFCF43","#3FA7E0"];
-  const parts=Array.from({length:120},()=>({
-    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
-    r:5+Math.random()*7, c:colors[Math.floor(Math.random()*colors.length)],
-    vy:2+Math.random()*3, vx:-1.5+Math.random()*3, rot:Math.random()*6, vr:-.2+Math.random()*.4
-  }));
-  let frames=0;
-  (function draw(){
-    ctx.clearRect(0,0,cv.width,cv.height);
-    parts.forEach(p=>{
-      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
-      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
-      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore();
-    });
-    frames++;
-    if(frames<220){ confettiRAF=requestAnimationFrame(draw); } else { stopConfetti(); }
-  })();
-}
 
 initBouncyTitle("Word Guess Challenge");
 setMode("random");

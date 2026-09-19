@@ -160,29 +160,33 @@ ok(isFlag(cells()[wokenAt]), "the egg woken before Reset is still an egg afterwa
 ok($("stars").textContent === "★★☆", "one hint, no mistakes after Reset = ★★, got " + $("stars").textContent);
 
 /* ---------- chording through the UI ---------- */
-$("next-btn").click();
-cells()[24].click();
 {
   let chorded = false;
-  for(let guard = 0; guard < 60 && !chorded; guard++){
-    const p = proof();
-    const cs = cells();
-    p.eggs.forEach(j => { if(!isFlag(cs[j])){ setMode("flag"); cs[j].click(); } });
-    /* a dug number whose flags now match, with buried neighbours left */
-    const size = 7, nb = E.neighbours(size);
-    const i = cs.findIndex((c, k) => isOpen(c) && c.textContent &&
-      nb[k].filter(j => isFlag(cs[j])).length === +c.textContent &&
-      nb[k].some(j => !isOpen(cs[j]) && !isFlag(cs[j])));
-    if(i >= 0){
-      const expect = nb[i].filter(j => !isOpen(cs[j]) && !isFlag(cs[j]));
-      setMode("dig"); cs[i].click();
-      ok(expect.every(j => isOpen(cells()[j])), "tapping a finished number digs all its unflagged neighbours");
-      ok(cells().every(c => !isWoke(c)), "a correct chord wakes nothing");
-      chorded = true;
-    } else if(p.safe.length){ setMode("dig"); cs[p.safe.find(j => !isOpen(cs[j])) ?? p.safe[0]].click(); }
-    else break;
+  /* some boards clear by plain digging before a number is ever finished with flags, so keep
+     dealing fresh boards until one offers a chord */
+  for(let board = 0; board < 20 && !chorded; board++){
+    $(!$("next-btn").classList.contains("hide") ? "next-btn" : "skip-btn").click();
+    cells()[24].click();
+    for(let guard = 0; guard < 60 && !chorded; guard++){
+      const p = proof();
+      const cs = cells();
+      p.eggs.forEach(j => { if(!isFlag(cs[j])){ setMode("flag"); cs[j].click(); } });
+      /* a dug number whose flags now match, with buried neighbours left */
+      const size = 7, nb = E.neighbours(size);
+      const i = cs.findIndex((c, k) => isOpen(c) && c.textContent &&
+        nb[k].filter(j => isFlag(cs[j])).length === +c.textContent &&
+        nb[k].some(j => !isOpen(cs[j]) && !isFlag(cs[j])));
+      if(i >= 0){
+        const expect = nb[i].filter(j => !isOpen(cs[j]) && !isFlag(cs[j]));
+        setMode("dig"); cs[i].click();
+        ok(expect.every(j => isOpen(cells()[j])), "tapping a finished number digs all its unflagged neighbours");
+        ok(cells().every(c => !isWoke(c)), "a correct chord wakes nothing");
+        chorded = true;
+      } else if(p.safe.length){ setMode("dig"); cs[p.safe.find(j => !isOpen(cs[j])) ?? p.safe[0]].click(); }
+      else break;
+    }
   }
-  ok(chorded, "found a chance to chord during play");
+  ok(chorded, "found a chance to chord during play (20 boards)");
   /* a number without matching flags does nothing */
   const cs = cells(), nb = E.neighbours(7);
   const k = cs.findIndex((c, q) => isOpen(c) && c.textContent && nb[q].filter(j => isFlag(cs[j])).length < +c.textContent);
@@ -219,11 +223,14 @@ cells()[24].click();
   ok(now === start + 1 || (start % 7 === 6 && now === start), "ArrowRight moves the focus ring");
   ok(d.activeElement === cells()[now], "the focused square really has focus");
   setMode("dig");
+  /* the focus ring starts on the square the long-press just flagged, and at the right edge
+     ArrowRight stays there — so F must TOGGLE the flag, whichever way it starts */
+  const was = isFlag(cells()[now]);
   cells()[now].dispatchEvent(new w.KeyboardEvent("keydown", { key:"f", bubbles:true }));
-  ok(isFlag(cells()[now]) || isOpen(cells()[now]), "F flags the focused square");
-  if(isFlag(cells()[now])){
+  if(!isOpen(cells()[now])){
+    ok(isFlag(cells()[now]) !== was, "F toggles the flag on the focused square");
     cells()[now].dispatchEvent(new w.KeyboardEvent("keydown", { key:" ", bubbles:true }));
-    ok(!isFlag(cells()[now]), "Space toggles the flag back off");
+    ok(isFlag(cells()[now]) === was, "Space toggles the flag back");
   }
 }
 

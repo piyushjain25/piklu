@@ -72,15 +72,7 @@
     <section id="screen-home">
       <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
-        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
-          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
-        </svg>
+        <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
       <p class="subtitle">💡 Tap the windows and put the whole town to sleep!</p>
@@ -104,15 +96,7 @@
       <div class="topbar">
         <button id="home-btn" class="tlink">🏠 Home</button>
         <div class="tb-center">
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
-            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
-          </svg>
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
           <div class="level-switch">
             <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
               <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
@@ -152,17 +136,6 @@
         <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
-  </div>
-</div>
-
-<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
-  <div class="sheet">
-    <div class="sheet-top">
-      <h2 id="rules-h">📖 How to play Lights Out</h2>
-      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
-    </div>
-    <div class="sheet-body" id="rules-body"></div>
-    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
   </div>
 </div>
 
@@ -480,7 +453,7 @@ function win(){
   flash("", "");
   paint();
   sound("win");
-  if(!reduceMotion) townConfetti();
+  if(!reduceMotion) throwConfetti({ colors:["#FFCF43","#6C4AB6","#3FA7E0","#F4EEFF","#2FB37D"], count:70, frames:76, wide:true, y:.32, rMin:4, size:6, lift:4, spread:3, spin:true, gravity:.2, vr:.22, h:1 });
 }
 
 /* ---- rounds ---- */
@@ -507,10 +480,7 @@ function newRound(){
 }
 function setLevel(l){
   level = l;
-  $("q-level-label").textContent = LEVELS[l].label;
-  document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === l ? "true" : "false"));
-  const menu = $("level-menu");
-  menu.querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === l ? "true" : "false"));
+  markLevel(l, LEVELS[l].label);
   board = [];
 }
 function goHome(){
@@ -533,13 +503,7 @@ $("next-btn").onclick = () => newRound();
 $("undo-btn").onclick = undo;
 $("hint-link").onclick = hint;
 
-(function buildLevelMenu(){
-  const menu = $("level-menu");
-  menu.innerHTML = Object.entries(LEVELS).map(([k, v]) =>
-    '<button class="level-opt" role="menuitemradio" data-diff="' + k + '" aria-current="false">'
-    + '<span>' + v.label + '</span><span class="tick">✓</span></button>').join("");
-  menu.querySelectorAll(".level-opt").forEach(b => b.onclick = () => pickLevel(b.dataset.diff));
-})();
+buildLevelMenu(LEVELS, pickLevel);
 /* the level changes the grid and the flip shape, so it always starts a fresh puzzle */
 function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(); }
 wireLevelMenu();
@@ -618,25 +582,6 @@ wireRulesSheet(function(){
 
 initBouncyTitle("Lights Out");
 
-function townConfetti(){
-  const cv = $("confetti"); cv.style.display = "block";
-  const ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
-  const colors = ["#FFCF43", "#6C4AB6", "#3FA7E0", "#F4EEFF", "#2FB37D"];
-  const parts = Array.from({length:70}, () => ({ x:Math.random() * cv.width, y:cv.height * 0.32,
-    r:4 + Math.random() * 6, c:colors[(Math.random() * colors.length) | 0],
-    vy:-4 + Math.random() * 2, vx:-3 + Math.random() * 6, rot:Math.random() * 6, vr:.22 }));
-  let f = 0;
-  (function draw(){
-    ctx.clearRect(0, 0, cv.width, cv.height);
-    parts.forEach(p => {
-      p.x += p.vx; p.y += p.vy; p.vy += .2; p.rot += p.vr;
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r); ctx.restore();
-    });
-    f++;
-    if(f < 76) confettiRAF = requestAnimationFrame(draw); else stopConfetti();
-  })();
-}
 
 setLevel("EASY");
 }

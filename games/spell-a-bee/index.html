@@ -78,17 +78,8 @@
     <section id="screen-home">
       <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
-        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
-          <ellipse cx="32" cy="58" rx="16" ry="3" fill="#00000012"/>
-          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
-          <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
-          <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        <svg class="owl" id="owl-home">
+          <ellipse data-under cx="32" cy="58" rx="16" ry="3" fill="#00000012"/>
         </svg>
         <h1 class="title" id="title"></h1>
       </div>
@@ -121,17 +112,7 @@
       <div class="topbar">
         <button id="home-btn" class="tlink">🏠 Home</button>
         <div class="tb-center">
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
-            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/>
-            <path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/>
-            <circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
-          </svg>
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
           <div class="level-switch">
             <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
               <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
@@ -217,7 +198,7 @@ loadGameData("words.json").then(data => {
   if(!data) return;
   BANK = data;
   if(BANK.MY && BANK.MY.length) $("diff-my").classList.remove("hide");
-  buildLevelMenu();
+  refreshLevelMenu();
 });
 
 // ---------- state ----------
@@ -243,24 +224,21 @@ function pickWord(lvl){
 // ---------- level select (home) ----------
 function setLevel(l){
   level=l;
-  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
+  markLevel(l);
 }
 document.querySelectorAll(".diff").forEach(btn=>{ btn.onclick = ()=>setLevel(btn.dataset.diff); });
 
-function buildLevelMenu(){
-  const menu=$("level-menu");
-  const entries = Object.entries(LEVELS);
-  if(BANK.MY && BANK.MY.length) entries.push(["MY", {label:"📝 My Words"}]);
-  menu.innerHTML = entries.map(([k,v])=>
-    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
-  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevelInGame(b.dataset.diff));
+function refreshLevelMenu(){
+  const entries = Object.entries(LEVELS).map(([k,v])=>[k, v.label]);
+  if(BANK.MY && BANK.MY.length) entries.push(["MY", "📝 My Words"]);
+  buildLevelMenu(entries, pickLevelInGame);
 }
 function levelLabel(l){ return l==="MY" ? "📝 My Words" : LEVELS[l].label; }
 function pickLevelInGame(l){
   closeLevelMenu();
   if(l===level) return;
   level=l;
-  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+  markLevel(l);
   startNext();
 }
 wireLevelMenu();
@@ -288,8 +266,7 @@ function startGame(wordObj){
     locked: new Set(),
     status: "playing",
   };
-  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===level));
-  $("q-level-label").textContent = levelLabel(level);
+  markLevel(level, levelLabel(level));
   $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
   $("check-btn").classList.remove("hide"); $("next-btn").classList.add("hide");
   $("skip-btn").classList.remove("invisible"); $("hint-link").classList.remove("off");
@@ -443,7 +420,7 @@ function win(){
   $("check-btn").classList.add("hide"); $("next-btn").classList.remove("hide"); $("next-btn").focus();
   setMessage("", "");
   setMood("win"); sound("win");
-  if(!reduceMotion) launchConfetti();
+  if(!reduceMotion) throwConfetti({ rain:true, colors:["#FFCF43","#33236B","#3FA7E0","#2FB37D","#FF6B7A"] });
 }
 
 $("skip-btn").onclick = ()=>{ if(!state || state.status!=="playing") return; startNext(); };
@@ -494,28 +471,6 @@ function sound(kind){
   else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.11)); }
 }
 
-function launchConfetti(){
-  const cv=$("confetti"); cv.style.display="block";
-  const ctx=cv.getContext("2d");
-  cv.width=innerWidth; cv.height=innerHeight;
-  const colors=["#FFCF43","#33236B","#3FA7E0","#2FB37D","#FF6B7A"];
-  const parts=Array.from({length:120},()=>({
-    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
-    r:5+Math.random()*7, c:colors[Math.floor(Math.random()*colors.length)],
-    vy:2+Math.random()*3, vx:-1.5+Math.random()*3, rot:Math.random()*6, vr:-.2+Math.random()*.4
-  }));
-  let frames=0;
-  (function draw(){
-    ctx.clearRect(0,0,cv.width,cv.height);
-    parts.forEach(p=>{
-      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
-      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
-      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore();
-    });
-    frames++;
-    if(frames<220){ confettiRAF=requestAnimationFrame(draw); } else { stopConfetti(); }
-  })();
-}
 
 initBouncyTitle("Spell-a-Bee");
 setLevel("EASY");

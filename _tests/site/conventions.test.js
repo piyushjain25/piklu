@@ -4,7 +4,7 @@
    redeclaring a shared helper throws a SyntaxError on load, re-styling a shared class silently
    forks the design system, and a stray network call breaks the ad-free/offline promise. */
 const fs = require("fs"), path = require("path");
-const { ROOT, read, gameHTML, inlineScript, loadCatalog, tally } = require("../lib/harness.js");
+const { ROOT, read, gameHTML, inlineScript, loadCatalog, bootGame, tally } = require("../lib/harness.js");
 const { ok, report } = tally();
 
 const siteJS = read("assets/site.js");
@@ -64,6 +64,23 @@ for (const g of loadCatalog()) {
          at + "must not re-lay-out " + cls + " (" + sel.trim() + ") — it belongs to site.css");
   }
 
+  /* --- the mascot is drawn once by site.js's drawMascots(); a game holds only empty
+     placeholders (plus, at most, its own extras such as sentence-doctor's stethoscope) --- */
+  const owls = [...html.matchAll(/<svg\b([^>]*)>([\s\S]*?)<\/svg>/g)].filter(m => /\bclass="owl"/.test(m[1]));
+  ok(owls.some(m => /\bid="owl-home"/.test(m[1])), at + 'start screen needs the <svg class="owl" id="owl-home"> mascot placeholder');
+  ok(owls.some(m => /\bid="owl-(game|quiz)"/.test(m[1])), at + 'top bar needs the <svg class="owl" id="owl-game"> mascot placeholder');
+  for (const m of owls)
+    ok(!/class="(pupil|beak|brow)/.test(m[2]), at + "mascot placeholder " + (m[1].match(/id="([^"]*)"/) || [, "?"])[1]
+       + " holds inline owl drawing — leave it empty, site.js draws it");
+  ok(!html.includes('M14 10 L22 20 L10 20 Z'), at + "has an inline copy of the owl drawing — use an empty <svg class=\"owl\"> placeholder");
+
+  /* --- the other shared pieces stay shared: each of these was once copy-pasted per game --- */
+  ok(!/class=["']level-opt/.test(inline), at + "builds its own level-menu entries — use buildLevelMenu() from site.js");
+  ok(!/getContext\(/.test(inline), at + "draws its own confetti — use throwConfetti() from site.js");
+  ok(!/id="rules-ov"/.test(html), at + "carries the rules-sheet markup — wireRulesSheet() builds it");
+  ok(!/@keyframes\s+\w+\{0%,100%\{transform:translateX\(0\)\}25%\{transform:translateX\(-7px\)\}75%\{transform:translateX\(7px\)\}\}/.test(style),
+     at + "re-declares the ±7px wrong-answer shake — use site.css's wrongShake");
+
   /* --- kid-safe: no trackers, no storage, no stray hosts --- */
   for (const m of html.matchAll(/https?:\/\/([^/"'\s)]+)/g))
     ok(ALLOWED_HOSTS.includes(m[1]), at + "external host " + m[1] + " is not allowed");
@@ -97,4 +114,25 @@ for (const g of loadCatalog()) {
   }
 }
 
+/* the hub's mascot comes from the same place */
+const hubHTML = read("games/index.html");
+ok(/<svg class="hub-owl"><\/svg>/.test(hubHTML), 'hub needs the empty <svg class="hub-owl"> mascot placeholder');
+ok(!hubHTML.includes('M14 10 L22 20 L10 20 Z'), "hub has an inline copy of the owl drawing");
+ok(hubHTML.includes('<script src="../assets/site.js"></script>'), "hub must link ../assets/site.js to draw its mascot");
+
+/* and site.js really draws it: boot each game and look at the live placeholders */
+for (const g of loadCatalog()) {
+  const { w, d } = bootGame(g.slug, { onError: () => {} });   /* page errors are the play-throughs' job */
+  const owls = [...d.querySelectorAll("svg.owl")];
+  ok(owls.length >= 2, g.slug + ": expected the start-screen and top-bar mascots, got " + owls.length);
+  for (const o of owls) {
+    const beak = o.querySelector(".beak");
+    ok(!!beak && beak.namespaceURI === "http://www.w3.org/2000/svg", g.slug + ": #" + o.id + " was not drawn by site.js");
+    ok(o.querySelectorAll(".pupil").length === 2 && !!o.querySelector(".brow-l") && !!o.querySelector(".brow-r"),
+       g.slug + ": #" + o.id + " is missing the mood parts setOwl() animates");
+    ok(o.getAttribute("aria-hidden") === "true" && o.getAttribute("viewBox") === "0 0 64 64",
+       g.slug + ": #" + o.id + " should be decorative (aria-hidden) with the 64×64 viewBox");
+  }
+  w.close();
+}
 report("game conventions");

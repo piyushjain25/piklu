@@ -66,14 +66,7 @@
     <section id="screen-home">
       <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
-        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
-          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+        <svg class="owl" id="owl-home">
           <!-- Doc Owl stethoscope -->
           <path d="M18,21 Q13,30 19,37 Q25,41 26,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
           <path d="M46,21 Q51,30 45,37 Q39,41 38,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
@@ -112,14 +105,7 @@
       <div class="topbar">
         <button id="home-btn" class="tlink">🏠 Home</button>
         <div class="tb-center">
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
-            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;">
             <!-- Doc Owl stethoscope -->
             <path d="M18,21 Q13,30 19,37 Q25,41 26,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
             <path d="M46,21 Q51,30 45,37 Q39,41 38,47" stroke="#33236B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
@@ -848,18 +834,11 @@ const recentTracker = makeRecentTracker(8);
 
 function setLevel(l){
   level=l;
-  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
-  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVELS[l].label;
-  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+  markLevel(l, LEVELS[l].label);
 }
 document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
 
-(function buildLevelMenu(){
-  const menu=$("level-menu");
-  menu.innerHTML=Object.entries(LEVELS).map(([k,v])=>
-    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v.label}</span><span class="tick">✓</span></button>`).join('');
-  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
-})();
+buildLevelMenu(LEVELS, pickLevel);
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(false); }
 wireLevelMenu();
 
@@ -968,7 +947,7 @@ function checkPuzzle(){
     $("rlabel").textContent = pickRandom(CURED_LINES);
     flash('', '');
     updateCritterVisual(1); cheerCritter(); setOwl('win'); sound('win');
-    if(!reduceMotion){ miniConfetti(); spawnFloatIcon('💚'); }
+    if(!reduceMotion){ throwConfetti(); spawnFloatIcon('💚'); }
     return;
   }
 
@@ -1030,11 +1009,6 @@ function sound(kind){
   else if(kind==="hint") beep(440,.08,"sine",0,.07);
   else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
 }
-function miniConfetti(){ const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d"); cv.width=innerWidth; cv.height=innerHeight;
-  const colors=["#6C4AB6","#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"];
-  const parts=Array.from({length:75},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:-5+Math.random()*2,vx:-6+Math.random()*12,rot:0,vr:.25}));
-  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height); parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.16;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
-    f++; if(f<75) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})(); }
 
 initBouncyTitle("Sentence Doctor");
 setLevel("EASY");

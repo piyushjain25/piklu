@@ -61,15 +61,7 @@
     <section id="screen-home">
       <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
       <div class="brand">
-        <svg class="owl" id="owl-home" viewBox="0 0 64 64" aria-hidden="true">
-          <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-          <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-          <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-          <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-          <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
-        </svg>
+        <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
       <p class="subtitle">The sum is wrong. Move just ONE stick to fix it!</p>
@@ -96,15 +88,7 @@
       <div class="topbar">
         <button id="home-btn" class="tlink">🏠 Home</button>
         <div class="tb-center">
-          <svg class="owl" id="owl-game" viewBox="0 0 64 64" aria-hidden="true" style="width:40px;height:40px;">
-            <path d="M14 10 L22 20 L10 20 Z" fill="#6C4AB6"/><path d="M50 10 L54 20 L42 20 Z" fill="#6C4AB6"/>
-            <circle cx="32" cy="34" r="22" fill="#6C4AB6"/><circle cx="32" cy="38" r="15" fill="#F4EEFF"/>
-            <g><circle cx="24" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="24" cy="28" r="4" fill="#33236B"/></g>
-            <g><circle cx="40" cy="28" r="9" fill="#fff"/><circle class="pupil" cx="40" cy="28" r="4" fill="#33236B"/></g>
-            <path class="brow brow-l" d="M17 19 Q24 15 31 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="brow brow-r" d="M33 19 Q40 15 47 19" stroke="#4b2f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="beak" d="M32 32 L28 38 L36 38 Z" fill="#FFCF43"/>
-          </svg>
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
           <div class="level-switch">
             <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
               <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
@@ -135,17 +119,6 @@
         <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
       </div>
     </section>
-  </div>
-</div>
-
-<div class="sheet-ov" id="rules-ov" role="dialog" aria-modal="true" aria-labelledby="rules-h">
-  <div class="sheet">
-    <div class="sheet-top">
-      <h2 id="rules-h">📖 How to play Matchstick Math</h2>
-      <button class="sheet-x" id="rules-close" aria-label="Close rules">✕</button>
-    </div>
-    <div class="sheet-body" id="rules-body"></div>
-    <div class="sheet-foot"><button id="rules-ok" class="btn btn-go">Got it!</button></div>
   </div>
 </div>
 
@@ -561,7 +534,7 @@ function onSolved(dec){
   $("skip-btn").classList.add("invisible");   // Next takes its place in the bottom slot; Skip keeps its slot so nothing shifts
   $("next-btn").classList.remove("invisible"); $("next-btn").focus();
   setOwl('win'); sound('win');
-  if(!reduceMotion) miniConfetti();
+  if(!reduceMotion) throwConfetti({ colors:["#2FB37D","#FFCF43","#3FA7E0","#FF6B7A","#DB9A44"], count:46, frames:60, size:6, lift:4, spread:4, gravity:.15, vr:.2 });
   render();
 }
 
@@ -577,19 +550,12 @@ const LEVEL_LABEL = { EASY:"🌱 Easy", MEDIUM:"⭐ Medium", HARD:"🔥 Hard", E
 
 function setLevel(l){
   level=l;
-  document.querySelectorAll(".diff").forEach(b=>b.setAttribute("aria-pressed", b.dataset.diff===l));
-  const lbl=$("q-level-label"); if(lbl) lbl.textContent=LEVEL_LABEL[l];
-  document.querySelectorAll(".level-opt").forEach(b=>b.setAttribute("aria-current", b.dataset.diff===l));
+  markLevel(l, LEVEL_LABEL[l]);
 }
 document.querySelectorAll(".diff").forEach(b=> b.onclick=()=>setLevel(b.dataset.diff));
 
 // level switcher (tap the chip at the top to change difficulty mid-game)
-(function buildLevelMenu(){
-  const menu=$("level-menu");
-  menu.innerHTML=Object.entries(LEVEL_LABEL).map(([k,v])=>
-    `<button class="level-opt" role="menuitemradio" data-diff="${k}" aria-current="false"><span>${v}</span><span class="tick">✓</span></button>`).join('');
-  menu.querySelectorAll(".level-opt").forEach(b=> b.onclick=()=>pickLevel(b.dataset.diff));
-})();
+buildLevelMenu(LEVEL_LABEL, pickLevel);
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); newPuzzle(); }
 wireLevelMenu();
 
@@ -722,29 +688,6 @@ function sound(kind){
   else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
 }
 
-function launchConfetti(){
-  const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
-  cv.width=innerWidth; cv.height=innerHeight;
-  const colors=["#6C4AB6","#FF6B7A","#2FB37D","#FFCF43","#3FA7E0","#DB9A44"];
-  const parts=Array.from({length:120},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.5,
-    r:5+Math.random()*7,c:colors[Math.floor(Math.random()*colors.length)],vy:2+Math.random()*3,
-    vx:-1.5+Math.random()*3,rot:Math.random()*6,vr:-.2+Math.random()*.4}));
-  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);
-    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
-      ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
-    f++; if(f<220) confettiRAF=requestAnimationFrame(draw); else stopConfetti();})();
-}
-function miniConfetti(){
-  const cv=$("confetti"); cv.style.display="block"; const ctx=cv.getContext("2d");
-  cv.width=innerWidth; cv.height=innerHeight;
-  const colors=["#2FB37D","#FFCF43","#3FA7E0","#FF6B7A","#DB9A44"];
-  const parts=Array.from({length:46},()=>({x:cv.width/2,y:cv.height*0.35,r:5+Math.random()*6,
-    c:colors[Math.floor(Math.random()*colors.length)],vy:-4+Math.random()*2,vx:-4+Math.random()*8,rot:0,vr:.2}));
-  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);
-    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
-      ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
-    f++; if(f<60) requestAnimationFrame(draw); else stopConfetti();})();
-}
 
 initBouncyTitle("Matchstick Math");
 setLevel("EASY");

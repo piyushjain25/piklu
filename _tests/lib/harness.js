@@ -86,6 +86,14 @@ function mulberry32(a) {
 /* tiny assertion tally — every test file ends with report(name) and exits non-zero on a fail */
 function tally() {
   let fails = 0, checks = 0;
+  /* Watchdog: the slowest suite takes about a minute, so one still running after five has
+     stalled. Fail it by name instead of leaving run.sh waiting forever. unref() means the
+     watchdog alone never keeps a finished suite alive. */
+  const suite = path.relative(ROOT, process.argv[1] || "suite");
+  setTimeout(() => {
+    console.log("\n❌ " + suite + " — still running after 5 minutes; stalled after " + checks + " checks");
+    process.exit(1);
+  }, 5 * 60 * 1000).unref();
   const ok = (cond, msg) => { checks++; if (!cond) { fails++; console.log("  ✗ " + msg); } };
   const report = name => {
     console.log(fails ? "\n❌ " + name + " — " + fails + " FAILURES in " + checks + " checks"
