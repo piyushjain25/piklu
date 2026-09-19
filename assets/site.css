@@ -210,7 +210,9 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 /* win/result banner + feedback line under the game */
 .result{text-align:center; padding:8px 4px 16px;}
 .result .rlabel{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(17px,4vw,20px); color:var(--leaf-dark);}
-.result .stars{font-size:32px; letter-spacing:5px; margin:6px 0;}
+/* the round's star rating (★★☆) — sunshine yellow, with a darker rim so it holds up on white.
+   A filled ★ and an empty ☆ differ by SHAPE, not colour, so they can share this one colour. */
+.result .stars{font-size:32px; letter-spacing:5px; margin:6px 0; color:var(--sun); -webkit-text-stroke:1px var(--sun-dark);}
 .result .rsub{font-weight:700; color:var(--ink-soft); margin-top:6px; font-size:14px;}
 .feedback{min-height:22px; text-align:center; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; margin:14px 0 12px;
   display:flex; align-items:center; justify-content:center;}

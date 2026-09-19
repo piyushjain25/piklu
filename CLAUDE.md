@@ -35,7 +35,28 @@ online toy store later. Read the rules below before changing anything.
    assigning a `window.X = {...}` global, no embedding the data inline in `index.html`).
    Load it with the shared `loadGameData(path)` helper from `assets/site.js` (see "Shared
    JS helpers") using a **relative** path (e.g. `loadGameData('words.json')`) — keep the
-   data next to that game's `index.html` so the game stays portable. The only allowed
+   data next to that game's `index.html` so the game stays portable.
+
+   **If a game has an extensible content list, that list goes in a sibling JSON file — not
+   inline.** A content list is anything a future edit would want to *add to* without
+   touching the game's logic: word lists, capitals, themes, organisms, component
+   catalogues, question banks. Keeping it in JSON means extending the game is a data edit,
+   reviewable on its own and impossible to break the game with.
+
+   **Mechanics and level configuration stay inline.** Level tables, tolerances, grid sizes,
+   generator parameters and anything the engine's own tests assert against are code, not
+   content — they belong in the game file next to the logic that reads them.
+
+   The test for which one applies: *would adding a new entry here ever need a code
+   change?* If no, it's a content list and belongs in JSON. If a game generates its content
+   procedurally and has no list to extend, it has no data file and keeps working under
+   `file://`.
+
+   A data file is not free: a game that loads one **cannot be opened via `file://`** (see
+   rule 3) and must be previewed on the hosted site or a local static server. Don't create
+   one for a handful of fixed values that will never grow.
+
+   The only allowed
    external network calls are Google Fonts and, for `guess-the-capital` only, the flag images
    from `flagcdn.com`. (`cdnjs.cloudflare.com` is allowed but no game currently uses it.)
    `_tests/site/conventions.test.js` enforces this list — add a host there, with a reason, or
@@ -85,10 +106,10 @@ Two steps — never edit the hub's HTML or CSS to add a game:
    directly, unqualified. Never redeclare any of those names in the game's own script.
    Only put a rule in the game's own `<style>` if it's genuinely unique to that
    game (colors, a `.app{max-width}` / `.title{font-size}` override, one-off components);
-   never re-declare something `site.css` already defines. If the game needs a data set
-   (word list, capitals, etc.), put the JSON in the **same folder** and load it with a
-   relative `fetch()` (see rules 3–4 — such a game must be viewed on the hosted site or a
-   local server, not via `file://`).
+   never re-declare something `site.css` already defines. If the game has a content list
+   — apply rule 4's test: *would adding a new entry ever need a code change?* — put it as
+   JSON in the **same folder** and load it with `loadGameData()` (see rules 3–4 — such a
+   game must be viewed on the hosted site or a local server, not via `file://`).
 2. Add **one entry** to the `GAMES` array in `games.js`:
 
    ```js
@@ -398,7 +419,9 @@ game has no `module.exports` line, the play-through (`bootGame`) still works.
 jsdom has no `fetch()`, so a **data-driven** game's play-through passes its real JSON in:
 `bootGame(slug, { data: { "words.json": JSON.parse(read("games/<slug>/words.json")) } })`
 answers that game's `loadGameData()` call; any other path rejects, as it would under `file://`.
-Then wait for the page to finish loading the data before driving it.
+Then wait for the page to finish loading the data before driving it. Since rule 4 puts any
+extensible content list in JSON, this applies to most new games — `bootGame(slug, { data:
+{ … } })` is the normal path for a play-through, not a special case.
 
 ## Publishing (how changes go live)
 
