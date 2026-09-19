@@ -12,6 +12,7 @@
 # this list too. Verify after deploying with:  curl -I https://piklu.in/_tests/run.sh
 exclude:
   - _tests          # the offline test suite — never part of the site
+  - _ref            # copy-paste snippets for building games — developer reference only
   - CLAUDE.md       # internal project guide
   - README.md       # internal readme
   - node_modules    # (Jekyll excludes these by default; repeated because `exclude` replaces

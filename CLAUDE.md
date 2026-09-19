@@ -79,10 +79,24 @@ online toy store later. Read the rules below before changing anything.
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
 /_tests/                the offline test suite — Node + jsdom, NEVER deployed (see "Tests")
+/_ref/snippets.md       copy-paste markup for every shared pattern — NEVER deployed (see below)
+/_ref/build-snippets.js builds snippets.md from the real files (node _ref/build-snippets.js)
 /_config.yml            GitHub Pages build config; its only job is keeping non-site files
                         (`_tests/`, CLAUDE.md, README.md) off the public web
 /CLAUDE.md              this file
 ```
+
+### `_ref/snippets.md` — read this instead of a reference game
+
+`_ref/snippets.md` holds the literal markup for every shared pattern — page skeleton, top
+bar, `.diff` cards, actions row, bottom slot, rules sheet, data loading — pulled verbatim
+from the games that define them. **Read it instead of opening a reference game.** It is a
+generated convenience, not a source of truth: `_tests/site/snippets.test.js` fails if it
+drifts from the real files, and when they disagree the real file is right. It also lists every
+`site.js` global (checked both ways against `site.js`) and every shared `site.css` class.
+Never edit it by hand: it is built by `node _ref/build-snippets.js`, which finds each block by a
+unique anchor line, so a snippet that merely moved is fixed by re-running it. Add a new global or
+shared class to the lists in that script, then re-run.
 
 Anything that is not part of the website — tests, notes, fixtures, scratch work — goes in a
 folder whose name starts with `_` **and** gets listed in `_config.yml`'s `exclude:`. Jekyll
@@ -425,6 +439,7 @@ _tests/site/conventions.test.js the structural rules of this file — every game
                                 and no game-local copy of the level menu, confetti loop,
                                 rules-sheet markup or wrong-answer shake
 _tests/site/rules-sheet.test.js the shared rules sheet, in the games that use it
+_tests/site/snippets.test.js    _ref/snippets.md still matches the real files, byte for byte
 _tests/games/<slug>/*.test.js   per-game engine stress tests and jsdom play-throughs
 ```
 
