@@ -238,12 +238,13 @@ don't redefine these classes in a game's own `<style>`.
   puzzle has genuine dead ends and Reset alone is too punishing an escape), `coin-counter`,
   `number-builder` and `robot-instructions`. `lights-out` shows `↩️ Undo` **instead of**
   Reset. `tic-tac-toe` has **no Hint** (it's a game against the owl, not a puzzle) and
-  nothing to reset, so its row is just `📖 Rules`. (Rules-sheet games carry `📖 Rules` at
-  the end of the row.)
+  nothing to reset, so its row is just `📖 Rules`. `connect-four` is also a game against the
+  owl with nothing to reset, but keeps a Hint, so its row is `💡 Hint`, `📖 Rules`.
+  (Rules-sheet games carry `📖 Rules` at the end of the row.)
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
   action** (the move itself is the check — e.g. `lights-out`, `spot-the-words`, `juice-jumble`,
-  the pure multiple-choice games, `tic-tac-toe`'s `Play again ▶`; also `balance-scales` at
+  the pure multiple-choice games, `tic-tac-toe`'s and `connect-four`'s `Play again ▶`; also `balance-scales` at
   EASY/MEDIUM and `tally-chart`'s last phase, see below) keeps that slot
   occupied during play with `Next ▶` carrying `.invisible`, and just removes `.invisible` on
   the win, so the slot never reflows. Exception: `dino-dig` has no submit action either, but
@@ -299,7 +300,7 @@ don't redefine these classes in a game's own `<style>`.
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`,
-  `circuit-builder`.
+  `circuit-builder`, `connect-four`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Shared JS helpers (`assets/site.js`)
@@ -494,7 +495,7 @@ word-guess · guess-the-capital · math-monsters · shape-sorter · color-match 
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
-balance-scales · tic-tac-toe · circuit-builder
+balance-scales · tic-tac-toe · circuit-builder · connect-four
 
 `word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word`,
 `what-am-i` and `circuit-builder` are the **data-driven** games: each loads its data from JSON in its own folder
@@ -545,6 +546,22 @@ Its two rules links show **different sheets**: `📖 Read the full rules` (start
 four levels, while the in-game `📖 Rules` shows detailed rules for the **current level only**
 (each level is a different game) — it calls `wireRulesSheet()` for the shared wiring and sets
 its own `onclick`s on `#rules-home` / `#rules-btn`.
+
+`connect-four` is classic 7×6 Connect Four against the owl; you always go first. EASY, MEDIUM
+and HARD differ only in the owl: EASY plays loosely (takes a win it sees 75% of the time, blocks
+50%), MEDIUM searches 3 plies and sometimes plays a simpler careful move instead, and HARD runs
+an alpha-beta search 6 plies deep. EXPERT changes the **rules** to **PopOut**: on your turn you
+may pop one of your own discs out of the bottom row (the column slides down), and the owl
+searches 8 plies. The owl's thinking is capped by a node budget, not a clock, so it costs the
+same on every machine. The PopOut edge cases are house rules: a pop that makes four for both
+sides wins for the popper; a pop that makes four only for the other side loses; a full board
+is a draw only when the player to move has nothing to pop; and a third repeat of a position is
+a draw. Hint is the careful move (win, else block, else never hand over a win). Stars: a win
+earns ★★★ minus one per hint (at least ★), a tie ★, a loss none.
+`_tests/games/connect-four/engine.test.js` checks the rules against an independent oracle over
+thousands of random games, proves the alpha-beta search equal to plain minimax (and exact in
+endgames), and ranks the owls by strength — **run it after touching the search, the evaluation
+or the level table.**
 
 `dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
 player can clear from there without ever guessing; the same solver powers its Hint.

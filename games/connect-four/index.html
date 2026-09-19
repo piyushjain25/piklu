@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Connect Four</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:560px;}
+  /* Home and the Skip side share the row equally, so the owl + level chip sit dead centre
+     (phones keep the shared layout: there isn't room for equal sides there) */
+  @media (min-width:440px){
+    #home-btn{flex:1 1 0; text-align:left;}
+    .tb-right{flex:1 1 0; justify-content:flex-end;}
+  }
+  /* the turn line sits above the board, as in tic-tac-toe */
+  #feedback{margin:12px 0 4px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+
+  /* ---- the board ------------------------------------------------------------------------
+     One cell size drives everything. From back to front: the back panel, the discs, the
+     frame (one lavender sheet with holes cut by a mask, so a falling disc slides BEHIND it —
+     --pad stays under half a cell minus a hole, so no part-hole shows in its border),
+     the holes' lips, the rim, then the win line and the column buttons on top. The row above
+     the board is the "hand": the disc you are holding over a column. */
+  .stage{--cell:clamp(36px, calc((100vw - 110px) / 7), 58px); --pad:calc(var(--cell) * .15);
+         --hole:calc(var(--cell) * .34); --frame:#ECE4FB; --frame-lo:#DFD4F6;}
+  .rig{position:relative; width:calc(7 * var(--cell) + 2 * var(--pad)); margin:calc(var(--cell) + 4px) auto 0; padding-bottom:8px;}
+  .board{position:relative; height:calc(6 * var(--cell) + 2 * var(--pad));}
+  .grid-box{position:absolute; left:var(--pad); top:var(--pad); width:calc(7 * var(--cell)); height:calc(6 * var(--cell));}
+  .slot{position:absolute; width:var(--cell); height:var(--cell);}
+  .back{background:radial-gradient(circle at 50% 50%, #fff calc(var(--hole) * .75), #F6F2FF var(--hole)) 0 0 / var(--cell) var(--cell);}
+  .frame{position:absolute; inset:0; border-radius:22px; background:linear-gradient(180deg, var(--frame), var(--frame-lo));
+         -webkit-mask:radial-gradient(circle at 50% 50%, transparent var(--hole), #000 calc(var(--hole) + .5px)) var(--pad) var(--pad) / var(--cell) var(--cell);
+                 mask:radial-gradient(circle at 50% 50%, transparent var(--hole), #000 calc(var(--hole) + .5px)) var(--pad) var(--pad) / var(--cell) var(--cell);
+         pointer-events:none;}
+  /* each hole is ringed in a lavender line */
+  .lips{pointer-events:none;
+        background:
+          radial-gradient(circle at 50% 50%, transparent calc(var(--hole) - .5px), #D3C6F0 var(--hole), #D3C6F0 calc(var(--hole) + 2px), transparent calc(var(--hole) + 2.5px)) 0 0 / var(--cell) var(--cell);}
+  .rim{position:absolute; inset:0; border-radius:22px; pointer-events:none;
+       box-shadow:0 0 0 3px var(--key-line), 0 7px 0 3px #D9D0EF;}
+
+  /* the disc in your hand, over the column you're pointing at */
+  .hand{position:absolute; left:var(--pad); top:calc(-1 * var(--cell) - 4px); width:calc(7 * var(--cell)); height:var(--cell); pointer-events:none;}
+  .hand-disc{position:absolute; top:0; width:var(--cell); height:var(--cell); opacity:0; transition:left .16s ease, opacity .15s;}
+  .hand-disc.show{opacity:1; animation:hover 1.2s ease-in-out infinite;}
+  @keyframes hover{50%{transform:translateY(-4px);}}
+
+  /* column buttons: invisible hit areas over the board and the hand row */
+  .cols{position:absolute; left:var(--pad); top:calc(-1 * var(--cell) - 4px); bottom:8px; width:calc(7 * var(--cell));
+        display:grid; grid-template-columns:repeat(7, 1fr); z-index:5;}
+  .col{margin:0; padding:0; border:none; background:none; border-radius:14px; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+  .col:disabled{cursor:default;}
+  .col:not(:disabled):hover{background:rgba(108,74,182,.06);}
+  .col:focus-visible{outline:3px solid var(--grape); outline-offset:-2px;}
+  .col.hinted{background:rgba(255,207,67,.22); box-shadow:inset 0 0 0 3px var(--sun); animation:hintCol 1.1s ease-in-out 2;}
+  @keyframes hintCol{50%{background:rgba(255,207,67,.45);}}
+
+  /* ---- discs: the site's flat colours with a darker bottom edge, like its buttons — yours
+     coral, the owl's sun (.bird: .owl is the mascot's class) -------------------------------- */
+  .disc{position:absolute; inset:7%; border-radius:50%;}
+  .disc::before{content:""; position:absolute; inset:23%; border-radius:50%;}
+  .disc.you{background:var(--coral); box-shadow:inset 0 -4px 0 var(--coral-dark), inset 0 3px 0 rgba(255,255,255,.3);}
+  .disc.you::before{box-shadow:inset 0 2px 0 rgba(120,0,30,.18), 0 1px 0 rgba(255,255,255,.35);}
+  .disc.bird{background:var(--sun); box-shadow:inset 0 -4px 0 var(--sun-dark), inset 0 3px 0 rgba(255,255,255,.4);}
+  .disc.bird::before{box-shadow:inset 0 2px 0 rgba(140,90,0,.18), 0 1px 0 rgba(255,255,255,.45);}
+  .slot.last .disc::after{content:""; position:absolute; inset:36%; border-radius:50%; background:rgba(255,255,255,.85);}
+
+  /* a drop falls from the hand row, behind the frame, and bounces once */
+  .disc.drop{animation:discDrop var(--dur, .55s) both;}
+  @keyframes discDrop{
+    0%{transform:translateY(calc(-1 * (var(--fall) * var(--cell) + var(--pad) + 4px))); animation-timing-function:cubic-bezier(.55,0,1,.9);}
+    70%{transform:translateY(0); animation-timing-function:cubic-bezier(0,0,.4,1);}
+    85%{transform:translateY(-10%); animation-timing-function:cubic-bezier(.6,0,1,1);}
+    100%{transform:translateY(0);}}
+  .disc.slide{animation:discSlide .3s cubic-bezier(.55,0,1,.9);}
+  @keyframes discSlide{from{transform:translateY(calc(-1 * var(--cell)));}}
+  .slot.win{animation:winPulse 1s ease-in-out .7s infinite;}
+  @keyframes winPulse{50%{transform:scale(1.07);}}
+
+  /* the line through a winning four, drawn over the frame */
+  .winline{position:absolute; left:var(--pad); top:var(--pad); width:calc(7 * var(--cell)); height:calc(6 * var(--cell));
+           overflow:visible; pointer-events:none; z-index:4;}
+  .winline line{stroke-linecap:round; stroke-dasharray:1; animation:lineDraw .55s ease-out .25s both;}
+  .winline .wl-back{stroke:#fff; stroke-width:.26;}
+  .winline .wl-front{stroke:var(--grape); stroke-width:.14;}
+  .winline circle{fill:#fff; stroke:var(--grape); stroke-width:.05; transform-box:fill-box; transform-origin:center;
+                  animation:dotPop .25s ease-out .7s both;}
+  @keyframes lineDraw{from{stroke-dashoffset:1;}}
+  @keyframes dotPop{from{transform:scale(0);}}
+
+  /* EXPERT: a pop button under each column */
+  .pops{display:grid; grid-template-columns:repeat(7, var(--cell)); justify-content:center; margin:10px auto 0;}
+  .pop{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; line-height:1.1; padding:5px 0; margin:0 4px;
+       border:2px solid var(--key-line); border-radius:10px; background:#fff; color:var(--coral-dark); cursor:pointer;
+       box-shadow:0 3px 0 #D9D0EF;}
+  .pop:disabled{color:#d4cce8; box-shadow:none; cursor:default;}
+  .pop:not(:disabled):hover{background:#FFF1F3; border-color:var(--coral);}
+  .pop:focus-visible{outline:3px solid var(--grape); outline-offset:1px;}
+  .pop.hinted{background:var(--sun); border-color:var(--sun-dark); color:var(--ink);}
+  .pops-cap{text-align:center; font-size:12px; font-weight:700; color:var(--ink-soft); margin-top:6px;}
+
+  /* rules-sheet diagrams */
+  .cfmini{display:inline-grid; gap:3px; padding:5px; background:#F1ECFC; border:2px solid var(--key-line); border-radius:8px;}
+  .cfmini i{width:16px; height:16px; border-radius:50%; background:#fff; display:block; box-shadow:inset 0 0 0 1.5px var(--key-line);}
+  .cfmini i.y{background:var(--coral); box-shadow:inset 0 -2px 0 var(--coral-dark);}
+  .cfmini i.o{background:var(--sun); box-shadow:inset 0 -2px 0 var(--sun-dark);}
+  .cfmini i.w{outline:2px solid var(--grape); outline-offset:1px;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home"></svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🔴 Drop your discs and get four in a row before the owl does!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">sleepy owl</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">sharp owl</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">clever owl</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">pop-out rules</div></button>
+      </div>
+      <div class="howto">
+        🔴 <b>How to play:</b> You and the owl take turns dropping discs into the board — tap a column and your
+        disc falls to the lowest empty spot. Get <b>four of yours in a row</b> — across, up and down, or on a
+        slant — before the owl does! You always go first. On <b>Expert</b> you may also <b>pop</b> one of your
+        own discs out of the bottom row instead.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="stage">
+        <div class="rig">
+          <div class="board" id="board" role="group" aria-label="Connect Four board">
+            <div class="hand"><div class="hand-disc" id="hand-disc"></div></div>
+            <div class="grid-box back"></div>
+            <div class="grid-box" id="discs"></div>
+            <div class="frame"></div>
+            <div class="grid-box lips"></div>
+            <div class="rim"></div>
+            <svg class="winline" id="winline" viewBox="0 0 7 6" preserveAspectRatio="none"></svg>
+            <div class="cols" id="cols"></div>
+          </div>
+        </div>
+        <div id="pops-wrap" class="hide">
+          <div class="pops" id="pops" role="group" aria-label="Pop out your bottom disc"></div>
+          <div class="pops-cap">⏏ pops your own disc out of the bottom</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary invisible">Play again ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+/* ===== ENGINE ============================================================================
+   A 7×6 board, row 0 at the BOTTOM: cell index = row*COLS + col, value EMPTY | YOU | OWL.
+   A move is an int: 0..6 drops a disc into that column; COLS+c (7..13) pops your own disc
+   out of the bottom of column c (PopOut, EXPERT only) and everything above slides down.
+
+   Levels change the owl and, at EXPERT, the rules:
+     EASY    classic — a gentle owl: often takes a win, sometimes blocks, else plays loosely
+     MEDIUM  classic — a short-sighted owl: looks three moves ahead, and now and then just
+             plays the careful move (win if it can, block, never hand you a win, else the
+             best-looking spot) without looking further
+     HARD    classic — a searching owl (alpha-beta look-ahead, capped by a node budget)
+     EXPERT  PopOut  — the same searching owl, and either side may pop its own bottom disc
+   You always go first.
+
+   Endings. The mover wins if their move makes four in a row. Only a pop can make a line for
+   the OTHER side: if it makes one for both, the popper wins; if only for the opponent, the
+   opponent wins. With no winner, it is a draw when the next player has no legal move (a full
+   board in classic; a full board with none of their discs on the bottom row in PopOut), or
+   when the same position with the same player to move comes up a third time (only PopOut
+   can repeat). */
+const COLS = 7, ROWS = 6, CELLS = COLS * ROWS;
+const EMPTY = 0, YOU = 1, OWL = 2;
+const POP = COLS;                                   /* pop move for column c is POP + c */
+const other = p => 3 - p;
+const at = (r, c) => r * COLS + c;
+const isPop = m => m >= POP;
+const moveCol = m => m % COLS;
+
+const LEVELS = {
+  EASY:   { label: "🌱 Easy",   rules: "classic", owl: "gentle" },
+  MEDIUM: { label: "⭐ Medium", rules: "classic", owl: "search", depth: 3, nodes: 5000, slip: 0.35 },
+  HARD:   { label: "🔥 Hard",   rules: "classic", owl: "search", depth: 6, nodes: 40000 },
+  EXPERT: { label: "🏆 Expert", rules: "popout",  owl: "search", depth: 8, nodes: 120000 },
+};
+/* EASY's owl: chance it takes a win it can see, and chance it blocks yours */
+const GENTLE = { win: 0.75, block: 0.5 };
+/* column preference, centre first — the centre column sits in the most lines */
+const ORDER = [3, 2, 4, 1, 5, 0, 6];
+
+/* every window of four in a row: 24 across, 21 up, 12 + 12 diagonal = 69 */
+const LINES = [];
+for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+  for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+    const r3 = r + 3 * dr, c3 = c + 3 * dc;
+    if (r3 < ROWS && c3 >= 0 && c3 < COLS)
+      LINES.push([0, 1, 2, 3].map(k => at(r + k * dr, c + k * dc)));
+  }
+
+const emptyBoard = () => new Array(CELLS).fill(EMPTY);
+const height = (b, c) => { let h = 0; while (h < ROWS && b[at(h, c)] !== EMPTY) h++; return h; };
+const isFull = b => { for (let c = 0; c < COLS; c++) if (b[at(ROWS - 1, c)] === EMPTY) return false; return true; };
+
+/* legal moves for p: drops centre-first, then (PopOut only) pops of p's own bottom discs */
+function legalMoves(b, p, rules) {
+  const out = [];
+  for (const c of ORDER) if (b[at(ROWS - 1, c)] === EMPTY) out.push(c);
+  if (rules === "popout") for (const c of ORDER) if (b[c] === p) out.push(POP + c);
+  return out;
+}
+function isLegal(b, p, rules, m) {
+  if (!Number.isInteger(m) || m < 0) return false;
+  if (m < COLS) return b[at(ROWS - 1, m)] === EMPTY;
+  return rules === "popout" && m < POP + COLS && b[m - POP] === p;
+}
+/* true when p has no legal move at all — the drawn-out ending */
+function stuck(b, p, rules) {
+  if (!isFull(b)) return false;
+  if (rules !== "popout") return true;
+  for (let c = 0; c < COLS; c++) if (b[c] === p) return false;
+  return true;
+}
+
+/* the board after p plays m (a new array; the caller checks legality) */
+function play(b, p, m) {
+  const n = b.slice(), c = moveCol(m);
+  if (!isPop(m)) { n[at(height(b, c), c)] = p; return n; }
+  for (let r = 0; r < ROWS - 1; r++) n[at(r, c)] = n[at(r + 1, c)];
+  n[at(ROWS - 1, c)] = EMPTY;
+  return n;
+}
+
+function hasFour(b, p) {
+  for (const L of LINES) if (b[L[0]] === p && b[L[1]] === p && b[L[2]] === p && b[L[3]] === p) return true;
+  return false;
+}
+/* every cell in one of p's fours — what the page lights up on a win */
+function fourCells(b, p) {
+  const s = new Set();
+  for (const L of LINES) if (L.every(i => b[i] === p)) L.forEach(i => s.add(i));
+  return [...s].sort((x, y) => x - y);
+}
+/* who has won once `mover` has moved: the mover if they have a four (even if the other side
+   does too), else the other side if a pop gave them one, else 0 */
+function judge(b, mover) {
+  if (hasFour(b, mover)) return mover;
+  if (hasFour(b, other(mover))) return other(mover);
+  return 0;
+}
+
+const posKey = (b, turn) => b.join("") + turn;
+
+/* ---- the game state the page holds ---------------------------------------------------- */
+function newGame(level) {
+  const board = emptyBoard();
+  return { level, rules: LEVELS[level].rules, board, turn: YOU, winner: 0, draw: null,
+           line: [], last: null, moves: 0, seen: { [posKey(board, YOU)]: 1 } };
+}
+const isOver = s => !!(s.winner || s.draw);
+
+/* the state after the player to move plays m, or null if m is not legal right now.
+   draw is null, or why: "full" (classic board full), "stuck" (PopOut, nothing to do) or
+   "repeat" (third time for this position). */
+function applyMove(s, m) {
+  if (isOver(s) || !isLegal(s.board, s.turn, s.rules, m)) return null;
+  const board = play(s.board, s.turn, m), next = other(s.turn);
+  const winner = judge(board, s.turn);
+  const k = posKey(board, next), seen = Object.assign({}, s.seen);
+  seen[k] = (seen[k] || 0) + 1;
+  let draw = null;
+  if (!winner) {
+    if (stuck(board, next, s.rules)) draw = s.rules === "popout" ? "stuck" : "full";
+    else if (seen[k] >= 3) draw = "repeat";
+  }
+  return { level: s.level, rules: s.rules, board, turn: next, winner, draw,
+           line: winner ? fourCells(board, winner) : [], last: { by: s.turn, m }, moves: s.moves + 1, seen };
+}
+
+/* ---- the owl's judgement -------------------------------------------------------------- */
+/* heuristic score for p: open windows (no enemy disc) with 1/2/3 of your discs, minus the
+   same for the enemy, plus a nudge for the centre column */
+const WEIGHT = [0, 1, 8, 40, 0];
+const WIN = 1000000;
+function evaluate(b, p) {
+  const q = other(p);
+  let s = 0;
+  for (const L of LINES) {
+    let a = 0, e = 0;
+    for (let k = 0; k < 4; k++) { const v = b[L[k]]; if (v === p) a++; else if (v === q) e++; }
+    if (a && !e) s += WEIGHT[a]; else if (e && !a) s -= WEIGHT[e];
+  }
+  for (let r = 0; r < ROWS; r++) { const v = b[at(r, 3)]; if (v === p) s += 3; else if (v === q) s -= 3; }
+  return s;
+}
+
+/* moves for p that win on the spot */
+const winningMoves = (b, p, rules) => legalMoves(b, p, rules).filter(m => judge(play(b, p, m), p) === p);
+/* after p plays m: does the opponent get a win on the spot (or has m already lost)? */
+function gifts(b, p, rules, m) {
+  const n = play(b, p, m), w = judge(n, p);
+  if (w === p) return false;
+  if (w) return true;
+  return winningMoves(n, other(p), rules).length > 0;
+}
+
+/* Negamax with alpha-beta, fail-soft. Scores are from p's side: WIN+depth-left for a win
+   (sooner is bigger), the negation for a loss, 0 for a draw, evaluate() at the horizon.
+   Repetition is not modelled inside the search. Throws ABORT when ctx's node budget runs out. */
+const ABORT = { abort: true };
+function negamax(b, p, depth, alpha, beta, rules, ctx) {
+  if (++ctx.nodes > ctx.limit) throw ABORT;
+  const moves = legalMoves(b, p, rules);
+  if (!moves.length) return 0;
+  let best = -Infinity;
+  for (const m of moves) {
+    const v = childValue(b, p, m, depth, alpha, beta, rules, ctx);
+    if (v > best) best = v;
+    if (v > alpha) alpha = v;
+    if (alpha >= beta) break;
+  }
+  return best;
+}
+/* the value to p of playing m, looking depth plies deep in total (this move is one of them) */
+function childValue(b, p, m, depth, alpha, beta, rules, ctx) {
+  const n = play(b, p, m), w = judge(n, p);
+  if (w === p) return WIN + depth;
+  if (w) return -(WIN + depth);
+  if (stuck(n, other(p), rules)) return 0;
+  if (depth <= 1) return evaluate(n, p);
+  return -negamax(n, other(p), depth - 1, -beta, -alpha, rules, ctx);
+}
+
+/* Every root move's value at exactly `depth` plies. Moves tied with the best are scored
+   exactly; the rest are only known to be worse (their v is an upper bound below best). */
+function searchRoot(b, p, rules, depth, ctx, first) {
+  ctx = ctx || { nodes: 0, limit: Infinity };
+  let moves = legalMoves(b, p, rules);
+  if (first !== undefined && moves.includes(first)) moves = [first, ...moves.filter(m => m !== first)];
+  let best = -Infinity;
+  const scored = [];
+  for (const m of moves) {
+    const v = childValue(b, p, m, depth, best === -Infinity ? -Infinity : best - 1, Infinity, rules, ctx);
+    scored.push({ m, v });
+    if (v > best) best = v;
+  }
+  return { best, moves: scored, bestMoves: scored.filter(x => x.v === best).map(x => x.m) };
+}
+
+/* Iterative deepening under a node budget, so the owl's thinking time is bounded and the same
+   on every machine. Returns the deepest completed search and how deep that was. */
+function deepSearch(b, p, rules, maxDepth, budget) {
+  const ctx = { nodes: 0, limit: Infinity };
+  let res = searchRoot(b, p, rules, 1, ctx), depth = 1;
+  for (let d = 2; d <= maxDepth; d++) {
+    if (Math.abs(res.best) >= WIN) break;                 /* already a proven win or loss */
+    ctx.limit = budget;
+    try { res = searchRoot(b, p, rules, d, ctx, res.bestMoves[0]); depth = d; }
+    catch (e) { if (e !== ABORT) throw e; break; }
+  }
+  return Object.assign(res, { depth, nodes: ctx.nodes });
+}
+
+const pick = (list, rng) => list[Math.floor(rng() * list.length)];
+
+/* EASY: loose play, and only sometimes sees a win or a threat */
+function gentleMove(b, p, rules, rng) {
+  const moves = legalMoves(b, p, rules);
+  const wins = winningMoves(b, p, rules);
+  if (wins.length && rng() < GENTLE.win) return pick(wins, rng);
+  if (winningMoves(b, other(p), rules).length && rng() < GENTLE.block) {
+    const safe = moves.filter(m => !gifts(b, p, rules, m));
+    if (safe.length) return pick(safe, rng);
+  }
+  const drops = moves.filter(m => !isPop(m));
+  const pool = drops.length ? drops : moves;
+  const wt = m => 4 - Math.abs(3 - moveCol(m));          /* 1 2 3 4 3 2 1 across the board */
+  let t = rng() * pool.reduce((s, m) => s + wt(m), 0);
+  for (const m of pool) { t -= wt(m); if (t < 0) return m; }
+  return pool[pool.length - 1];
+}
+
+/* MEDIUM's slip (and the player's Hint): win if you can; else never hand over a win you could avoid
+   (which also blocks every single threat); then the best-looking spot, ties broken randomly */
+function carefulMove(b, p, rules, rng) {
+  const wins = winningMoves(b, p, rules);
+  if (wins.length) return pick(wins, rng);
+  const moves = legalMoves(b, p, rules);
+  const safe = moves.filter(m => !gifts(b, p, rules, m));
+  const pool = safe.length ? safe : moves;
+  let best = -Infinity, top = [];
+  for (const m of pool) {
+    const v = evaluate(play(b, p, m), p);
+    if (v > best) { best = v; top = [m]; } else if (v === best) top.push(m);
+  }
+  return pick(top, rng);
+}
+
+/* the owl's move in state s at its level (s.turn must be the owl's turn) */
+function owlMove(s, rng = Math.random) {
+  const L = LEVELS[s.level];
+  if (L.owl === "gentle") return gentleMove(s.board, s.turn, s.rules, rng);
+  if (L.slip && rng() < L.slip) return carefulMove(s.board, s.turn, s.rules, rng);
+  return pick(deepSearch(s.board, s.turn, s.rules, L.depth, L.nodes).bestMoves, rng);
+}
+/* a good move for whoever is to move — the Hint */
+const hintMove = (s, rng = Math.random) => carefulMove(s.board, s.turn, s.rules, rng);
+
+if (typeof module !== "undefined") module.exports = { COLS, ROWS, CELLS, EMPTY, YOU, OWL, POP, LEVELS, GENTLE,
+  LINES, WIN, other, at, isPop, moveCol, emptyBoard, height, isFull, legalMoves, isLegal, stuck, play,
+  hasFour, fourCells, judge, posKey, newGame, isOver, applyMove, evaluate, winningMoves, gifts,
+  negamax, searchRoot, deepSearch, gentleMove, carefulMove, owlMove, hintMove };
+
+/* ===== DOM =============================================================================== */
+if (typeof document !== "undefined") {
+
+let level = "EASY";
+let game = null;
+let busy = false;            /* true while the owl is thinking: the board ignores taps */
+let owlTimer = null;
+let hintsUsed = 0;
+let focusCol = -1;           /* the column a keyboard player last used, refocused after the owl */
+
+function sound(kind) {
+  if (reduceMotion) return;
+  if (kind === "drop") beep(520, .08, "triangle");
+  else if (kind === "owl") beep(360, .08, "triangle");
+  else if (kind === "pop") { beep(760, .05, "square", 0, .06); beep(430, .08, "triangle", .05); }
+  else if (kind === "bad") beep(190, .16, "sawtooth", 0, .05);
+  else if (kind === "hint") beep(880, .09, "sine", 0, .08);
+  else if (kind === "win") [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .1));
+  else if (kind === "lose") [440, 370, 311].forEach((f, i) => beep(f, .18, "sine", i * .13, .1));
+  else if (kind === "tie") [523, 523].forEach((f, i) => beep(f, .12, "triangle", i * .15));
+}
+
+function setLevel(l) { level = l; markLevel(l, LEVELS[l].label); }
+
+/* ---- board ---------------------------------------------------------------------------- */
+const discHTML = v => '<div class="disc ' + (v === YOU ? "you" : "bird") + '"></div>';
+let handCol = 3;             /* the column your disc hovers over */
+
+function buildBoard() {
+  const discs = $("discs"), cols = $("cols"), pops = $("pops");
+  discs.innerHTML = ""; cols.innerHTML = ""; pops.innerHTML = "";
+  for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < ROWS; r++) {
+      const s = document.createElement("div");
+      s.className = "slot"; s.id = "s" + at(r, c); s.dataset.v = EMPTY;
+      s.style.left = "calc(var(--cell) * " + c + ")";
+      s.style.top = "calc(var(--cell) * " + (ROWS - 1 - r) + ")";
+      discs.appendChild(s);
+    }
+    const col = document.createElement("button");
+    col.className = "col"; col.dataset.c = c;
+    col.onclick = () => humanMove(c);
+    col.onmouseenter = col.onfocus = () => { handCol = c; showHand(); };
+    cols.appendChild(col);
+    const p = document.createElement("button");
+    p.className = "pop"; p.dataset.c = c; p.textContent = "⏏";
+    p.setAttribute("aria-label", "Pop your disc out of column " + (c + 1));
+    p.onclick = () => humanMove(POP + c);
+    pops.appendChild(p);
+  }
+}
+
+/* the disc held over the board: yours while it's your turn, the owl's just before it drops */
+function showHand(who) {
+  const h = $("hand-disc");
+  if (!who) who = game && game.turn === YOU && !busy && !isOver(game) ? YOU : 0;
+  if (!who) { h.classList.remove("show"); return; }
+  const want = who === YOU ? "you" : "bird";
+  if (!h.firstChild || !h.firstChild.classList.contains(want)) h.innerHTML = discHTML(who);
+  h.style.left = "calc(var(--cell) * " + handCol + ")";
+  h.classList.add("show");
+}
+
+/* redraw from `game`; `moved` is the move just played, animated if motion is allowed. Only
+   slots whose disc changed are rewritten, so a disc still falling is never cut short. */
+function render(moved) {
+  const b = game.board, over = isOver(game), yourTurn = game.turn === YOU && !over && !busy;
+  const lastCell = game.last && !isPop(game.last.m) ? lastDropCell() : -1;
+  const win = new Set(game.line);
+  const popCol = moved !== undefined && isPop(moved) ? moveCol(moved) : -1;
+  for (let i = 0; i < CELLS; i++) {
+    const s = $("s" + i), v = b[i];
+    s.classList.toggle("last", i === lastCell && !over);
+    s.classList.toggle("win", win.has(i));
+    if (+s.dataset.v === v && i % COLS !== popCol) continue;
+    s.dataset.v = v;
+    s.innerHTML = v === EMPTY ? "" : discHTML(v);
+    if (v !== EMPTY && !reduceMotion && i % COLS === popCol) s.firstChild.classList.add("slide");
+  }
+  if (moved !== undefined && !isPop(moved) && lastCell >= 0 && !reduceMotion) {
+    const d = $("s" + lastCell).firstChild, fall = ROWS - Math.floor(lastCell / COLS);
+    d.style.setProperty("--fall", fall);
+    d.style.setProperty("--dur", (0.3 + 0.07 * fall).toFixed(2) + "s");
+    d.classList.add("drop");
+  }
+  drawWinLines();
+  document.querySelectorAll(".col").forEach(col => {
+    const c = +col.dataset.c, h = height(b, c);
+    col.disabled = !yourTurn || h === ROWS;
+    col.classList.remove("hinted");
+    col.setAttribute("aria-label", "Column " + (c + 1) + (h === ROWS ? ", full" : ", " + h + " of " + ROWS + " filled"));
+  });
+  const popout = game.rules === "popout";
+  $("pops-wrap").classList.toggle("hide", !popout);
+  document.querySelectorAll(".pop").forEach(p => {
+    p.disabled = !(popout && yourTurn && b[+p.dataset.c] === YOU);
+    p.classList.remove("hinted");
+  });
+  showHand();
+}
+/* the cell the last drop landed in: the top disc of that column */
+function lastDropCell() {
+  const c = game.last.m, h = height(game.board, c);
+  return h ? at(h - 1, c) : -1;
+}
+/* a line through every winning four (the board's viewBox is 7×6, one unit per cell) */
+function drawWinLines() {
+  const svg = $("winline"), w = game.winner;
+  if (!w) { svg.innerHTML = ""; return; }
+  if (svg.childNodes.length) return;
+  const pt = i => [(i % COLS) + .5, ROWS - 1 - Math.floor(i / COLS) + .5];
+  const fours = LINES.filter(L => L.every(i => game.board[i] === w));
+  let back = "", front = "", dots = "";
+  for (const L of fours) {
+    const [x1, y1] = pt(L[0]), [x2, y2] = pt(L[3]);
+    const xy = 'x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" pathLength="1"';
+    back += '<line class="wl-back" ' + xy + "/>";
+    front += '<line class="wl-front" ' + xy + "/>";
+  }
+  for (const i of game.line) { const [x, y] = pt(i); dots += '<circle cx="' + x + '" cy="' + y + '" r=".11"/>'; }
+  svg.innerHTML = back + front + dots;
+}
+
+/* ---- turns ---------------------------------------------------------------------------- */
+function startGame() {
+  clearTimeout(owlTimer); owlTimer = null;
+  stopConfetti(); closeLevelMenu();
+  game = newGame(level);
+  busy = false; hintsUsed = 0;
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("invisible");
+  $("skip-btn").classList.remove("invisible");
+  setOwl("idle");
+  render();
+  flash(game.rules === "popout" ? "🔴 Your turn — drop a disc, or pop one of yours out ⏏"
+                                : "🔴 Your turn — get four in a row!", "");
+}
+
+function humanMove(m) {
+  if (busy || !game || isOver(game) || game.turn !== YOU) return;
+  const n = applyMove(game, m);
+  if (!n) { sound("bad"); flash(isPop(m) ? "You can only pop out your own disc from the bottom." : "That column is full — try another one.", "bad"); return; }
+  game = n;
+  focusCol = document.activeElement && document.activeElement.classList.contains("col") ? moveCol(m) : -1;
+  busy = !isOver(game);                      /* lock the board while the owl thinks */
+  sound(isPop(m) ? "pop" : "drop");
+  render(m);
+  if (isOver(game)) return finish();
+  setOwl("think");
+  flash("🟡 The owl is thinking…", "");
+  owlTimer = setTimeout(owlTurn, reduceMotion ? 250 : 650);
+}
+
+/* the owl picks its move, holds its disc over that column for a moment, then drops it */
+function owlTurn() {
+  const m = owlMove(game);
+  if (reduceMotion || isPop(m)) return owlPlay(m);
+  const keep = handCol;
+  handCol = m; showHand(OWL); handCol = keep;
+  owlTimer = setTimeout(() => owlPlay(m), 380);
+}
+function owlPlay(m) {
+  owlTimer = null;
+  game = applyMove(game, m);
+  busy = false;
+  sound(isPop(m) ? "pop" : "owl");
+  render(m);
+  if (isOver(game)) return finish();
+  setOwl("idle");
+  flash(isPop(m) ? "🟡 The owl popped a disc out of column " + (moveCol(m) + 1) + " — 🔴 your turn!" : "🔴 Your turn!", "");
+  if (focusCol >= 0) {
+    const cols = [...document.querySelectorAll(".col")];
+    const to = !cols[focusCol].disabled ? cols[focusCol] : cols.find(c => !c.disabled);
+    if (to) to.focus();
+  }
+}
+
+function finish() {
+  busy = false;
+  let stars, label, sub;
+  if (game.winner === YOU) {
+    stars = Math.max(1, 3 - hintsUsed);
+    label = "🎉 Four in a row — you win!";
+    sub = hintsUsed ? "Try winning with no hints for all three stars!" : "You beat the owl all by yourself!";
+    setOwl("win"); sound("win");
+    if (!reduceMotion) throwConfetti();
+  } else if (game.winner === OWL) {
+    stars = 0;
+    label = "🦉 The owl got four in a row!";
+    sub = "Good game! Watch for the owl's lines of three next time.";
+    setOwl("happy"); sound("lose");
+  } else {
+    stars = 1;
+    label = "🤝 It's a tie!";
+    sub = game.draw === "repeat" ? "The same position came up three times." :
+          game.draw === "stuck"  ? "The board is full and nobody can pop." : "The board is full and nobody got four.";
+    setOwl("happy"); sound("tie");
+  }
+  $("stars").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+  $("stars").setAttribute("aria-label", stars + " of 3 stars");
+  $("rlabel").textContent = label;
+  $("rsub").textContent = sub;
+  flash("", "");
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+}
+
+function hint() {
+  if (busy || !game || isOver(game) || game.turn !== YOU) return;
+  const m = hintMove(game);
+  hintsUsed++;
+  sound("hint");
+  render();
+  const c = moveCol(m), b = game.board;
+  let msg;
+  if (winningMoves(b, YOU, game.rules).includes(m)) msg = "You can win right now";
+  else if (winningMoves(b, OWL, game.rules).length) msg = "Quick — the owl is about to win! Block it";
+  else msg = "Try this";
+  if (isPop(m)) {
+    document.querySelector('.pop[data-c="' + c + '"]').classList.add("hinted");
+    flash("💡 " + msg + ": pop your disc out of column " + (c + 1) + ".", "hint");
+  } else {
+    document.querySelector('.col[data-c="' + c + '"]').classList.add("hinted");
+    handCol = c; showHand();
+    flash("💡 " + msg + ": column " + (c + 1) + ".", "hint");
+  }
+}
+
+function goHome() {
+  clearTimeout(owlTimer); owlTimer = null; busy = false;
+  stopConfetti(); closeLevelMenu();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+function pickLevel(l) { closeLevelMenu(); setLevel(l); startGame(); }
+
+/* ---- rules sheet ---------------------------------------------------------------------- */
+/* a little board for the diagrams: rows top-first, "y" yours, "o" the owl's, "." empty,
+   capitals light up as part of a four */
+function miniHTML(rows) {
+  const cols = rows[0].length;
+  return '<span class="cfmini" style="grid-template-columns:repeat(' + cols + ',16px)">' +
+    rows.join("").split("").map(ch => {
+      const k = ch.toLowerCase(), cls = (k === "y" ? "y" : k === "o" ? "o" : "") + (ch !== k ? " w" : "");
+      return '<i class="' + cls.trim() + '"></i>';
+    }).join("") + "</span>";
+}
+wireRulesSheet(function () {
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>Get <b>four of your discs in a row</b> before the owl does. The row can go <b>across</b>, '
+    + '<b>up and down</b>, or on a <b>slant</b>. Your discs are red; the owl\'s are yellow.</p>'
+    + '<div class="rrow">' + miniHTML(["....", "....", "....", "YYYY"]) + miniHTML(["Y...", "Y...", "Y...", "Y..."])
+    + miniHTML(["...Y", "..Yo", ".Yoo", "Yooy"]) + '</div>'
+    + '<span class="cap">Across, up and down, or on a slant — all of them count.</span></div>'
+
+    + '<div class="rule"><h3>⬇️ Dropping a disc</h3>'
+    + '<p>Tap a column and your disc <b>falls to the lowest empty spot</b> in it. A full column can\'t take any more. '
+    + 'You always go first, then you and the owl take turns.</p>'
+    + '<div class="rrow">' + miniHTML(["...", "...", ".o.", "yy."]) + '<span class="rarrow">➡️</span>'
+    + miniHTML(["...", ".y.", ".o.", "yy."]) + '</div>'
+    + '<span class="cap">Dropping in the middle column lands on top of the owl\'s disc.</span></div>'
+
+    + '<div class="rule"><h3>🦉 The owl at each level</h3>'
+    + '<p>🌱 <b>Easy</b> — a sleepy owl that sometimes misses a win or forgets to block you.</p>'
+    + '<p>⭐ <b>Medium</b> — a sharp owl: it always wins when it can and always blocks your four.</p>'
+    + '<p>🔥 <b>Hard</b> — a clever owl that thinks several moves ahead. Build <b>two threats at once</b> to beat it!</p>'
+    + '<p>🏆 <b>Expert</b> — the clever owl, playing <b>Pop Out</b> (below).</p></div>'
+
+    + '<div class="rule"><h3>⏏ Pop Out (Expert)</h3>'
+    + '<p>On your turn you can <b>drop</b> a disc as usual, <b>or pop</b> one of <b>your own</b> discs out of the '
+    + '<b>bottom row</b> with the ⏏ button under its column. Everything above it <b>slides down</b> one space.</p>'
+    + '<div class="rrow">' + miniHTML(["..", "o.", "yy", "yo"]) + '<span class="rarrow">➡️</span>'
+    + miniHTML(["..", "..", "oy", "yo"]) + '</div>'
+    + '<span class="cap">Popping your bottom disc in the left column drops the discs above it.</span>'
+    + '<p>A pop can make a four for <b>both</b> players at once — then the one who popped <b>wins</b>. '
+    + 'But if your pop only gives the <b>owl</b> a four, the owl wins!</p></div>'
+
+    + '<div class="rule"><h3>🤝 Ties</h3>'
+    + '<p>If the board fills up and nobody has four, it\'s a tie. In Pop Out a full board only ends the game '
+    + 'when the player to move has none of their discs on the bottom row to pop. It\'s also a tie if the same '
+    + 'position comes up <b>three times</b>.</p></div>'
+
+    + '<div class="rule"><h3>⭐ Stars</h3>'
+    + '<p>Win with no hints for <b>★★★</b>. Each 💡 Hint you use costs one star (a win always earns at least one). '
+    + 'A tie earns <b>★</b>.</p></div>';
+});
+
+/* ---- wiring --------------------------------------------------------------------------- */
+buildBoard();
+buildLevelMenu(LEVELS, pickLevel);
+wireLevelMenu();
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = startGame;
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = startGame;
+$("next-btn").onclick = startGame;
+$("hint-link").onclick = hint;
+
+document.addEventListener("keydown", e => {
+  if (rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if (e.key === "Escape") { closeLevelMenu(); return; }
+  if ($("screen-game").classList.contains("hide")) return;
+  /* 1-7 drop into that column; ←/→ move between columns */
+  if (/^[1-7]$/.test(e.key)) { humanMove(+e.key - 1); return; }
+  const cur = document.activeElement;
+  if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && cur && cur.classList.contains("col")) {
+    const cols = [...document.querySelectorAll(".col")];
+    let i = cols.indexOf(cur);
+    for (let k = 0; k < COLS; k++) {
+      i = (i + (e.key === "ArrowLeft" ? COLS - 1 : 1)) % COLS;
+      if (!cols[i].disabled) { cols[i].focus(); break; }
+    }
+    e.preventDefault();
+  }
+});
+
+initBouncyTitle("Connect Four");
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

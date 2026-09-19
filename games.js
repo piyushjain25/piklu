@@ -119,4 +119,7 @@ window.GAMES = [
 
   { slug: "circuit-builder",     title: "Circuit Builder",     emoji: "💡", accent: "sun",    ageGroup: "9+",
     tagline: "Wire it up and make the bulb light.",            skills: ["Science", "Logic"], badge: "New" },
+
+  { slug: "connect-four",        title: "Connect Four",        emoji: "🔴", accent: "grape",  ageGroup: "6+",
+    tagline: "Drop your discs and get four in a row before the owl does!", skills: ["Strategy", "Logic"], badge: "New" },
 ];
