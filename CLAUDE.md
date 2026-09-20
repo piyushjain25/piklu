@@ -23,12 +23,14 @@ online toy store later. Read the rules below before changing anything.
    two places and lets it silently drift out of sync. If the fetch fails, the game is
    simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`,
    `mystery-word`, `what-am-i`, `circuit-builder`); that's expected, not a bug.
-4. **Each game is one file plus three shared assets.** The game's own CSS and JS are
+4. **Each game is one file plus two shared assets.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
-   into extra files. Every game also links three things from `/assets/` that must never be
+   into extra files. Every game also links two things from `/assets/` that must never be
    copy-pasted into a game's own `<style>`/`<script>`: `assets/site.css` (the shared design
-   system — see "Standard layout & controls"), `assets/site.js` (the shared JS helpers —
-   see "Shared JS helpers"), and the Google Fonts stylesheet. A game **may** keep
+   system — see "Standard layout & controls") and `assets/site.js` (the shared JS helpers —
+   see "Shared JS helpers"). **The fonts come with `site.css`**, which `@import`s the Google
+   Fonts stylesheet on its first line — a page never links Google Fonts itself, so the site's
+   two fonts are changed in exactly one place. A game **may** keep
    **data** in a sibling file in the same folder (e.g. `words.json`, `capitals.json`).
    **That file must be plain JSON — no other format is supported** (no `.js` data file
    assigning a `window.X = {...}` global, no embedding the data inline in `index.html`).
@@ -56,8 +58,8 @@ online toy store later. Read the rules below before changing anything.
    one for a handful of fixed values that will never grow.
 
    The only allowed
-   external network calls are Google Fonts and, for `guess-the-capital` only, the flag images
-   from `flagcdn.com`. (`cdnjs.cloudflare.com` is allowed but no game currently uses it.)
+   external network calls are Google Fonts (from `site.css`'s `@import` — never from a page) and,
+   for `guess-the-capital` only, the flag images from `flagcdn.com`. (`cdnjs.cloudflare.com` is allowed but no game currently uses it.)
    `_tests/site/conventions.test.js` enforces this list — add a host there, with a reason, or
    not at all.
 5. **Keep it kid-safe and ad-free.** Age-appropriate content and friendly tone only.
@@ -68,9 +70,9 @@ online toy store later. Read the rules below before changing anything.
 ```
 /                       root — redirects to /games/ (future store home)
 /games.js               THE CATALOG — single source of truth for the game list
-/assets/site.css        shared styles — hub layout AND the shared game-page design
-                        system (colours, owl moods, buttons, topbar/tlink/level-switch, the
-                        board games' board and piece, etc.)
+/assets/site.css        shared styles — the Google Fonts @import, hub layout AND the shared
+                        game-page design system (colours, owl moods, buttons,
+                        topbar/tlink/level-switch, the board games' board and piece, etc.)
 /assets/site.js         shared JS helpers every game links before its own inline script
                         (the owl drawing itself — MASCOT_SVG/drawMascots — and
                         $, reduceMotion, flash, setOwl, level-menu, beep, confetti, title,
@@ -111,8 +113,8 @@ Two steps — never edit the hub's HTML or CSS to add a game:
 
 1. Create the game at `games/<slug>/index.html` (code inline, following the
    conventions below). `<slug>` is lowercase words joined by hyphens, e.g. `shape-sorter`.
-   In `<head>`, link the Google Fonts stylesheet **and** `<link rel="stylesheet"
-   href="../../assets/site.css" />`, and give `<body>` the class `game`
+   In `<head>`, link `<link rel="stylesheet" href="../../assets/site.css" />` (that one
+   link brings the fonts too — never add a Google Fonts `<link>`), and give `<body>` the class `game`
    (`<body class="game">`) — that's what pulls in the shared design system and control
    scheme. Right before the game's own `<script>` (after the `<canvas id="confetti">`),
    add `<script src="../../assets/site.js"></script>` — it defines globals
@@ -159,7 +161,8 @@ The card, its link, and the search filter appear automatically.
 
 ## Game conventions (match the existing games)
 
-- **Design system:** display font **Fredoka**, body font **Nunito** (Google Fonts).
+- **Design system:** display font **Fredoka**, body font **Nunito** — `@import`ed from Google
+  Fonts once, at the top of `assets/site.css`, never linked from a page.
   Palette: grape `#6C4AB6`, coral `#FF6B7A`, leaf `#2FB37D`, sun `#FFCF43` /
   `#e6a800`, sky `#3FA7E0`, ink `#33236B`; sky→green background with floating clouds.
   The **owl mascot** has mood states (idle / happy / worried / win / think). Its drawing
@@ -486,8 +489,8 @@ _tests/lib/harness.js           loadEngine(), bootGame(), loadCatalog(), tally()
                                 fails by name instead of hanging run.sh
 _tests/site/catalog.test.js     games.js + the hub — every game: real folder, valid accent,
                                 on-scale age band, renders as a card, findable by search
-_tests/site/conventions.test.js the structural rules of this file — every game: the three
-                                shared assets linked, no redeclared site.js global, no
+_tests/site/conventions.test.js the structural rules of this file — every game: the two
+                                shared assets linked, the fonts left to site.css, no redeclared site.js global, no
                                 re-styled shared class, no stray host, no storage, JSON parses,
                                 empty mascot placeholders that site.js really draws into,
                                 and no game-local copy of the level menu, confetti loop,

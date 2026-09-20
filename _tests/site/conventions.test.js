@@ -27,8 +27,10 @@ const SHARED_CSS = [".topbar", ".tlink", ".actions", ".serve-row", ".invisible",
 const STRUCTURAL = /(^|[;{\s])(display|position|flex|flex-direction|justify-content|align-items|grid-template|z-index)\s*:/;
 
 /* The only hosts a game may reach (CLAUDE.md rule 4). www.w3.org is the SVG xmlns namespace
-   URI — an identifier, never fetched — so it is listed here rather than special-cased. */
-const ALLOWED_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com", "cdnjs.cloudflare.com",
+   URI — an identifier, never fetched — so it is listed here rather than special-cased. The
+   Google Fonts hosts are NOT here: the fonts are @imported once by site.css, so a page that
+   names them is a copy of something shared (checked below). */
+const ALLOWED_HOSTS = ["cdnjs.cloudflare.com",
                        "flagcdn.com",   /* guess-the-capital's flag images */
                        "www.w3.org"];
 /* guess-the-capital is purely a choice of game, so it has no level chip at all */
@@ -37,8 +39,7 @@ const NO_LEVEL_CHIP = ["guess-the-capital"];
 for (const g of loadCatalog()) {
   const slug = g.slug, html = gameHTML(slug), at = slug + ": ";
 
-  /* --- the three shared assets, linked not copied --- */
-  ok(/<link[^>]+fonts\.googleapis\.com/.test(html), at + "should link the Google Fonts stylesheet");
+  /* --- the two shared assets, linked not copied (the fonts come with site.css) --- */
   ok(html.includes('href="../../assets/site.css"'), at + "should link ../../assets/site.css");
   ok(html.includes('<script src="../../assets/site.js"></script>'), at + "should link ../../assets/site.js");
   ok(/<body[^>]*class="[^"]*\bgame\b/.test(html), at + 'body needs class="game" to pull in the design system');
@@ -127,11 +128,18 @@ for (const g of loadCatalog()) {
   }
 }
 
+/* the fonts live in exactly one place: site.css @imports them, no page links them itself */
+ok(/@import url\("https:\/\/fonts\.googleapis\.com\/css2\?[^"]*family=Fredoka[^"]*family=Nunito[^"]*"\);/.test(siteCSS),
+   "site.css must @import the Fredoka + Nunito stylesheet — that is how every page gets the fonts");
+ok(siteCSS.indexOf("@import") < siteCSS.indexOf("{"),
+   "site.css's @import must come before any rule, or the browser ignores it");
+
 /* the hub's mascot comes from the same place */
 const hubHTML = read("games/index.html");
 ok(/<svg class="hub-owl"><\/svg>/.test(hubHTML), 'hub needs the empty <svg class="hub-owl"> mascot placeholder');
 ok(!hubHTML.includes('M14 10 L22 20 L10 20 Z'), "hub has an inline copy of the owl drawing");
 ok(hubHTML.includes('<script src="../assets/site.js"></script>'), "hub must link ../assets/site.js to draw its mascot");
+ok(!hubHTML.includes("fonts.googleapis.com"), "hub should get the fonts from site.css, not link them itself");
 
 /* and site.js really draws it: boot each game and look at the live placeholders */
 for (const g of loadCatalog()) {

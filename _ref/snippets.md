@@ -11,10 +11,10 @@ Read this instead of opening a reference game. The rules behind the markup are i
 
 ## 1. Page skeleton
 
-The `<head>` (Google Fonts + `site.css`, then the game's own `<style>`), `<body class="game">`,
+The `<head>` (`site.css` — which brings the fonts with it — then the game's own `<style>`), `<body class="game">`,
 and the end of the page: `#confetti`, then `site.js`, then the game's own inline `<script>`.
 
-Source: `games/pizza-party/index.html` lines 1-11
+Source: `games/pizza-party/index.html` lines 1-8
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -22,14 +22,11 @@ Source: `games/pizza-party/index.html` lines 1-11
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pizza Party</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
 ```
 
-Source: `games/pizza-party/index.html` lines 32-36
+Source: `games/pizza-party/index.html` lines 29-33
 ```html
 </style>
 </head>
@@ -38,7 +35,7 @@ Source: `games/pizza-party/index.html` lines 32-36
   <div class="card">
 ```
 
-Source: `games/pizza-party/index.html` lines 100-107
+Source: `games/pizza-party/index.html` lines 97-104
 ```html
     </section>
   </div>
@@ -50,7 +47,7 @@ Source: `games/pizza-party/index.html` lines 100-107
 "use strict";
 ```
 
-Source: `games/pizza-party/index.html` lines 219-223
+Source: `games/pizza-party/index.html` lines 216-220
 ```js
 initBouncyTitle("Pizza Party");
 setLevel("EASY");
@@ -64,7 +61,7 @@ setLevel("EASY");
 Home (left), owl + level chip with its `#level-menu` dropdown (centre), Skip (right). The menu is
 filled by `buildLevelMenu()`; never write `.level-opt` buttons by hand.
 
-Source: `games/pizza-party/index.html` lines 60-74
+Source: `games/pizza-party/index.html` lines 57-71
 ```html
       <div class="topbar">
         <button id="home-btn" class="tlink">🏠 Home</button>
@@ -89,7 +86,7 @@ Source: `games/pizza-party/index.html` lines 60-74
 `#title`, see section 1), the four `.diff` cards — `EMOJI Name` on one line, a 2–3 word `d-range`
 — the `.howto` block and Start.
 
-Source: `games/pizza-party/index.html` lines 38-57
+Source: `games/pizza-party/index.html` lines 35-54
 ```html
     <section id="screen-home">
       <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
@@ -115,7 +112,7 @@ Source: `games/pizza-party/index.html` lines 38-57
 
 With a rules sheet, the `.howto` block ends with the `📖 Read the full rules` link:
 
-Source: `games/lights-out/index.html` lines 86-91
+Source: `games/lights-out/index.html` lines 83-88
 ```html
       <div class="howto">
         🌙 <b>How to play:</b> Every window is a house light. Tap one and it switches —
@@ -129,7 +126,7 @@ Source: `games/lights-out/index.html` lines 86-91
 
 Under the game component. Plain Reset + Hint:
 
-Source: `games/pizza-party/index.html` lines 91-94
+Source: `games/pizza-party/index.html` lines 88-91
 ```html
         <div class="actions">
           <button id="reset-btn" class="tlink">🔄 Reset</button>
@@ -139,7 +136,7 @@ Source: `games/pizza-party/index.html` lines 91-94
 
 Undo before Reset, Rules last (`juice-jumble`):
 
-Source: `games/juice-jumble/index.html` lines 127-132
+Source: `games/juice-jumble/index.html` lines 124-129
 ```html
       <div class="actions">
         <button id="undo-btn" class="tlink">↩️ Undo</button>
@@ -151,7 +148,7 @@ Source: `games/juice-jumble/index.html` lines 127-132
 
 Hint + `📖 Rules` as the last item (`lights-out`, where Undo replaces Reset):
 
-Source: `games/lights-out/index.html` lines 123-127
+Source: `games/lights-out/index.html` lines 120-124
 ```html
       <div class="actions">
         <button id="undo-btn" class="tlink">↩️ Undo</button>
@@ -165,7 +162,7 @@ Source: `games/lights-out/index.html` lines 123-127
 **With a submit action** — the primary `.btn`, replaced in place by `Next ▶` on a win, with Skip
 hidden by `.invisible` (never `display:none`) so the top bar doesn't shift:
 
-Source: `games/pizza-party/index.html` lines 96-99
+Source: `games/pizza-party/index.html` lines 93-96
 ```html
       <div class="serve-row">
         <button id="serve-btn" class="btn btn-go" disabled>🍽 Serve</button>
@@ -173,7 +170,7 @@ Source: `games/pizza-party/index.html` lines 96-99
       </div>
 ```
 
-Source: `games/pizza-party/index.html` lines 192-193
+Source: `games/pizza-party/index.html` lines 189-190
 ```js
     $("serve-btn").classList.add("hide"); $("skip-btn").classList.add("invisible");   // Next takes Serve's place; Skip keeps its slot so nothing shifts
     $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
@@ -182,7 +179,7 @@ Source: `games/pizza-party/index.html` lines 192-193
 **No submit action** (the move is the check) — `Next ▶` holds the slot with `.invisible` and is
 revealed on the win. The result block sits just above it:
 
-Source: `games/lights-out/index.html` lines 128-137
+Source: `games/lights-out/index.html` lines 125-134
 ```html
       <div id="result-view" class="hide">
         <div class="result">
@@ -196,7 +193,7 @@ Source: `games/lights-out/index.html` lines 128-137
       </div>
 ```
 
-Source: `games/lights-out/index.html` lines 450-451
+Source: `games/lights-out/index.html` lines 447-448
 ```js
   $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
   $("next-btn").classList.remove("invisible");
@@ -221,7 +218,7 @@ The game supplies the two links (sections 3 and 4) and the body. The body is a s
 sections, each an `<h3>` with an emoji, short `<p>`s, and optional `.rrow` diagrams with a
 `.cap` caption:
 
-Source: `games/lights-out/index.html` lines 538-545
+Source: `games/lights-out/index.html` lines 535-542
 ```js
 wireRulesSheet(function(){
   $("rules-body").innerHTML =
@@ -235,7 +232,7 @@ wireRulesSheet(function(){
 
 Its own keydown handler must start by standing aside while the sheet is open:
 
-Source: `games/lights-out/index.html` lines 512-514
+Source: `games/lights-out/index.html` lines 509-511
 ```js
 document.addEventListener("keydown", e => {
   if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
@@ -247,7 +244,7 @@ document.addEventListener("keydown", e => {
 Only for a game with an extensible content list (CLAUDE.md rule 4). Load once with the shared
 helper, into the game's own `let`, and validate the shape before use. No inline fallback copy.
 
-Source: `games/spot-the-words/index.html` lines 438-448
+Source: `games/spot-the-words/index.html` lines 435-445
 ```js
 /* This game only works when served (fetch() is blocked under file://) — no embedded
    fallback data, by design: see CLAUDE.md. */
@@ -264,7 +261,7 @@ loadGameData("words.json").then(d => {
 
 The validation keeps well-formed entries and drops the rest rather than crashing the page:
 
-Source: `games/spot-the-words/index.html` lines 199-214
+Source: `games/spot-the-words/index.html` lines 196-211
 ```js
 /* Keep only well-formed themes; a malformed entry is dropped rather than crashing the page. */
 function validateThemes(data){
@@ -290,7 +287,7 @@ The pure engine ends with this guard; the DOM half follows inside `if(typeof doc
 "undefined")`. Export everything a test needs to reach — the level table, the generator, the
 solver/checker, the star rule — so `loadEngine()` can prove it without a DOM.
 
-Source: `games/lights-out/index.html` lines 306-310
+Source: `games/lights-out/index.html` lines 303-307
 ```js
 if(typeof module !== "undefined") module.exports = { LEVELS, HINT_MAX, DELTAS, flipList, flipMask,
   applyClick, isSolved, popcount, solveMask, solveMin, genBoard, starsFor };
@@ -307,13 +304,13 @@ tap targets over it. Squares are `<div class="gb-slot" id="s{i}">`, so a game re
 `$("s" + i)`; a piece inside one is `pieceHTML("you" | "bird")`. Gomoku's whole board, markup
 and all:
 
-Source: `games/gomoku/index.html` lines 99-100
+Source: `games/gomoku/index.html` lines 96-97
 ```html
       <div id="stage">
         <!-- buildBoard() puts the shared board here; the spots to tap go on top of it -->
 ```
 
-Source: `games/gomoku/index.html` lines 505-522
+Source: `games/gomoku/index.html` lines 502-519
 ```js
 function setupBoard() {
   const n = game.n;
@@ -339,7 +336,7 @@ Connect Four's board is the same one with different knobs — room above it for 
 holding, holes smaller than the discs (so a falling disc is clipped by the frame and looks like
 it is behind it), and its own row numbering, because row 0 is the bottom of that board:
 
-Source: `games/connect-four/index.html` lines 431-435
+Source: `games/connect-four/index.html` lines 428-432
 ```js
   const b = buildBoard("stage", {
     cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58, gutter: 110 }),
@@ -351,7 +348,7 @@ Source: `games/connect-four/index.html` lines 431-435
 The line through a winning row is drawn by `drawWinLine(runs, xy)` — a list of runs of square
 indexes, and where a square's centre sits in cell units — and cleared by `clearWinLine()`:
 
-Source: `games/gomoku/index.html` lines 539-540
+Source: `games/gomoku/index.html` lines 536-537
 ```js
   if (game.winner && game.line.length) drawWinLine(runsOf(b, game.winner, n), i => [(i % n) + .5, ((i / n) | 0) + .5]);
   else clearWinLine();

@@ -40,11 +40,11 @@ Read this instead of opening a reference game. The rules behind the markup are i
 
 ## 1. Page skeleton
 
-The \`<head>\` (Google Fonts + \`site.css\`, then the game's own \`<style>\`), \`<body class="game">\`,
+The \`<head>\` (\`site.css\` — which brings the fonts with it — then the game's own \`<style>\`), \`<body class="game">\`,
 and the end of the page: \`#confetti\`, then \`site.js\`, then the game's own inline \`<script>\`.
 
 `,
-  block(P, "<!DOCTYPE html>", 0, 11, "html"),
+  block(P, "<!DOCTYPE html>", 0, 8, "html"),
   "\n",
   block(P, '<body class="game">', -2, 5, "html"),
   "\n",
