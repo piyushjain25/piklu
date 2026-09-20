@@ -22,8 +22,7 @@ online toy store later. Read the rules below before changing anything.
    the data as a fallback** for when the `fetch()` fails — that duplicates the dataset in
    two places and lets it silently drift out of sync. If the fetch fails, the game is
    simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`,
-   `mystery-word`, `what-am-i`, `circuit-builder`); that's expected,
-   not a bug.
+   `mystery-word`, `what-am-i`, `circuit-builder`); that's expected, not a bug.
 4. **Each game is one file plus three shared assets.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
    into extra files. Every game also links three things from `/assets/` that must never be
@@ -214,10 +213,9 @@ The card, its link, and the search filter appear automatically.
   right or wrong).
 - Don't use `localStorage`/`sessionStorage` unless asked; keep state in memory.
 
-## Standard layout & controls (REQUIRED — match `games/pizza-party/index.html`)
+## Standard layout & controls
 
-`games/pizza-party/index.html` is the reference implementation. Every game must use this
-exact control scheme. The CSS for it (`.topbar`, `.tlink`, `.actions`, `.serve-row`,
+The common CSS for the game (`.topbar`, `.tlink`, `.actions`, `.serve-row`,
 `.invisible`, `.level-switch` and friends) lives once in `assets/site.css`, not inline —
 don't redefine these classes in a game's own `<style>`.
 
@@ -238,13 +236,13 @@ don't redefine these classes in a game's own `<style>`.
   puzzle has genuine dead ends and Reset alone is too punishing an escape), `coin-counter`,
   `number-builder` and `robot-instructions`. `lights-out` shows `↩️ Undo` **instead of**
   Reset. `tic-tac-toe` has **no Hint** (it's a game against the owl, not a puzzle) and
-  nothing to reset, so its row is just `📖 Rules`. `connect-four` is also a game against the
-  owl with nothing to reset, but keeps a Hint, so its row is `💡 Hint`, `📖 Rules`.
+  nothing to reset, so its row is just `📖 Rules`. `connect-four` and `checkers` are also games against
+  the owl with nothing to reset, but keep a Hint, so their row is `💡 Hint`, `📖 Rules`.
   (Rules-sheet games carry `📖 Rules` at the end of the row.)
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
   action** (the move itself is the check — e.g. `lights-out`, `spot-the-words`, `juice-jumble`,
-  the pure multiple-choice games, `tic-tac-toe`'s and `connect-four`'s `Play again ▶`; also `balance-scales` at
+  the pure multiple-choice games, `tic-tac-toe`'s, `connect-four`'s and `checkers`' `Play again ▶`; also `balance-scales` at
   EASY/MEDIUM and `tally-chart`'s last phase, see below) keeps that slot
   occupied during play with `Next ▶` carrying `.invisible`, and just removes `.invisible` on
   the win, so the slot never reflows. Exception: `dino-dig` has no submit action either, but
@@ -300,7 +298,7 @@ don't redefine these classes in a game's own `<style>`.
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`,
-  `circuit-builder`, `connect-four`.
+  `circuit-builder`, `connect-four`, `checkers`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Shared JS helpers (`assets/site.js`)
@@ -465,20 +463,6 @@ Then wait for the page to finish loading the data before driving it. Since rule 
 extensible content list in JSON, this applies to most new games — `bootGame(slug, { data:
 { … } })` is the normal path for a play-through, not a special case.
 
-### Building a game in stages
-
-**Building a game runs in three stages, each a pinned slash command:** `/game-engine`
-(Opus — generator/solver plus its engine test), `/game-ui` (Sonnet — page, styles, wiring),
-`/game-wire` (Haiku — catalog entry, DOM test, docs, full test run). Staging keeps each
-reply small enough to finish, so an interruption costs one stage rather than a whole file,
-and puts the expensive model only where the reasoning is. Each stage reads
-`_ref/snippets.md` rather than opening a reference game. The commands live in
-`.claude/commands/`; the model is pinned by each file's `model:` frontmatter.
-
-Subagent file-searching runs on Haiku when the shell sets
-`export CLAUDE_CODE_SUBAGENT_MODEL=haiku` (in `~/.zshrc`), so the main model gets a summary
-rather than the raw files.
-
 ## Publishing (how changes go live)
 
 The site auto-deploys from GitHub: after editing, the human commits and pushes
@@ -495,7 +479,7 @@ word-guess · guess-the-capital · math-monsters · shape-sorter · color-match 
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
-balance-scales · tic-tac-toe · circuit-builder · connect-four
+balance-scales · tic-tac-toe · circuit-builder · connect-four · checkers
 
 `word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word`,
 `what-am-i` and `circuit-builder` are the **data-driven** games: each loads its data from JSON in its own folder
@@ -562,6 +546,25 @@ earns ★★★ minus one per hint (at least ★), a tie ★, a loss none.
 thousands of random games, proves the alpha-beta search equal to plain minimax (and exact in
 endgames), and ranks the owls by strength — **run it after touching the search, the evaluation
 or the level table.**
+
+`checkers` is 8×8 English draughts against the owl; you are red (coral) and move first, the owl
+plays the sun-coloured pieces. The rules are the strict ones: **captures are compulsory**, a jump
+chain **must** be played to its end, men move and jump forward only, and a man crowned mid-jump
+stops there. EASY, MEDIUM and HARD differ only in the owl (depth 2 / 5 / 9, with the weaker two
+slipping to a random or near-best move on purpose); EXPERT changes the **rules** to **flying
+kings** — a king slides any distance along a diagonal and jumps from afar, landing anywhere past
+its victim — with the deepest owl. Men never fly, at any level. The owl is capped by a node
+budget, not a clock, so it costs the same on every machine. A run of 60 quiet king moves (no
+capture, no man moved) is a draw. Hint is a fixed-strength search of the player's own position.
+Stars: a win earns ★★★ minus one per hint (at least ★), a draw ★, a loss none.
+Two things a board UI has to respect: a move's `to` can equal its `from` (a king that jumps a
+circuit of four men comes home), and a jump chain is **played back one hop at a time** so it is
+clear which pieces were taken — the real position only changes once that playback ends.
+`_tests/games/checkers/engine.test.js` checks every legal-move list against an independent
+referee over ~14,000 positions per rule set, proves alpha-beta equal to plain minimax, holds the
+node budget to its cap and ranks the owls by how much each gives away — **run it after touching
+the move generator, the search or the level table.** `_tests/games/checkers/play.test.js` drives
+the real page, rebuilding the board from its own aria-labels, and wins a game through the DOM.
 
 `dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
 player can clear from there without ever guessing; the same solver powers its Hint.

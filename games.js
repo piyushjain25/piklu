@@ -122,4 +122,7 @@ window.GAMES = [
 
   { slug: "connect-four",        title: "Connect Four",        emoji: "🔴", accent: "grape",  ageGroup: "6+",
     tagline: "Drop your discs and get four in a row before the owl does!", skills: ["Strategy", "Logic"], badge: "New" },
+
+  { slug: "checkers",            title: "Checkers",            emoji: "⚫", accent: "leaf",   ageGroup: "9+",
+    tagline: "Jump the owl's pieces, crown your kings, and take the board!", skills: ["Strategy", "Logic"], badge: "New" },
 ];
