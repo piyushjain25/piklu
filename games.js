@@ -125,4 +125,7 @@ window.GAMES = [
 
   { slug: "checkers",            title: "Checkers",            emoji: "⚫", accent: "leaf",   ageGroup: "9+",
     tagline: "Jump the owl's pieces, crown your kings, and take the board!", skills: ["Strategy", "Logic"], badge: "New" },
+
+  { slug: "gomoku",              title: "Gomoku",              emoji: "5️⃣", accent: "sky",    ageGroup: "9+",
+    tagline: "Five in a row wins — line them up before the owl does!", skills: ["Strategy", "Logic"], badge: "New" },
 ];

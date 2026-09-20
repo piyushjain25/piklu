@@ -55,7 +55,9 @@ for (const g of loadCatalog()) {
        at + "must not redeclare the shared " + n + " from site.js");
 
   /* --- never restyle the shared control scheme --- */
-  const style = (html.match(/<style>([\s\S]*?)<\/style>/) || [, ""])[1];
+  /* comments out first: the rule split below is crude, and a comment naming a shared class
+     right above a rule would otherwise read as part of that rule's selector */
+  const style = ((html.match(/<style>([\s\S]*?)<\/style>/) || [, ""])[1]).replace(/\/\*[\s\S]*?\*\//g, "");
   for (const rule of style.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const sel = rule[1], body = rule[2];
     if (!STRUCTURAL.test(body)) continue;                 /* spacing/colour tweaks are allowed */

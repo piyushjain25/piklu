@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gomoku</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:600px;}
+  /* Home and the Skip side share the row equally, so the owl + level chip sit dead centre
+     (phones keep the shared layout: there isn't room for equal sides there) */
+  @media (min-width:440px){
+    #home-btn{flex:1 1 0; text-align:left;}
+    .tb-right{flex:1 1 0; justify-content:flex-end;}
+  }
+  /* the turn line sits above the board, as in connect-four */
+  #feedback{margin:12px 0 6px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+
+  /* ---- the board ------------------------------------------------------------------------
+     Connect Four's board, square and without the gravity: one cell size drives everything,
+     and from back to front it is the back panel, the stones, the frame (one lavender sheet
+     with holes cut by a mask), the holes' lips, the leaving-stone layer, the rim, the win
+     line and the cell buttons. --n (the board's width in cells) and --cell are set by the
+     game when a level starts, because both change with the level. */
+  .stage{--pad:calc(var(--cell) * .15); --hole:calc(var(--cell) * .42); --frame:#ECE4FB; --frame-lo:#DFD4F6;}
+  .rig{position:relative; width:calc(var(--n) * var(--cell) + 2 * var(--pad)); margin:0 auto; padding-bottom:6px;}
+  .board{position:relative; height:calc(var(--n) * var(--cell) + 2 * var(--pad));}
+  .grid-box{position:absolute; left:var(--pad); top:var(--pad);
+            width:calc(var(--n) * var(--cell)); height:calc(var(--n) * var(--cell));}
+  .slot{position:absolute; width:var(--cell); height:var(--cell);}
+  .back{background:radial-gradient(circle at 50% 50%, #fff calc(var(--hole) * .78), #F6F2FF var(--hole)) 0 0 / var(--cell) var(--cell);}
+  .frame{position:absolute; inset:0; border-radius:22px; background:linear-gradient(180deg, var(--frame), var(--frame-lo));
+         -webkit-mask:radial-gradient(circle at 50% 50%, transparent var(--hole), #000 calc(var(--hole) + .5px)) var(--pad) var(--pad) / var(--cell) var(--cell);
+                 mask:radial-gradient(circle at 50% 50%, transparent var(--hole), #000 calc(var(--hole) + .5px)) var(--pad) var(--pad) / var(--cell) var(--cell);
+         pointer-events:none;}
+  /* each hole is ringed in a lavender line */
+  .lips{pointer-events:none;
+        background:
+          radial-gradient(circle at 50% 50%, transparent calc(var(--hole) - .5px), #D3C6F0 var(--hole), #D3C6F0 calc(var(--hole) + 1.5px), transparent calc(var(--hole) + 2px)) 0 0 / var(--cell) var(--cell);}
+  .rim{position:absolute; inset:0; border-radius:22px; pointer-events:none;
+       box-shadow:0 0 0 3px var(--key-line), 0 7px 0 3px #D9D0EF;}
+  .fx{pointer-events:none; z-index:3;}
+
+  /* cell buttons: invisible round hit areas, one per spot, over the whole board */
+  .cells{position:absolute; left:var(--pad); top:var(--pad);
+         width:calc(var(--n) * var(--cell)); height:calc(var(--n) * var(--cell)); display:grid; z-index:5;}
+  .cell{position:relative; margin:0; padding:0; border:none; background:none; border-radius:50%;
+        cursor:pointer; -webkit-tap-highlight-color:transparent;}
+  .cell:disabled{cursor:default;}
+  /* the stone you are about to place, ghosted into the empty spot you are pointing at */
+  .cell.open:not(:disabled):hover::after{content:""; position:absolute; inset:14%; border-radius:50%;
+        background:var(--coral); opacity:.34;}
+  .cell:focus-visible{outline:3px solid var(--grape); outline-offset:-3px;}
+  .cell.hinted{background:rgba(255,207,67,.3); box-shadow:inset 0 0 0 3px var(--sun); animation:hintCell 1.1s ease-in-out 2;}
+  @keyframes hintCell{50%{background:rgba(255,207,67,.6);}}
+
+  /* ---- stones: the site's flat colours with a darker bottom edge, like its buttons — yours
+     coral, the owl's sun (.bird: .owl is the mascot's class) -------------------------------- */
+  .stone{position:absolute; inset:10%; border-radius:50%;}
+  .stone::before{content:""; position:absolute; inset:24%; border-radius:50%;}
+  .stone.you{background:var(--coral); box-shadow:inset 0 -3px 0 var(--coral-dark), inset 0 2px 0 rgba(255,255,255,.3);}
+  .stone.you::before{box-shadow:inset 0 2px 0 rgba(120,0,30,.18), 0 1px 0 rgba(255,255,255,.35);}
+  .stone.bird{background:var(--sun); box-shadow:inset 0 -3px 0 var(--sun-dark), inset 0 2px 0 rgba(255,255,255,.4);}
+  .stone.bird::before{box-shadow:inset 0 2px 0 rgba(140,90,0,.18), 0 1px 0 rgba(255,255,255,.45);}
+  /* the stone just played wears a white dot, so the owl's reply is easy to spot */
+  .slot.last .stone::after{content:""; position:absolute; inset:36%; border-radius:50%; background:rgba(255,255,255,.85);}
+
+  .stone.place{animation:stonePop .26s cubic-bezier(.2,1.5,.5,1) both;}
+  @keyframes stonePop{0%{transform:scale(.2); opacity:.35} 60%{transform:scale(1.13)} 100%{transform:scale(1)}}
+  .stone.gone{animation:stoneGone .45s ease-out both;}
+  @keyframes stoneGone{0%{transform:scale(1)} 35%{transform:scale(1.22)} 100%{transform:scale(.15) rotate(30deg); opacity:0}}
+  .slot.win{animation:winPulse 1s ease-in-out .7s infinite;}
+  @keyframes winPulse{50%{transform:scale(1.09);}}
+
+  /* the line through a winning five, drawn over the frame */
+  .winline{position:absolute; left:var(--pad); top:var(--pad);
+           width:calc(var(--n) * var(--cell)); height:calc(var(--n) * var(--cell));
+           overflow:visible; pointer-events:none; z-index:4;}
+  .winline line{stroke-linecap:round; stroke-dasharray:1; animation:lineDraw .55s ease-out .2s both;}
+  .winline .wl-back{stroke:#fff; stroke-width:.3;}
+  .winline .wl-front{stroke:var(--grape); stroke-width:.16;}
+  .winline circle{fill:#fff; stroke:var(--grape); stroke-width:.06; transform-box:fill-box; transform-origin:center;
+                  animation:dotPop .25s ease-out .65s both;}
+  @keyframes lineDraw{from{stroke-dashoffset:1;}}
+  @keyframes dotPop{from{transform:scale(0);}}
+
+  /* EXPERT: the pairs each side has captured — five pairs ends the game */
+  .caps{display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top:12px;}
+  /* .pairs, not .cap: site.css already gives that name to the rules sheet's captions */
+  .pairs{display:flex; align-items:center; gap:7px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px;
+       color:var(--ink-soft); background:#F7F4FE; border:2px solid var(--key-line); border-radius:999px; padding:5px 13px;}
+  .pairs .pips{display:flex; gap:3px;}
+  .pip{width:11px; height:11px; border-radius:50%; background:#fff; box-shadow:inset 0 0 0 2px var(--key-line);}
+  .pairs.you .pip.on{background:var(--coral); box-shadow:inset 0 -2px 0 var(--coral-dark);}
+  .pairs.bird .pip.on{background:var(--sun); box-shadow:inset 0 -2px 0 var(--sun-dark);}
+  .caps-cap{text-align:center; font-size:12px; font-weight:700; color:var(--ink-soft); margin-top:7px;}
+
+  /* rules-sheet diagrams */
+  .gmini{display:inline-grid; gap:3px; padding:5px; background:#F1ECFC; border:2px solid var(--key-line); border-radius:8px;}
+  .gmini i{width:15px; height:15px; border-radius:50%; background:#fff; display:block; box-shadow:inset 0 0 0 1.5px var(--key-line);}
+  .gmini i.y{background:var(--coral); box-shadow:inset 0 -2px 0 var(--coral-dark);}
+  .gmini i.o{background:var(--sun); box-shadow:inset 0 -2px 0 var(--sun-dark);}
+  .gmini i.w{outline:2px solid var(--grape); outline-offset:1px;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home"></svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">5️⃣ Line up five in a row before the owl does!</p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">9×9, sleepy owl</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">11×11, sharp owl</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">13×13, clever owl</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">13×13, captures</div></button>
+      </div>
+      <div class="howto">
+        5️⃣ <b>How to play:</b> Gomoku is the old game of <b>five in a row</b>. You and the owl take turns
+        putting one stone on any empty spot — stones stay where you put them. Line up <b>five of yours in a row</b>
+        (across, up and down, or on a slant) before the owl does! You always go first. On <b>Expert</b> you can
+        also <b>capture</b> the owl's stones.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="stage" id="stage">
+        <div class="rig">
+          <div class="board">
+            <div class="grid-box back"></div>
+            <div class="grid-box" id="stones"></div>
+            <div class="frame"></div>
+            <div class="grid-box lips"></div>
+            <div class="grid-box fx" id="fx"></div>
+            <div class="rim"></div>
+            <svg class="winline" id="winline" viewBox="0 0 9 9" preserveAspectRatio="none"></svg>
+            <div class="cells" id="cells" role="group" aria-label="Gomoku board"></div>
+          </div>
+        </div>
+        <div id="caps-wrap" class="hide">
+          <div class="caps">
+            <div class="pairs you" id="cap-you"></div>
+            <div class="pairs bird" id="cap-owl"></div>
+          </div>
+          <div class="caps-cap">✋ trap two of the owl's stones between yours to take them — five pairs wins</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary invisible">Play again ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+/* ===== ENGINE ============================================================================
+   Gomoku — five in a row — on an N×N board, row 0 at the TOP: cell index = row*N + col,
+   value EMPTY | YOU | OWL. A move is a cell index: it puts one stone on an empty spot, and
+   a stone never moves again (only a capture takes one off the board, at EXPERT).
+
+   Levels change the board size and the owl, and at EXPERT the rules too:
+     EASY     9×9  freestyle — a sleepy owl: often takes a win, sometimes blocks, else plays
+              loosely near the stones already down
+     MEDIUM  11×11 freestyle — a short-sighted owl: looks two moves ahead, and now and then
+              just plays the careful move (win if it can, block, never hand you a win, else
+              the best-looking spot) without looking further
+     HARD    13×13 freestyle — a searching owl (alpha-beta look-ahead, capped by a node budget)
+     EXPERT  13×13 capture   — the deepest owl, and either side may capture (below)
+   You always go first.
+
+   Freestyle means five OR MORE in a row wins, so an overline of six counts (the simplest
+   rule to explain, and what a child expects to happen).
+
+   Captures (the Ninuki-renju / Pente rule, EXPERT only): a stone that closes a sandwich —
+   exactly two of the opponent's stones in a line with one of yours at the far end — takes
+   those two off the board. Five captured pairs wins, the same as five in a row. Only the
+   player who just moved can win: a placement adds one of your stones and removes only the
+   opponent's, so it can never complete a line for the other side. That also makes the game
+   finite — a side that captures 5 pairs has won, so at most 4+4 pairs come off the board and
+   the board still fills. */
+const EMPTY = 0, YOU = 1, OWL = 2;
+const CAP_PAIRS = 5, CAP_WIN = CAP_PAIRS * 2;     /* five pairs = ten captured stones */
+const other = p => 3 - p;
+const DIRS = [[0, 1], [1, 0], [1, 1], [1, -1]];                    /* the four line directions */
+const CAP_DIRS = [...DIRS, ...DIRS.map(([r, c]) => [-r, -c])];     /* a sandwich runs either way */
+
+const LEVELS = {
+  EASY:   { label: "🌱 Easy",   n: 9,  rules: "classic", owl: "gentle" },
+  MEDIUM: { label: "⭐ Medium", n: 11, rules: "classic", owl: "search", depth: 2, nodes: 4000,  cand: 10, slip: 0.35 },
+  HARD:   { label: "🔥 Hard",   n: 13, rules: "classic", owl: "search", depth: 4, nodes: 6000, cand: 12 },
+  EXPERT: { label: "🏆 Expert", n: 13, rules: "capture", owl: "search", depth: 6, nodes: 6000, cand: 10 },
+};
+/* EASY's owl: chance it takes a win it can see, and chance it blocks yours */
+const GENTLE = { win: 0.7, block: 0.55 };
+
+/* ---- board geometry, worked out once per board size ------------------------------------ */
+/* wins   every window of five in a line          byCell  the windows each cell sits in
+   mid    a small pull towards the middle, so the owl opens near the centre */
+const GEOM = {};
+function geom(n) {
+  if (GEOM[n]) return GEOM[n];
+  const wins = [];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+    for (const [dr, dc] of DIRS) {
+      const r4 = r + 4 * dr, c4 = c + 4 * dc;
+      if (r4 < n && c4 >= 0 && c4 < n) wins.push([0, 1, 2, 3, 4].map(k => (r + k * dr) * n + (c + k * dc)));
+    }
+  const byCell = Array.from({ length: n * n }, () => []);
+  wins.forEach(w => w.forEach(i => byCell[i].push(w)));
+  const half = (n - 1) / 2;
+  const mid = Array.from({ length: n * n }, (_, i) =>
+    Math.max(0, 3 - Math.round(Math.max(Math.abs(((i / n) | 0) - half), Math.abs((i % n) - half)) / 2)));
+  return (GEOM[n] = { n, wins, byCell, mid });
+}
+
+const emptyBoard = n => new Array(n * n).fill(EMPTY);
+const isFull = b => b.indexOf(EMPTY) < 0;
+const inBoard = (r, c, n) => r >= 0 && r < n && c >= 0 && c < n;
+
+/* every empty spot — what the rules allow. The owl looks at far fewer (see nearMoves). */
+function legalMoves(b) {
+  const out = [];
+  for (let i = 0; i < b.length; i++) if (b[i] === EMPTY) out.push(i);
+  return out;
+}
+const isLegal = (b, m) => Number.isInteger(m) && m >= 0 && m < b.length && b[m] === EMPTY;
+
+/* does a stone of p at m make a line of five or more? (m itself is counted, so this reads
+   the same before the stone is placed and after) */
+function makesFive(b, m, p, n) {
+  const r = (m / n) | 0, c = m % n;
+  for (const [dr, dc] of DIRS) {
+    let len = 1;
+    for (const s of [1, -1]) {
+      let rr = r + dr * s, cc = c + dc * s;
+      while (inBoard(rr, cc, n) && b[rr * n + cc] === p) { len++; rr += dr * s; cc += dc * s; }
+    }
+    if (len >= 5) return true;
+  }
+  return false;
+}
+/* every maximal run of five or more of p's stones — what the page lights up and draws through */
+function runsOf(b, p, n) {
+  const runs = [];
+  for (const [dr, dc] of DIRS)
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+      if (b[r * n + c] !== p) continue;
+      if (inBoard(r - dr, c - dc, n) && b[(r - dr) * n + (c - dc)] === p) continue;   /* not the run's start */
+      const cells = [];
+      let rr = r, cc = c;
+      while (inBoard(rr, cc, n) && b[rr * n + cc] === p) { cells.push(rr * n + cc); rr += dr; cc += dc; }
+      if (cells.length >= 5) runs.push(cells);
+    }
+  return runs;
+}
+const hasFive = (b, p, n) => runsOf(b, p, n).length > 0;
+const lineCells = (b, p, n) => [...new Set(runsOf(b, p, n).flat())].sort((x, y) => x - y);
+
+/* the opponent stones a stone of p at m sandwiches: exactly two of theirs, then one of yours.
+   Reads m as p's without needing it on the board, so it also answers "what would I take?" */
+function capturesAt(b, m, p, n) {
+  const out = [], q = other(p), r = (m / n) | 0, c = m % n;
+  for (const [dr, dc] of CAP_DIRS) {
+    if (!inBoard(r + 3 * dr, c + 3 * dc, n)) continue;
+    const i1 = (r + dr) * n + (c + dc), i2 = (r + 2 * dr) * n + (c + 2 * dc), i3 = (r + 3 * dr) * n + (c + 3 * dc);
+    if (b[i1] === q && b[i2] === q && b[i3] === p) out.push(i1, i2);
+  }
+  return out;
+}
+/* the board after p puts a stone on m, plus the stones that came off (a new array) */
+function place(b, m, p, rules, n) {
+  const nb = b.slice();
+  nb[m] = p;
+  const taken = rules === "capture" ? capturesAt(nb, m, p, n) : [];
+  for (const i of taken) nb[i] = EMPTY;
+  return { b: nb, taken };
+}
+
+/* ---- the game state the page holds ---------------------------------------------------- */
+function newGame(level) {
+  const L = LEVELS[level];
+  return { level, n: L.n, rules: L.rules, board: emptyBoard(L.n), turn: YOU,
+           winner: 0, draw: null, line: [], last: null, caps: [0, 0, 0], moves: 0 };
+}
+const isOver = s => !!(s.winner || s.draw);
+
+/* the state after the player to move plays m, or null if m is not legal right now.
+   draw is null, or "full" — the board filled with nobody's five and nobody's fifth pair. */
+function applyMove(s, m) {
+  if (isOver(s) || !isLegal(s.board, m)) return null;
+  const p = s.turn, n = s.n;
+  const { b: board, taken } = place(s.board, m, p, s.rules, n);
+  const caps = s.caps.slice();
+  caps[p] += taken.length;
+  let winner = 0, line = [];
+  if (makesFive(board, m, p, n)) { winner = p; line = lineCells(board, p, n); }
+  else if (caps[p] >= CAP_WIN) winner = p;
+  return { level: s.level, n, rules: s.rules, board, turn: other(p), winner,
+           draw: !winner && isFull(board) ? "full" : null, line,
+           last: { by: p, m, taken }, caps, moves: s.moves + 1 };
+}
+
+/* ---- the owl's judgement -------------------------------------------------------------- */
+/* W[k] is what a window of five holding k of your stones and none of theirs is worth */
+const W = [0, 1, 12, 120, 1500, 20000];
+const WIN = 1000000;
+const CAP_VALUE = 90;                      /* per captured stone, so a pair is about an open three */
+
+function evaluate(b, p, n, caps) {
+  const g = geom(n), q = other(p);
+  let s = 0;
+  for (const w of g.wins) {
+    let a = 0, e = 0;
+    for (let k = 0; k < 5; k++) {                  /* a window with both sides in it is worth nothing */
+      const v = b[w[k]];
+      if (v === p) { if (e) { a = -1; break; } a++; }
+      else if (v === q) { if (a) { a = -1; break; } e++; }
+    }
+    if (a > 0) s += W[a]; else if (a === 0 && e) s -= W[e];
+  }
+  for (let i = 0; i < b.length; i++) { const v = b[i]; if (v === p) s += g.mid[i]; else if (v === q) s -= g.mid[i]; }
+  if (caps) s += (caps[p] - caps[q]) * CAP_VALUE;
+  return s;
+}
+
+/* Every empty spot within `rad` of a stone, in board order — the only moves worth a thought
+   on a board this empty. The very first move is the middle of the board. */
+function nearMoves(b, n, rad) {
+  const out = [], seen = new Uint8Array(b.length);
+  let any = false;
+  for (let i = 0; i < b.length; i++) {
+    if (b[i] === EMPTY) continue;
+    any = true;
+    const r = (i / n) | 0, c = i % n;
+    for (let dr = -rad; dr <= rad; dr++) for (let dc = -rad; dc <= rad; dc++) {
+      const rr = r + dr, cc = c + dc;
+      if (!inBoard(rr, cc, n)) continue;
+      const j = rr * n + cc;
+      if (b[j] === EMPTY && !seen[j]) { seen[j] = 1; out.push(j); }
+    }
+  }
+  if (!any) return [((n - 1) >> 1) * n + ((n - 1) >> 1)];
+  return out.sort((x, y) => x - y);
+}
+
+/* What playing m is worth to p at a glance: what it builds for p plus what it takes away
+   from the opponent, through every window it sits in. Used to order and trim the owl's
+   choices — a full search of 100+ empty spots is far too wide to look anywhere ahead. */
+function moveScore(b, m, p, rules, n) {
+  const g = geom(n), q = other(p);
+  let s = g.mid[m];
+  for (const w of g.byCell[m]) {
+    let a = 0, e = 0;
+    for (let k = 0; k < 5; k++) { const v = b[w[k]]; if (v === p) a++; else if (v === q) e++; }
+    if (!e) s += W[a + 1] - W[a];
+    if (!a) s += W[e + 1] - W[e];
+  }
+  if (rules === "capture") s += capturesAt(b, m, p, n).length * CAP_VALUE;
+  return s;
+}
+/* The k best-looking moves for p (all of them when k is 0), from the spots within `rad` of a
+   stone. The owl picks its own move from the wider rad 2; inside the search rad 1 keeps the
+   tree narrow enough to look several moves further. */
+function topMoves(b, p, rules, n, k, rad = 2) {
+  const scored = nearMoves(b, n, rad).map(m => ({ m, s: moveScore(b, m, p, rules, n) }));
+  scored.sort((x, y) => y.s - x.s || x.m - y.m);
+  return (k ? scored.slice(0, k) : scored).map(x => x.m);
+}
+
+/* moves that win on the spot — a five, or the fifth captured pair. A five is always finished
+   next to one of its own stones and a capture always lands next to the stones it takes, so
+   the spots one step from a stone are the only ones that can end the game. */
+function winningMoves(b, caps, p, rules, n) {
+  const out = [];
+  for (const m of nearMoves(b, n, 1)) {
+    if (makesFive(b, m, p, n)) out.push(m);
+    else if (rules === "capture" && caps[p] + capturesAt(b, m, p, n).length >= CAP_WIN) out.push(m);
+  }
+  return out;
+}
+/* after p plays m: does the opponent get a win on the spot? */
+function gifts(b, caps, p, rules, n, m) {
+  const { b: nb, taken } = place(b, m, p, rules, n);
+  const nc = caps.slice();
+  nc[p] += taken.length;
+  if (makesFive(nb, m, p, n) || nc[p] >= CAP_WIN) return false;
+  return winningMoves(nb, nc, other(p), rules, n).length > 0;
+}
+
+/* Negamax with alpha-beta, fail-soft. Scores are from p's side: WIN+depth-left for a win
+   (sooner is bigger), the negation for a loss, 0 for a full board, evaluate() at the horizon.
+   Only the top ctx.cand moves are looked at, so the owl sees a narrow board deeply rather
+   than a wide one not at all. Throws ABORT when ctx's node budget runs out. */
+const ABORT = { abort: true };
+function negamax(b, caps, p, depth, alpha, beta, rules, n, ctx) {
+  if (++ctx.nodes > ctx.limit) throw ABORT;
+  const moves = topMoves(b, p, rules, n, ctx.cand, 1);
+  if (!moves.length) return 0;
+  let best = -Infinity;
+  for (const m of moves) {
+    const v = childValue(b, caps, p, m, depth, alpha, beta, rules, n, ctx);
+    if (v > best) best = v;
+    if (v > alpha) alpha = v;
+    if (alpha >= beta) break;
+  }
+  return best;
+}
+/* the value to p of playing m, looking depth plies deep in total (this move is one of them) */
+function childValue(b, caps, p, m, depth, alpha, beta, rules, n, ctx) {
+  const { b: nb, taken } = place(b, m, p, rules, n);
+  const nc = caps.slice();
+  nc[p] += taken.length;
+  if (makesFive(nb, m, p, n) || nc[p] >= CAP_WIN) return WIN + depth;
+  if (isFull(nb)) return 0;
+  if (depth <= 1) return evaluate(nb, p, n, nc);
+  return -negamax(nb, nc, other(p), depth - 1, -beta, -alpha, rules, n, ctx);
+}
+
+/* Every candidate's value at exactly `depth` plies. Moves tied with the best are scored
+   exactly; the rest are only known to be worse (their v is an upper bound below best). */
+function searchRoot(b, caps, p, rules, n, depth, ctx, first) {
+  ctx = ctx || { nodes: 0, limit: Infinity, cand: 0 };
+  let moves = topMoves(b, p, rules, n, ctx.cand);
+  if (first !== undefined && moves.includes(first)) moves = [first, ...moves.filter(m => m !== first)];
+  let best = -Infinity;
+  const scored = [];
+  for (const m of moves) {
+    const v = childValue(b, caps, p, m, depth, best === -Infinity ? -Infinity : best - 1, Infinity, rules, n, ctx);
+    scored.push({ m, v });
+    if (v > best) best = v;
+  }
+  return { best, moves: scored, bestMoves: scored.filter(x => x.v === best).map(x => x.m) };
+}
+
+/* Iterative deepening under a node budget, so the owl's thinking time is bounded and the same
+   on every machine. Returns the deepest completed search and how deep that was. */
+function deepSearch(b, caps, p, rules, n, maxDepth, budget, cand) {
+  const ctx = { nodes: 0, limit: Infinity, cand: cand || 0 };
+  let res = searchRoot(b, caps, p, rules, n, 1, ctx), depth = 1;
+  for (let d = 2; d <= maxDepth; d++) {
+    if (Math.abs(res.best) >= WIN) break;                 /* already a proven win or loss */
+    ctx.limit = budget;
+    try { res = searchRoot(b, caps, p, rules, n, d, ctx, res.bestMoves[0]); depth = d; }
+    catch (e) { if (e !== ABORT) throw e; break; }
+  }
+  return Object.assign(res, { depth, nodes: ctx.nodes });
+}
+
+const pick = (list, rng) => list[Math.floor(rng() * list.length)];
+
+/* EASY: loose play near the stones already down, and only sometimes sees a win or a threat */
+function gentleMove(b, caps, p, rules, n, rng) {
+  const wins = winningMoves(b, caps, p, rules, n);
+  if (wins.length && rng() < GENTLE.win) return pick(wins, rng);
+  const theirs = winningMoves(b, caps, other(p), rules, n);
+  if (theirs.length && rng() < GENTLE.block) return pick(theirs, rng);
+  return pick(topMoves(b, p, rules, n, 8), rng);
+}
+
+/* MEDIUM's slip (and the player's Hint): win if you can; else block the win they are about to
+   make; else never hand over a win you could avoid, and take the best-looking spot left */
+function carefulMove(b, caps, p, rules, n, rng = Math.random) {
+  const wins = winningMoves(b, caps, p, rules, n);
+  if (wins.length) return pick(wins, rng);
+  const theirs = winningMoves(b, caps, other(p), rules, n);
+  const pool = theirs.length ? theirs : topMoves(b, p, rules, n, 10);
+  const safe = theirs.length ? pool : pool.filter(m => !gifts(b, caps, p, rules, n, m));
+  const list = safe.length ? safe : pool;
+  let best = -Infinity, top = [];
+  for (const m of list) {
+    const v = moveScore(b, m, p, rules, n);
+    if (v > best) { best = v; top = [m]; } else if (v === best) top.push(m);
+  }
+  return pick(top, rng);
+}
+
+/* the owl's move in state s at its level (s.turn must be the owl's turn) */
+function owlMove(s, rng = Math.random) {
+  const L = LEVELS[s.level];
+  if (L.owl === "gentle") return gentleMove(s.board, s.caps, s.turn, s.rules, s.n, rng);
+  if (L.slip && rng() < L.slip) return carefulMove(s.board, s.caps, s.turn, s.rules, s.n, rng);
+  return pick(deepSearch(s.board, s.caps, s.turn, s.rules, s.n, L.depth, L.nodes, L.cand).bestMoves, rng);
+}
+/* a good move for whoever is to move — the Hint */
+const hintMove = (s, rng = Math.random) => carefulMove(s.board, s.caps, s.turn, s.rules, s.n, rng);
+
+if (typeof module !== "undefined") module.exports = { EMPTY, YOU, OWL, LEVELS, GENTLE, WIN, W, DIRS, CAP_DIRS,
+  CAP_PAIRS, CAP_WIN, CAP_VALUE, other, geom, emptyBoard, isFull, inBoard, legalMoves, isLegal, makesFive,
+  runsOf, hasFive, lineCells, capturesAt, place, newGame, isOver, applyMove, evaluate, nearMoves, moveScore,
+  topMoves, winningMoves, gifts, negamax, childValue, searchRoot, deepSearch, gentleMove, carefulMove,
+  owlMove, hintMove };
+
+/* ===== DOM =============================================================================== */
+if (typeof document !== "undefined") {
+
+let level = "EASY";
+let game = null;
+let busy = false;            /* true while the owl is thinking: the board ignores taps */
+let owlTimer = null;
+let hintsUsed = 0;
+let keyPlay = false;         /* the last move came from the keyboard: hand focus back after the owl */
+let lastPlayed = -1;         /* the spot you played last, the one focus goes back to */
+
+function sound(kind) {
+  if (reduceMotion) return;
+  if (kind === "place") beep(560, .07, "triangle");
+  else if (kind === "owl") beep(380, .07, "triangle");
+  else if (kind === "take") { beep(820, .05, "square", 0, .06); beep(500, .09, "triangle", .05); }
+  else if (kind === "lost") beep(240, .12, "sawtooth", 0, .05);
+  else if (kind === "bad") beep(190, .16, "sawtooth", 0, .05);
+  else if (kind === "hint") beep(880, .09, "sine", 0, .08);
+  else if (kind === "win") [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .1));
+  else if (kind === "lose") [440, 370, 311].forEach((f, i) => beep(f, .18, "sine", i * .13, .1));
+  else if (kind === "tie") [523, 523].forEach((f, i) => beep(f, .12, "triangle", i * .15));
+}
+
+function setLevel(l) { level = l; markLevel(l, LEVELS[l].label); }
+
+/* ---- board ---------------------------------------------------------------------------- */
+const stoneHTML = v => '<div class="stone ' + (v === YOU ? "you" : "bird") + '"></div>';
+const cellName = (i, n) => "Row " + (((i / n) | 0) + 1) + ", column " + ((i % n) + 1);
+const pairWord = k => k === 1 ? "a pair" : k + " pairs";
+
+/* the board is rebuilt whenever the level changes: every level has its own size */
+function buildBoard() {
+  const n = game.n, st = $("stage"), stones = $("stones"), cells = $("cells");
+  st.style.setProperty("--n", n);
+  /* the whole board always fits the card — a cell is a share of the width, never tiny */
+  st.style.setProperty("--cell", "clamp(19px, calc((100vw - 96px) / " + (n + 0.3) + "), 40px)");
+  /* both tracks, or the implicit rows would size to the buttons' (empty) contents */
+  cells.style.gridTemplateColumns = cells.style.gridTemplateRows = "repeat(" + n + ", 1fr)";
+  $("winline").setAttribute("viewBox", "0 0 " + n + " " + n);
+  stones.innerHTML = ""; cells.innerHTML = ""; $("fx").innerHTML = "";
+  for (let i = 0; i < n * n; i++) {
+    const s = document.createElement("div");
+    s.className = "slot"; s.id = "s" + i; s.dataset.v = EMPTY;
+    s.style.left = "calc(var(--cell) * " + (i % n) + ")";
+    s.style.top = "calc(var(--cell) * " + ((i / n) | 0) + ")";
+    stones.appendChild(s);
+    const b = document.createElement("button");
+    b.className = "cell"; b.id = "c" + i; b.dataset.i = i;
+    b.onclick = () => humanMove(i);
+    cells.appendChild(b);
+  }
+}
+
+/* redraw from `game`; `mv` is the spot just played, popped in if motion is allowed. Only
+   slots whose stone changed are rewritten, so a stone mid-animation is never cut short. */
+function render(mv) {
+  const b = game.board, n = game.n, over = isOver(game);
+  const yours = game.turn === YOU && !over && !busy;
+  const win = new Set(game.line), lastCell = game.last && !over ? game.last.m : -1;
+  for (let i = 0; i < b.length; i++) {
+    const s = $("s" + i), v = b[i];
+    s.classList.toggle("last", i === lastCell);
+    s.classList.toggle("win", win.has(i));
+    if (+s.dataset.v === v) continue;
+    s.dataset.v = v;
+    s.innerHTML = v === EMPTY ? "" : stoneHTML(v);
+    if (v !== EMPTY && !reduceMotion && i === mv) s.firstChild.classList.add("place");
+  }
+  drawWinLine();
+  for (let i = 0; i < b.length; i++) {
+    const btn = $("c" + i);
+    btn.disabled = !yours;                       /* a taken spot stays focusable, so the arrow
+                                                    keys can walk the whole board and read it */
+    btn.classList.toggle("open", b[i] === EMPTY);
+    btn.classList.remove("hinted");
+    btn.setAttribute("aria-label", cellName(i, n) +
+      (b[i] === EMPTY ? ", empty" : b[i] === YOU ? ", your stone" : ", the owl's stone"));
+  }
+  drawCaps();
+}
+
+/* captured stones fly off the board on their own layer, so the redraw underneath can clear
+   their spots straight away */
+function flyOut(cells, who) {
+  if (reduceMotion || !cells.length) return;
+  const n = game.n, fx = $("fx");
+  for (const i of cells) {
+    const s = document.createElement("div");
+    s.className = "slot";
+    s.style.left = "calc(var(--cell) * " + (i % n) + ")";
+    s.style.top = "calc(var(--cell) * " + ((i / n) | 0) + ")";
+    s.innerHTML = stoneHTML(who);
+    s.firstChild.classList.add("gone");
+    fx.appendChild(s);
+    setTimeout(() => s.remove(), 500);
+  }
+}
+
+/* the pairs each side has taken (EXPERT only) */
+function drawCaps() {
+  const show = game.rules === "capture";
+  $("caps-wrap").classList.toggle("hide", !show);
+  if (!show) return;
+  const fill = (el, taken, who, label) => {
+    const pairs = Math.floor(taken / 2);
+    let pips = "";
+    for (let k = 0; k < CAP_PAIRS; k++) pips += '<span class="pip' + (k < pairs ? " on" : "") + '"></span>';
+    el.innerHTML = "<span>" + who + "</span><span class=\"pips\">" + pips + "</span>";
+    el.setAttribute("aria-label", label + " " + pairs + " of " + CAP_PAIRS + " pairs");
+  };
+  fill($("cap-you"), game.caps[YOU], "You", "You have taken");
+  fill($("cap-owl"), game.caps[OWL], "Owl", "The owl has taken");
+}
+
+/* a line through each winning run (the board's viewBox is N×N, one unit per cell) */
+function drawWinLine() {
+  const svg = $("winline"), w = game.winner;
+  if (!w || !game.line.length) { svg.innerHTML = ""; return; }
+  if (svg.childNodes.length) return;
+  const n = game.n, pt = i => [(i % n) + .5, ((i / n) | 0) + .5];
+  let back = "", front = "", dots = "";
+  for (const run of runsOf(game.board, w, n)) {
+    const [x1, y1] = pt(run[0]), [x2, y2] = pt(run[run.length - 1]);
+    const xy = 'x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" pathLength="1"';
+    back += '<line class="wl-back" ' + xy + "/>";
+    front += '<line class="wl-front" ' + xy + "/>";
+  }
+  for (const i of game.line) { const [x, y] = pt(i); dots += '<circle cx="' + x + '" cy="' + y + '" r=".12"/>'; }
+  svg.innerHTML = back + front + dots;
+}
+
+/* ---- turns ---------------------------------------------------------------------------- */
+function startGame() {
+  clearTimeout(owlTimer); owlTimer = null;
+  stopConfetti(); closeLevelMenu();
+  game = newGame(level);
+  busy = false; hintsUsed = 0; keyPlay = false; lastPlayed = -1;
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("invisible");
+  $("skip-btn").classList.remove("invisible");
+  setOwl("idle");
+  buildBoard();
+  render();
+  flash(game.rules === "capture" ? "🔴 Your turn — five in a row, or five pairs!"
+                                 : "🔴 Your turn — get five in a row!", "");
+}
+
+function humanMove(m) {
+  if (busy || !game || isOver(game) || game.turn !== YOU) return;
+  const next = applyMove(game, m);
+  if (!next) { sound("bad"); flash("That spot is taken — try an empty one.", "bad"); return; }
+  game = next;
+  const took = game.last.taken;
+  keyPlay = !!(document.activeElement && document.activeElement.classList.contains("cell"));
+  lastPlayed = m;
+  busy = !isOver(game);                      /* lock the board while the owl thinks */
+  flyOut(took, OWL);
+  sound(took.length ? "take" : "place");
+  render(m);
+  if (isOver(game)) return finish();
+  setOwl("think");
+  flash(took.length ? "✋ You took " + pairWord(took.length / 2) + "! 🟡 The owl is thinking…"
+                    : "🟡 The owl is thinking…", took.length ? "good" : "");
+  owlTimer = setTimeout(owlTurn, reduceMotion ? 250 : 550);
+}
+
+function owlTurn() {
+  owlTimer = null;
+  const m = owlMove(game);
+  game = applyMove(game, m);
+  const took = game.last.taken;
+  busy = false;
+  flyOut(took, YOU);
+  sound(took.length ? "lost" : "owl");
+  render(m);
+  if (isOver(game)) return finish();
+  setOwl("idle");
+  flash(took.length ? "✋ The owl took " + pairWord(took.length / 2) + " of yours — 🔴 your turn!" : "🔴 Your turn!",
+        took.length ? "bad" : "");
+  /* the board was locked while the owl thought, which dropped the keyboard's place — put it
+     back where the player left it */
+  if (keyPlay && $("c" + lastPlayed)) $("c" + lastPlayed).focus();
+}
+
+function finish() {
+  busy = false;
+  const byLine = game.line.length > 0;
+  let stars, label, sub;
+  if (game.winner === YOU) {
+    stars = Math.max(1, 3 - hintsUsed);
+    label = byLine ? "🎉 Five in a row — you win!" : "🎉 Five pairs taken — you win!";
+    sub = hintsUsed ? "Try winning with no hints for all three stars!" : "You beat the owl all by yourself!";
+    setOwl("win"); sound("win");
+    if (!reduceMotion) throwConfetti();
+  } else if (game.winner === OWL) {
+    stars = 0;
+    label = byLine ? "🦉 The owl got five in a row!" : "🦉 The owl took five pairs!";
+    sub = byLine ? "Good game! Watch for the owl's open threes next time."
+                 : "Good game! Keep your stones out of the owl's sandwiches.";
+    setOwl("happy"); sound("lose");
+  } else {
+    stars = 1;
+    label = "🤝 It's a tie!";
+    sub = "The board is full and nobody made five.";
+    setOwl("happy"); sound("tie");
+  }
+  $("stars").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+  $("stars").setAttribute("aria-label", stars + " of 3 stars");
+  $("rlabel").textContent = label;
+  $("rsub").textContent = sub;
+  flash("", "");
+  render();
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+}
+
+function hint() {
+  if (busy || !game || isOver(game) || game.turn !== YOU) return;
+  const m = hintMove(game);
+  hintsUsed++;
+  sound("hint");
+  render();
+  const b = game.board, n = game.n;
+  let msg;
+  if (winningMoves(b, game.caps, YOU, game.rules, n).includes(m)) msg = "You can win right now";
+  else if (winningMoves(b, game.caps, OWL, game.rules, n).length) msg = "Quick — the owl is about to win! Block it";
+  else if (game.rules === "capture" && capturesAt(b, m, YOU, n).length) msg = "Take the owl's stones";
+  else msg = "Try this";
+  $("c" + m).classList.add("hinted");
+  flash("💡 " + msg + ": " + cellName(m, n).toLowerCase() + ".", "hint");
+}
+
+function goHome() {
+  clearTimeout(owlTimer); owlTimer = null; busy = false;
+  stopConfetti(); closeLevelMenu();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+}
+
+function pickLevel(l) { closeLevelMenu(); setLevel(l); startGame(); }
+
+/* ---- rules sheet ---------------------------------------------------------------------- */
+/* a little board for the diagrams: rows top-first, "y" yours, "o" the owl's, "." empty,
+   capitals ring the stones being talked about */
+function miniHTML(rows) {
+  const cols = rows[0].length;
+  return '<span class="gmini" style="grid-template-columns:repeat(' + cols + ',15px)">' +
+    rows.join("").split("").map(ch => {
+      const k = ch.toLowerCase(), cls = (k === "y" ? "y" : k === "o" ? "o" : "") + (ch !== k ? " w" : "");
+      return '<i class="' + cls.trim() + '"></i>';
+    }).join("") + "</span>";
+}
+wireRulesSheet(function () {
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>Gomoku means <b>five stones</b>. Get <b>five of yours in a row</b> before the owl does — '
+    + '<b>across</b>, <b>up and down</b>, or on a <b>slant</b>. Six in a row counts too. '
+    + 'Your stones are red; the owl\'s are yellow.</p>'
+    + '<div class="rrow">' + miniHTML(["......", "..o...", "YYYYY.", "...o.."])
+    + miniHTML(["...oY", "...Y.", "..Y.o", ".Y...", "Y...."]) + '</div>'
+    + '<span class="cap">Across, up and down, or on a slant — all of them count.</span></div>'
+
+    + '<div class="rule"><h3>⚫ Putting a stone down</h3>'
+    + '<p>Tap <b>any empty spot</b> on the board — there is no falling and no sliding, and a stone '
+    + '<b>stays where you put it</b> for the rest of the game. You always go first, then you and the '
+    + 'owl take turns, one stone each.</p>'
+    + '<div class="rrow">' + miniHTML(["....", ".yo.", "...."]) + '<span class="rarrow">➡️</span>'
+    + miniHTML(["....", "Yyo.", "...."]) + '</div>'
+    + '<span class="cap">Any empty spot will do — this one gives you two in a row.</span></div>'
+
+    + '<div class="rule"><h3>🪄 The winning trick</h3>'
+    + '<p>A row of <b>three with a gap at both ends</b> is the move to watch. If the owl only blocks '
+    + 'one end you make <b>four</b>, and then there are <b>two</b> spots that win — the owl can only '
+    + 'block one of them!</p>'
+    + '<div class="rrow">' + miniHTML([".yyy.."]) + '<span class="rarrow">➡️</span>' + miniHTML(["oYYYY."]) + '</div>'
+    + '<span class="cap">Blocked on the left, but the spot on the right still wins.</span>'
+    + '<p>So watch the owl\'s threes too, and <b>block them early</b>.</p></div>'
+
+    + '<div class="rule"><h3>🦉 The owl at each level</h3>'
+    + '<p>🌱 <b>Easy</b> — a small 9×9 board and a sleepy owl that sometimes misses a win or forgets to block.</p>'
+    + '<p>⭐ <b>Medium</b> — an 11×11 board and a sharp owl: it takes a win when it sees one and blocks your four.</p>'
+    + '<p>🔥 <b>Hard</b> — a full 13×13 board and a clever owl that thinks several moves ahead.</p>'
+    + '<p>🏆 <b>Expert</b> — the cleverest owl, playing with <b>captures</b> (below).</p></div>'
+
+    + '<div class="rule"><h3>✋ Captures (Expert)</h3>'
+    + '<p>If you trap <b>exactly two</b> of the owl\'s stones in a line <b>between two of yours</b>, '
+    + 'those two are <b>taken off the board</b>. Take <b>five pairs</b> and you win, just like making five in a row.</p>'
+    + '<div class="rrow">' + miniHTML(["yoo."]) + '<span class="rarrow">➡️</span>' + miniHTML(["y..Y"]) + '</div>'
+    + '<span class="cap">Closing the sandwich takes both of the owl\'s stones.</span>'
+    + '<p>Only <b>two</b> are ever taken — a line of <b>three</b> is safe. And it is the '
+    + '<b>closing</b> stone that captures, so moving <i>into</i> a gap between two owl stones is safe.</p></div>'
+
+    + '<div class="rule"><h3>🤝 Ties and ⭐ stars</h3>'
+    + '<p>If every spot fills up and nobody made five, it\'s a tie. Win with no hints for <b>★★★</b>. '
+    + 'Each 💡 Hint you use costs one star (a win always earns at least one). A tie earns <b>★</b>.</p></div>';
+});
+
+/* ---- wiring --------------------------------------------------------------------------- */
+buildLevelMenu(LEVELS, pickLevel);
+wireLevelMenu();
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = startGame;
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = startGame;
+$("next-btn").onclick = startGame;
+$("hint-link").onclick = hint;
+
+/* arrow keys walk the board from the spot you are on; Enter and Space place a stone, which
+   is what a <button> does by itself */
+const STEP = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+document.addEventListener("keydown", e => {
+  if (rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if (e.key === "Escape") { closeLevelMenu(); return; }
+  if ($("screen-game").classList.contains("hide") || !game) return;
+  const cur = document.activeElement, step = STEP[e.key];
+  if (!step || !cur || !cur.classList.contains("cell")) return;
+  e.preventDefault();
+  const n = game.n, i = +cur.dataset.i;
+  const r = ((i / n) | 0) + step[0], c = (i % n) + step[1];
+  if (inBoard(r, c, n)) $("c" + (r * n + c)).focus();
+});
+
+initBouncyTitle("Gomoku");
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

@@ -203,7 +203,9 @@ The card, its link, and the search filter appear automatically.
   keeps its 10 letter hearts + 3 word stars — these decide whether the round is won or
   lost, they are not a score or a streak. Likewise `dino-dig` keeps **three egg hearts at
   EXPERT only** (🥚🥚🥚, cracking as eggs are woken): they decide whether the dig ends, they
-  are not a score or a streak, and at every other level a woken egg only costs stars.
+  are not a score or a streak, and at every other level a woken egg only costs stars. And
+  `gomoku` keeps **five capture pips per side at EXPERT only** — the pairs each side has taken:
+  a fifth pair ends the game, so they are a win condition like word-guess's hearts, not a score.
 - **Feel:** juicy and encouraging — meters, star ratings, confetti canvas, gentle
   WebAudio beeps.
 - **Accessibility:** respect `prefers-reduced-motion` (guard all animation/sound),
@@ -236,13 +238,13 @@ don't redefine these classes in a game's own `<style>`.
   puzzle has genuine dead ends and Reset alone is too punishing an escape), `coin-counter`,
   `number-builder` and `robot-instructions`. `lights-out` shows `↩️ Undo` **instead of**
   Reset. `tic-tac-toe` has **no Hint** (it's a game against the owl, not a puzzle) and
-  nothing to reset, so its row is just `📖 Rules`. `connect-four` and `checkers` are also games against
+  nothing to reset, so its row is just `📖 Rules`. `connect-four`, `checkers` and `gomoku` are also games against
   the owl with nothing to reset, but keep a Hint, so their row is `💡 Hint`, `📖 Rules`.
   (Rules-sheet games carry `📖 Rules` at the end of the row.)
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
   action** (the move itself is the check — e.g. `lights-out`, `spot-the-words`, `juice-jumble`,
-  the pure multiple-choice games, `tic-tac-toe`'s, `connect-four`'s and `checkers`' `Play again ▶`; also `balance-scales` at
+  the pure multiple-choice games, `tic-tac-toe`'s, `connect-four`'s, `checkers`' and `gomoku`'s `Play again ▶`; also `balance-scales` at
   EASY/MEDIUM and `tally-chart`'s last phase, see below) keeps that slot
   occupied during play with `Next ▶` carrying `.invisible`, and just removes `.invisible` on
   the win, so the slot never reflows. Exception: `dino-dig` has no submit action either, but
@@ -298,7 +300,7 @@ don't redefine these classes in a game's own `<style>`.
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`,
-  `circuit-builder`, `connect-four`, `checkers`.
+  `circuit-builder`, `connect-four`, `checkers`, `gomoku`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Shared JS helpers (`assets/site.js`)
@@ -479,7 +481,7 @@ word-guess · guess-the-capital · math-monsters · shape-sorter · color-match 
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
-balance-scales · tic-tac-toe · circuit-builder · connect-four · checkers
+balance-scales · tic-tac-toe · circuit-builder · connect-four · checkers · gomoku
 
 `word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word`,
 `what-am-i` and `circuit-builder` are the **data-driven** games: each loads its data from JSON in its own folder
@@ -565,6 +567,29 @@ referee over ~14,000 positions per rule set, proves alpha-beta equal to plain mi
 node budget to its cap and ranks the owls by how much each gives away — **run it after touching
 the move generator, the search or the level table.** `_tests/games/checkers/play.test.js` drives
 the real page, rebuilding the board from its own aria-labels, and wins a game through the DOM.
+
+`gomoku` is five in a row against the owl, on Connect Four's board without the gravity: you
+always go first and put a stone on any empty spot. It is **freestyle** gomoku — five **or more**
+in a row wins, so an overline of six counts, which is the rule a child expects. The board grows
+with the level (EASY 9×9, MEDIUM 11×11, HARD and EXPERT 13×13) and so does the owl: EASY is
+sleepy (it takes a win it can see 70% of the time and blocks 55%), MEDIUM looks two plies ahead
+and sometimes just plays the careful move, HARD searches four plies. EXPERT changes the **rules**
+to **captures** (the Ninuki-renju / Pente rule): a stone that traps **exactly two** of the
+opponent's stones between two of yours takes them off the board, and **five captured pairs wins**
+just like five in a row — three in a row are safe, and moving *into* a gap between two enemy
+stones is safe, because it is the closing stone that captures. That also makes the game finite:
+a side that takes five pairs has won, so at most eight pairs ever come off and the board still
+fills (a full board is the only draw). The owl searches a **trimmed** list — the best `cand`
+spots within one step of a stone — because a 13×13 board has far too many empty spots to search
+wide; its thinking is capped by a node budget, not a clock, so it costs the same on every
+machine. Hint is the careful move (win, else block, else never hand over a win). Stars: a win
+earns ★★★ minus one per hint (at least ★), a tie ★, a loss none.
+`_tests/games/gomoku/engine.test.js` checks the rules against an independent oracle, proves
+`winningMoves` never misses a win that a full-board sweep finds (the owl only looks next to a
+stone), proves alpha-beta equal to plain minimax over the same candidates, holds the node budget
+to its cap and ranks the owls by how much each gives away — **run it after touching the search,
+the evaluation or the level table.** `_tests/games/gomoku/play.test.js` drives the real page and
+plays it into captures at EXPERT.
 
 `dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
 player can clear from there without ever guessing; the same solver powers its Hint.
