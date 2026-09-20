@@ -14,15 +14,22 @@ function fresh(reduced) {
 const marks = els => els.filter(c => c.textContent.trim()).length;
 const over = $ => !$("result-view").classList.contains("hide");
 
-/* play one whole game through the DOM, tapping random legal squares */
+/* play one whole game through the DOM, tapping random legal squares. Between your taps the
+   owl thinks (250ms, then a search), which shows up here as "no square is legal yet" — so the
+   loop polls for its reply instead of assuming a fixed delay. `guard` is only a runaway stop:
+   it has to outlast the owl on a busy machine, where a search can take far longer than usual. */
 async function playOut(w, $, cells, sel) {
-  for (let guard = 0; guard < 200 && !over($); guard++) {
+  for (let guard = 0; guard < 4000 && !over($); guard++) {
     const free = cells().filter(sel);
     if (!free.length) { await sleep(20); continue; }
     free[Math.floor(w.Math.random() * free.length)].click();
-    await sleep(25);
+    await sleep(5);
   }
   return over($);
+}
+/* the owl has finished its turn when a square is legal again (or the game has ended) */
+async function owlReply($, cells, sel) {
+  for (let i = 0; i < 1000 && !over($) && !cells().filter(sel).length; i++) await sleep(10);
 }
 const gridOk = c => !c.disabled;
 const ultOk = c => c.getAttribute("aria-disabled") === "false";
@@ -59,7 +66,7 @@ const ultOk = c => c.getAttribute("aria-disabled") === "false";
     if (lv === "MEDIUM") {
       ok(/owl goes first/i.test($("turnbar").textContent), "Medium: the strip says the owl goes first");
       ok(tiles().every(t => t.disabled), "Medium: you can't tap while the owl opens");
-      await sleep(250);
+      await owlReply($, tiles, gridOk);
       ok(marks(tiles()) === 1 && tiles().some(t => t.textContent === "◯"), "Medium: the owl has made the first move");
       ok(/don.t/i.test($("turnbar").textContent), "Medium: the strip reminds you NOT to make three");
     }
@@ -70,7 +77,7 @@ const ultOk = c => c.getAttribute("aria-disabled") === "false";
     let sawFade = false, sawLost = false, most = 0;
     const games = isUlt ? 2 : 8;
     for (let g = 0; g < games; g++) {
-      if (g) { $("next-btn").click(); await sleep(isUlt ? 30 : 200); }
+      if (g) { $("next-btn").click(); await owlReply($, isUlt ? ucells : tiles, isUlt ? ultOk : gridOk); }
       const poll = setInterval(() => {
         if (d.querySelector("#board .tile.fading")) sawFade = true;
         for (const g of ["✕", "◯"]) most = Math.max(most, tiles().filter(t => t.textContent === g && !t.classList.contains("ghost")).length);
@@ -105,7 +112,7 @@ const ultOk = c => c.getAttribute("aria-disabled") === "false";
     let checked = 0;
     for (let g = 0; g < 12; g++) {
       if (g) { $("next-btn").click(); }
-      await sleep(200);
+      await owlReply($, tiles, gridOk);
       await playOut(w, $, tiles, gridOk);
       const line = tiles().filter(t => t.classList.contains("lost"));
       if (!line.length) continue;
@@ -125,7 +132,7 @@ const ultOk = c => c.getAttribute("aria-disabled") === "false";
     $("start-btn").click();
     ucells()[4 * 9 + 2].click();                   // centre board, top-right square
     ok(ucells()[4 * 9 + 2].textContent === "✕", "your mark appears");
-    for (let i = 0; i < 100 && !d.querySelector('.ucell[aria-disabled="false"]'); i++) await sleep(20);
+    for (let i = 0; i < 1000 && !d.querySelector('.ucell[aria-disabled="false"]'); i++) await sleep(20);
     const active = [...d.querySelectorAll(".ubrd")].map((b, i) => b.classList.contains("active") ? i : -1).filter(i => i >= 0);
     ok(active.length >= 1, "a board is playable after the owl moves");
     if (active.length === 1) {

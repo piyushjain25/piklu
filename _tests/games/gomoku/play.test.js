@@ -7,7 +7,16 @@ const { bootGame, sleep, loadEngine, mulberry32, tally } = require("../../lib/ha
 const E = loadEngine("gomoku");   /* the real engine, to drive the page into a capture */
 const { ok, report } = tally();
 
+/* A fixed wait for the owl is a race: it sleeps 250ms (550 with motion on) and only THEN
+   searches, so on a busy machine the reply can still be coming when the wait expires — and the
+   test then drives a board the owl has not answered yet. Wait for the page's own state instead
+   (the board is locked while the owl thinks), which is exact and usually quicker. The count is
+   only a runaway guard; the assertions after each call are what prove the owl really moved.
+   Where the point IS that no move lands — after Skip and Home — the wait stays a real sleep. */
 const OWL_WAIT = 400;                 /* reduced motion: the owl replies after 250ms */
+const owlReply = async g => {
+  for (let i = 0; i < 1000 && !g.over() && g.cells().every(c => c.disabled); i++) await sleep(10);
+};
 
 function boot(opts = {}) {
   const errors = [];
@@ -29,7 +38,7 @@ async function playOut(g) {
     const pick = g.d.querySelector(".cell.hinted") || g.d.querySelector(".cell.open:not(:disabled)");
     if (!pick) break;
     pick.click();
-    await sleep(OWL_WAIT);
+    await owlReply(g);
     turns++;
   }
   return { turns, hints };
@@ -81,7 +90,7 @@ async function playOut(g) {
     ok(/🟡 The owl is thinking/.test($("feedback").textContent), "the turn line says the owl is thinking");
     g.cells()[41].click();
     ok(g.count(1) === 1, "a tap while the owl thinks does nothing");
-    await sleep(OWL_WAIT);
+    await owlReply(g);
     ok(g.count(1) === 1 && g.count(2) === 1, "the owl puts down one stone in reply");
     ok(g.cells().some(c => !c.disabled), "your turn again after the owl");
     ok(/Your turn/.test($("feedback").textContent), "feedback says it's your turn");
@@ -110,7 +119,7 @@ async function playOut(g) {
     ok(lit.classList.contains("open"), "the hint always points at an empty spot");
     lit.click();
     ok(d.querySelectorAll(".cell.hinted").length === 0, "the glow clears once you move");
-    await sleep(OWL_WAIT);
+    await owlReply(g);
     g.w.close();
   }
 
@@ -132,7 +141,7 @@ async function playOut(g) {
     d.getElementById("c10").focus();
     d.activeElement.click();
     ok(g.stone(10) === 1, "Enter/Space on a spot puts your stone there (the button's own click)");
-    await sleep(OWL_WAIT);
+    await owlReply(g);
     ok(d.activeElement.id === "c10", "focus comes back to where the keyboard left it");
     $("rules-btn").click();
     const before = g.count(1);
@@ -168,7 +177,7 @@ async function playOut(g) {
     const { $, d } = g;
     g.start("EASY");
     g.cells()[40].click();
-    await sleep(OWL_WAIT);
+    await owlReply(g);
     $("q-level").click();
     ok(d.querySelectorAll(".level-opt").length === 4, "the level menu lists four levels");
     d.querySelector('.level-opt[data-diff="EXPERT"]').click();
@@ -217,7 +226,7 @@ async function playOut(g) {
            "a pip lights up for each pair you have taken (" + caps[1] / 2 + ")");
         ok(/You took/.test($("feedback").textContent), "the page says you took a pair: " + $("feedback").textContent);
       }
-      await sleep(750);
+      await owlReply(g);
       /* the owl captures under the same rule — count what it took from the board */
       const lost = mineBefore + 1 - g.count(1);
       if (lost > 0) {
@@ -276,7 +285,7 @@ async function playOut(g) {
     g.cells()[40].click();
     const stone = g.$("s40").firstChild;
     ok(stone && stone.classList.contains("place"), "your stone pops into its spot");
-    await sleep(900);
+    await owlReply(g);
     ok(g.count(2) === 1, "the owl replies with motion on too");
     ok(g.errors.length === 0, "no page errors with motion on: " + g.errors.join("; "));
     g.w.close();

@@ -34,13 +34,13 @@ function loadEngine(slug) {
 }
 
 /* Boot a game page in jsdom the way a browser would: site.js inlined (jsdom won't fetch the
-   relative <script src>), Google Fonts dropped, and the browser bits jsdom lacks stubbed in
-   BEFORE parse, because the page reads matchMedia and paints to canvas as it loads. */
+   relative <script src>) and the browser bits jsdom lacks stubbed in BEFORE parse, because the
+   page reads matchMedia and paints to canvas as it loads. Nothing strips the fonts: a page no
+   longer links them (site.css @imports them instead) and jsdom doesn't fetch stylesheets. */
 function bootGame(slug, opts = {}) {
   const { reducedMotion = false, seed = null, url = "http://localhost/games/" + slug + "/", onError, data = null } = opts;
   const html = gameHTML(slug)
-    .replace('<script src="../../assets/site.js"></script>', "<script>" + read("assets/site.js") + "</script>")
-    .replace(/<link[^>]*fonts\.googleapis[^>]*>/g, "");
+    .replace('<script src="../../assets/site.js"></script>', "<script>" + read("assets/site.js") + "</script>");
 
   const vc = new VirtualConsole();
   vc.on("jsdomError", e => { if (onError) onError(e); else console.log("  page error: " + e.message); });
@@ -88,12 +88,14 @@ function tally() {
   let fails = 0, checks = 0;
   /* Watchdog: the slowest suite takes about a minute, so one still running after five has
      stalled. Fail it by name instead of leaving run.sh waiting forever. unref() means the
-     watchdog alone never keeps a finished suite alive. */
+     watchdog alone never keeps a finished suite alive. run.sh raises WATCHDOG_MIN when it runs
+     suites in parallel — sharing the cores makes a suite slower, which is not a stall. */
   const suite = path.relative(ROOT, process.argv[1] || "suite");
+  const mins = Number(process.env.WATCHDOG_MIN) || 5;
   setTimeout(() => {
-    console.log("\n❌ " + suite + " — still running after 5 minutes; stalled after " + checks + " checks");
+    console.log("\n❌ " + suite + " — still running after " + mins + " minutes; stalled after " + checks + " checks");
     process.exit(1);
-  }, 5 * 60 * 1000).unref();
+  }, mins * 60 * 1000).unref();
   const ok = (cond, msg) => { checks++; if (!cond) { fails++; console.log("  ✗ " + msg); } };
   const report = name => {
     console.log(fails ? "\n❌ " + name + " — " + fails + " FAILURES in " + checks + " checks"

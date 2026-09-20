@@ -452,7 +452,14 @@ site. The site itself stays plain static files with no build step and no depende
 ./_tests/run.sh <slug>          # _tests/site/* PLUS _tests/games/<slug>/*
 STRESS=quick ./_tests/run.sh    # ~2% of the random samples (min 50), for a fast pass
 STRESS=deep  ./_tests/run.sh    # 5x the random samples, for a paranoid pre-release run
+JOBS=1 ./_tests/run.sh          # one suite at a time (the old serial run), e.g. to read the output live
 ```
+
+Suites are separate processes that only read the repo, so `run.sh` runs several at once —
+half the cores by default, `JOBS=n` to change it. Each suite's output is still printed as one
+block, so parallel suites never interleave. **`STRESS=quick` is not the speed dial you might
+expect**: it scales random-sample counts, and the slowest suites are jsdom play-throughs whose
+cost is the owl thinking, not sampling — quick mode leaves those untouched.
 
 - `./_tests/run.sh site` — after touching `games.js`, `assets/site.css` or `assets/site.js`.
   These are shared by every game, so a careless edit here breaks all of them at once; the
@@ -476,6 +483,14 @@ Adding a game is never purely additive — it always edits `games.js`, and often
 `assets/site.css` or `assets/site.js` when the game needs a new shared class or helper.
 Those shared edits are the ones that break *other* games, which is why `_tests/site/` runs
 on every invocation of `run.sh`, including the single-slug form.
+
+**A play-through waits for the page, never for the clock.** The owl replies after a 250ms
+pause (550 with motion on) and *then* searches, so `await sleep(400)` is a race that a busy
+machine loses — and a test that carries on against a board the owl hasn't answered yet goes
+off the rails rather than failing cleanly. Poll the page's own state instead ("some square is
+live again"), with a generous count as a runaway guard; the assertions that follow are what
+prove the owl moved. The exceptions are the waits whose *point* is that nothing happens — after
+Skip and Home, or a window the owl is only passing through — and those stay real sleeps.
 
 A generative test wraps its **random-sample** counts in the harness's `stress(n)` —
 `for (let i = 0; i < stress(2000); i++)` — so the `STRESS` dial can scale them. Only sample

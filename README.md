@@ -55,5 +55,5 @@ The site is arranged so the store slots in around the games without disturbing t
 
 ## Notes
 
-- Each game is fully self-contained (its own HTML/CSS/JS in one file); the only external calls are Google Fonts and a CDN for a couple of games. Nothing else is required to run them.
+- Each game is fully self-contained (its own HTML/CSS/JS in one file); the only external calls are Google Fonts — pulled in once by `assets/site.css`, not by each page — and a CDN for a couple of games. Nothing else is required to run them.
 - Players return from a game to the hub with the browser's Back button. If you'd like an on-screen "← All games" link inside each game, that can be added later.
