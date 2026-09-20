@@ -263,6 +263,98 @@ function wireRulesSheet(buildBody, gameName) {
   });
 }
 
+/* ---------- game board ----------
+   The board the board games share: a lavender frame with a hole for every square, a piece
+   standing in some of them, and a line drawn through a winning row. The chrome is built here
+   and styled in site.css's GAME BOARD section, so a game carries no copy of it — it calls
+   buildBoard() and then adds its own layer on top (column buttons, square buttons, the piece
+   you are holding):
+
+     const b = buildBoard("stage", { cols: 7, rows: 6, cell: boardCell(7) });
+     b.board.appendChild(myButtons);              // my own layer, painted over the board
+     $("s" + i).innerHTML = pieceHTML("you");     // a piece in square i
+
+   buildBoard fills the element with <div class="gb-slot" id="s{i}">, one per square, already
+   positioned, and hands back the layers a game needs. Square (row, col) is slot row*cols+col,
+   row 0 at the TOP; a game that counts its own squares the other way round (Connect Four
+   counts rows up from the bottom) passes its own index(row, col). */
+
+/* A cell size that keeps the whole board inside the card at any width: a share of the screen,
+   never below min or above max. gutter is the space around the board (card + body padding). */
+function boardCell(cols, o = {}) {
+  const { min = 19, max = 40, gutter = 96 } = o;
+  return "clamp(" + min + "px, calc((100vw - " + gutter + "px) / " + (cols + 0.3) + "), " + max + "px)";
+}
+
+/* Builds (or rebuilds — a game whose board changes size just calls it again) the board inside
+   `mount`, leaving anything else in there alone. Options: cols, rows (defaults to cols), cell
+   (a CSS length, usually boardCell(...)), head (room above the board for a held piece), hole
+   (hole radius), inset (how much smaller a piece is than its square), edge (the piece's bottom
+   edge), label (what a screen reader calls the board) and index(row, col). Returns { stage, rig, board, pieces, fx, line }. */
+function buildBoard(mount, o) {
+  const stage = typeof mount === "string" ? $(mount) : mount;
+  if (!stage) return null;
+  const cols = o.cols, rows = o.rows || o.cols, index = o.index || ((r, c) => r * cols + c);
+  stage.classList.add("gb-stage");
+  const vars = { "--cols": cols, "--rows": rows, "--cell": o.cell, "--head": o.head,
+                 "--hole": o.hole, "--piece-inset": o.inset, "--piece-edge": o.edge };
+  for (const k in vars) if (vars[k] != null) stage.style.setProperty(k, vars[k]);
+  const old = stage.querySelector(".gb-rig");
+  if (old) old.remove();
+  const rig = document.createElement("div");
+  rig.className = "gb-rig";
+  rig.innerHTML = '<div class="gb-board">'
+    + '<div class="gb-layer gb-back"></div><div class="gb-layer" id="gb-pieces"></div>'
+    + '<div class="gb-frame"></div><div class="gb-layer gb-lips"></div>'
+    + '<div class="gb-layer gb-fx" id="gb-fx"></div><div class="gb-rim"></div>'
+    + '<svg class="gb-line" id="gb-line" viewBox="0 0 ' + cols + " " + rows + '" preserveAspectRatio="none"></svg>'
+    + "</div>";
+  if (o.label) {
+    rig.firstChild.setAttribute("role", "group");
+    rig.firstChild.setAttribute("aria-label", o.label);
+  }
+  stage.prepend(rig);                       /* before whatever else the stage holds */
+  const pieces = rig.querySelector("#gb-pieces");
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) pieces.appendChild(boardSlot(index(r, c), r, c));
+  return { stage, rig, board: rig.firstChild, pieces, fx: rig.querySelector("#gb-fx"),
+           line: rig.querySelector("#gb-line") };
+}
+/* one square, parked at its place on the board. `id` is the game's own index for it; pass no
+   id for a loose slot (a piece on its way off the board, which the game drops into .gb-fx). */
+function boardSlot(id, row, col) {
+  const s = document.createElement("div");
+  s.className = "gb-slot";
+  if (id != null) { s.id = "s" + id; s.dataset.v = 0; }
+  s.style.left = "calc(var(--cell) * " + col + ")";
+  s.style.top = "calc(var(--cell) * " + row + ")";
+  return s;
+}
+/* one piece: pieceHTML("you") or pieceHTML("bird"), plus anything else it wears (a crown) */
+function pieceHTML(side, inner) {
+  return '<div class="piece ' + side + '">' + (inner || "") + "</div>";
+}
+
+/* Draws the line through a win. `runs` is a list of runs, each a list of square indexes in
+   order; xy(i) gives a square's centre in cell units. Already-drawn lines are left alone, so a
+   redraw never restarts the animation — clearWinLine() when the next round starts. */
+function drawWinLine(runs, xy) {
+  const svg = $("gb-line");
+  if (!svg || svg.childNodes.length) return;
+  let back = "", front = "", dots = "";
+  for (const run of runs) {
+    const [x1, y1] = xy(run[0]), [x2, y2] = xy(run[run.length - 1]);
+    const a = 'x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" pathLength="1"';
+    back += '<line class="wl-back" ' + a + "/>";
+    front += '<line class="wl-front" ' + a + "/>";
+    for (const i of run) { const [x, y] = xy(i); dots += '<circle cx="' + x + '" cy="' + y + '" r=".12"/>'; }
+  }
+  svg.innerHTML = back + front + dots;
+}
+function clearWinLine() {
+  const svg = $("gb-line");
+  if (svg) svg.innerHTML = "";
+}
+
 /* ---------- confetti canvas ----------
    throwConfetti(options) is every game's celebration — one particle loop, drawn on
    #confetti. With no options it is the small burst most games throw on a solve; a game

@@ -9,7 +9,7 @@ const { ok, report } = tally();
 
 const md = read("_ref/snippets.md");
 const STALE = " — _ref/snippets.md is stale: run `node _ref/build-snippets.js` (the real file is correct;"
-  + " for sections 9/10, or an anchor that moved, edit _ref/build-snippets.js first)";
+  + " for sections 10/11, or an anchor that moved, edit _ref/build-snippets.js first)";
 
 /* ---- 1. every sourced block matches its range, byte for byte ---- */
 const blocks = [...md.matchAll(/^Source: `([^`]+)` lines (\d+)-(\d+)\n```[a-z]*\n([\s\S]*?)\n```$/gm)];
@@ -27,7 +27,7 @@ for (const [, file, a, b, body] of blocks) {
     + JSON.stringify((exp[i] || "").slice(0, 70)) + ")" + STALE);
 }
 
-/* ---- 2. section 9 lists exactly the globals site.js defines ---- */
+/* ---- 2. section 10 lists exactly the globals site.js defines ---- */
 function section(n) {
   const at = md.indexOf("\n## " + n + ". ");
   const next = md.indexOf("\n## ", at + 4);
@@ -35,23 +35,23 @@ function section(n) {
   const m = body.match(/```text\n([\s\S]*?)\n```/);
   return m ? m[1] : "";
 }
-const listed = section(9).split("\n").map(l => l.trim().split(/[\s(]/)[0]).filter(Boolean);
+const listed = section(10).split("\n").map(l => l.trim().split(/[\s(]/)[0]).filter(Boolean);
 const siteJS = read("assets/site.js");
 const defined = new Set();
 for (const m of siteJS.matchAll(/^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/gm)) defined.add(m[1]);
 for (const m of siteJS.matchAll(/^(?:const|let|var)\s+([^;]*)/gm))       /* `let a = 1, b = 2` names both */
   for (const d of m[1].matchAll(/(?:^|,)\s*([A-Za-z_$][\w$]*)\s*=/g)) defined.add(d[1]);
-ok(listed.length > 20, "section 9 should list the site.js globals, found " + listed.length);
-for (const n of listed) ok(defined.has(n), "section 9 lists " + n + ", which assets/site.js no longer defines" + STALE);
-for (const n of defined) ok(listed.includes(n), "assets/site.js defines " + n + ", missing from section 9" + STALE);
+ok(listed.length > 20, "section 10 should list the site.js globals, found " + listed.length);
+for (const n of listed) ok(defined.has(n), "section 10 lists " + n + ", which assets/site.js no longer defines" + STALE);
+for (const n of defined) ok(listed.includes(n), "assets/site.js defines " + n + ", missing from section 10" + STALE);
 
-/* ---- 3. every class in section 10 is defined in site.css ---- */
+/* ---- 3. every class in section 11 is defined in site.css ---- */
 const css = read("assets/site.css").replace(/\/\*[\s\S]*?\*\//g, "");
 const cssClasses = new Set();
 for (const m of css.matchAll(/([^{}]+)\{/g))
   if (!m[1].trim().startsWith("@")) for (const c of m[1].matchAll(/\.([A-Za-z][\w-]*)/g)) cssClasses.add(c[1]);
-const classes = section(10).split("\n").flatMap(l => l.slice(l.indexOf(":") + 1).trim().split(/\s+/)).filter(Boolean);
-ok(classes.length > 50, "section 10 should list the shared classes, found " + classes.length);
-for (const c of classes) ok(cssClasses.has(c), "section 10 lists ." + c + ", which assets/site.css does not define" + STALE);
+const classes = section(11).split("\n").flatMap(l => l.slice(l.indexOf(":") + 1).trim().split(/\s+/)).filter(Boolean);
+ok(classes.length > 50, "section 11 should list the shared classes, found " + classes.length);
+for (const c of classes) ok(cssClasses.has(c), "section 11 lists ." + c + ", which assets/site.css does not define" + STALE);
 
 report("_ref/snippets.md matches the real files");

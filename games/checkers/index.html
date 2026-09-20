@@ -19,18 +19,19 @@
    same key-line rim. One board width drives every size, the crown included. */
 .board-wrap{display:flex; justify-content:center; margin:10px 0 14px;}
 .board{
-  --bw:min(88vw,384px); --sq-dark:#DFD4F6; --sq-light:#F6F2FF;
+  /* the squares and the rim are the shared board's colours (site.css's GAME BOARD section) */
+  --bw:min(88vw,384px); --sq-dark:var(--board-frame-lo); --sq-light:var(--board-back);
   /* rows are pinned to 1fr as well as columns: left implicit they size to their contents, and
      one crowned piece would make its row taller than the other seven */
   display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr);
   width:var(--bw); aspect-ratio:1;
   border-radius:18px; overflow:hidden;
-  box-shadow:0 0 0 3px var(--key-line), 0 7px 0 3px #D9D0EF;
+  box-shadow:var(--board-rim);
 }
 .sq{position:relative; min-width:0; min-height:0;
   display:flex; align-items:center; justify-content:center; border:none; padding:0; margin:0;}
 .sq.light{background:var(--sq-light);}
-.sq.dark{background:var(--sq-dark); box-shadow:inset 0 0 0 1px #D3C6F0;}
+.sq.dark{background:var(--sq-dark); box-shadow:inset 0 0 0 1px var(--board-line);}
 .sq.dark:disabled{cursor:default;}
 .sq.dark:not(:disabled){cursor:pointer;}
 /* a ring on every piece the player may currently move — an affordance, not a correctness tell */
@@ -42,14 +43,9 @@
 .sq.dark:focus-visible{outline:3px solid var(--grape); outline-offset:-3px;}
 .dot{width:28%; height:28%; border-radius:50%; background:rgba(108,74,182,.38);}
 
-/* ---- pieces: the site's flat colours with a darker bottom edge, like its buttons — yours
-   coral, the owl's sun (.bird: .owl is the mascot's class) --------------------------------- */
-.piece{position:relative; flex:0 0 auto; width:78%; height:78%; border-radius:50%;}
-.piece::before{content:""; position:absolute; inset:23%; border-radius:50%;}
-.piece.you{background:var(--coral); box-shadow:inset 0 -4px 0 var(--coral-dark), inset 0 3px 0 rgba(255,255,255,.3);}
-.piece.you::before{box-shadow:inset 0 2px 0 rgba(120,0,30,.18), 0 1px 0 rgba(255,255,255,.35);}
-.piece.bird{background:var(--sun); box-shadow:inset 0 -4px 0 var(--sun-dark), inset 0 3px 0 rgba(255,255,255,.4);}
-.piece.bird::before{box-shadow:inset 0 2px 0 rgba(140,90,0,.18), 0 1px 0 rgba(255,255,255,.45);}
+/* ---- pieces: site.css draws the coin itself (the shared .piece — yours coral, the owl's
+   sun); all this board decides is how big it is in its square, and the crown ------------- */
+.piece{flex:0 0 auto; width:78%; height:78%;}
 /* a crowned piece wears the crown instead of the inner ring */
 .piece.king::before{display:none;}
 /* the crown is taken out of the flow, so crowning a piece can never resize the piece or its

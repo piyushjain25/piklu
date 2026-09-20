@@ -299,7 +299,65 @@ if(typeof module !== "undefined") module.exports = { LEVELS, HINT_MAX, DELTAS, f
 if(typeof document !== "undefined"){
 ```
 
-## 9. `site.js` globals
+## 9. Board games: the shared board
+
+A board game does **not** write the board. `buildBoard()` puts the shared one (site.css's
+GAME BOARD section) inside an empty `<div id="stage">`, and the game adds only its own layer of
+tap targets over it. Squares are `<div class="gb-slot" id="s{i}">`, so a game reaches one with
+`$("s" + i)`; a piece inside one is `pieceHTML("you" | "bird")`. Gomoku's whole board, markup
+and all:
+
+Source: `games/gomoku/index.html` lines 99-100
+```html
+      <div id="stage">
+        <!-- buildBoard() puts the shared board here; the spots to tap go on top of it -->
+```
+
+Source: `games/gomoku/index.html` lines 505-522
+```js
+function setupBoard() {
+  const n = game.n;
+  const b = buildBoard("stage", { cols: n, cell: boardCell(n), edge: "3px" });
+  const cells = document.createElement("div");
+  cells.className = "gb-layer cells";
+  cells.id = "cells";
+  cells.setAttribute("role", "group");
+  cells.setAttribute("aria-label", "Gomoku board");
+  /* both tracks, or the implicit rows would size to the buttons' (empty) contents */
+  cells.style.gridTemplateColumns = cells.style.gridTemplateRows = "repeat(" + n + ", 1fr)";
+  for (let i = 0; i < n * n; i++) {
+    const t = document.createElement("button");
+    t.className = "cell"; t.id = "c" + i; t.dataset.i = i;
+    t.onclick = () => humanMove(i);
+    cells.appendChild(t);
+  }
+  b.board.appendChild(cells);
+}
+```
+
+Connect Four's board is the same one with different knobs — room above it for the disc you are
+holding, holes smaller than the discs (so a falling disc is clipped by the frame and looks like
+it is behind it), and its own row numbering, because row 0 is the bottom of that board:
+
+Source: `games/connect-four/index.html` lines 431-435
+```js
+  const b = buildBoard("stage", {
+    cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58, gutter: 110 }),
+    head: "calc(var(--cell) + 4px)", hole: "calc(var(--cell) * .34)", inset: "7%",
+    label: "Connect Four board", index: (r, c) => at(ROWS - 1 - r, c),
+  });
+```
+
+The line through a winning row is drawn by `drawWinLine(runs, xy)` — a list of runs of square
+indexes, and where a square's centre sits in cell units — and cleared by `clearWinLine()`:
+
+Source: `games/gomoku/index.html` lines 539-540
+```js
+  if (game.winner && game.line.length) drawWinLine(runsOf(b, game.winner, n), i => [(i % n) + .5, ((i / n) | 0) + .5]);
+  else clearWinLine();
+```
+
+## 10. `site.js` globals
 
 Every top-level name `assets/site.js` defines. A game calls these directly and must **never
 redeclare any of them** (that throws a `SyntaxError` at load) — including the internal ones.
@@ -338,9 +396,15 @@ CONFETTI_COLORS                         the default confetti palette
 throwConfetti(options)                  the celebration; call as if(!reduceMotion) throwConfetti(...)
 stopConfetti()                          clear and hide #confetti; call when leaving a round
 initBouncyTitle(word)                   build the animated per-letter #title
+boardCell(cols, o)                      a cell size that keeps a board of cols columns inside the card
+buildBoard(mount, o)                    build the shared board into mount; returns { stage, rig, board, pieces, fx, line }
+boardSlot(id, row, col)                 one square, parked at its place (id null for a loose one, e.g. a piece leaving)
+pieceHTML(side, inner)                  one piece: side is 'you' | 'bird'
+drawWinLine(runs, xy)                   draw the line through a win; xy(i) is a square's centre in cell units
+clearWinLine()                          wipe it, for the next round
 ```
 
-## 10. Shared CSS classes
+## 11. Shared CSS classes
 
 Every class `assets/site.css` defines for game pages. If a name is here, it already exists — use
 it, don't redeclare it in a game's `<style>`. Names only; the rules are in `site.css`.
@@ -357,4 +421,7 @@ controls:    tlink off actions serve-row invisible stats-row
 tiles:       tilegrid tile wrong-flash hintglow
 result:      result rlabel stars rsub feedback good bad hint
 rules sheet: sheet-ov show sheet sheet-top sheet-x sheet-body sheet-foot rule cap rrow rarrow rsolo o fade
+board:       piece you bird gb-stage gb-rig gb-board gb-layer gb-slot gb-back gb-frame gb-lips gb-rim gb-fx
+board line:  gb-line wl-back wl-front
+board state: last win place drop slide gone
 ```

@@ -63,9 +63,9 @@ async function playOut(g) {
     const { $, d } = g;
     g.start("EASY");
     ok($("screen-home").classList.contains("hide") && !$("screen-game").classList.contains("hide"), "Start shows the game");
-    ok(g.cells().length === 81 && d.querySelectorAll(".slot").length === 81, "EASY builds a 9×9 board");
-    ok($("stage").style.getPropertyValue("--n") === "9", "the board's size is handed to the CSS");
-    ok($("winline").getAttribute("viewBox") === "0 0 9 9", "the win-line layer matches the board");
+    ok(g.cells().length === 81 && d.querySelectorAll("#gb-pieces .gb-slot").length === 81, "EASY builds a 9×9 board");
+    ok($("stage").style.getPropertyValue("--cols") === "9", "the board's size is handed to the CSS");
+    ok($("gb-line").getAttribute("viewBox") === "0 0 9 9", "the win-line layer matches the board");
     ok($("caps-wrap").classList.contains("hide"), "no capture counters outside EXPERT");
     ok(!$("skip-btn").classList.contains("invisible") && $("next-btn").classList.contains("invisible"),
        "Skip visible, Play again holding its slot invisibly");
@@ -174,7 +174,7 @@ async function playOut(g) {
     d.querySelector('.level-opt[data-diff="EXPERT"]').click();
     ok($("q-level-label").textContent === "🏆 Expert" && !$("screen-game").classList.contains("hide"),
        "picking Expert switches level and stays in the game");
-    ok(g.cells().length === 169 && $("stage").style.getPropertyValue("--n") === "13",
+    ok(g.cells().length === 169 && $("stage").style.getPropertyValue("--cols") === "13",
        "the board is rebuilt at the new size");
     ok(g.count(1) === 0 && g.count(2) === 0, "the new level starts on an empty board");
     ok(!$("caps-wrap").classList.contains("hide") && d.querySelectorAll("#cap-you .pip").length === 5,
@@ -210,7 +210,7 @@ async function playOut(g) {
       if (most) {
         ok(g.count(2) === owlsBefore - most, "closing the sandwich takes the owl's stones off the board");
         /* the owl's own fly-outs may still be clearing, so count only its colour */
-        ok(d.querySelectorAll("#fx .stone.bird.gone").length === most, "the taken stones fly off on their own layer");
+        ok(d.querySelectorAll("#gb-fx .piece.bird.gone").length === most, "the taken stones fly off on their own layer");
         caps[1] += most;
         took++;
         ok(d.querySelectorAll("#cap-you .pip.on").length === caps[1] / 2,
@@ -254,16 +254,16 @@ async function playOut(g) {
     else if (/The owl/.test(label)) { kind = "loss"; ok(filled === 0, level + ": a loss earns no stars"); }
     else { kind = "tie"; ok(/tie/.test(label) && filled === 1, level + ": a tie earns one star"); }
     if (kind !== "tie" && /in a row/.test(label)) {
-      ok(g.d.querySelectorAll(".slot.win").length >= 5, level + ": the winning five is lit");
-      ok(g.d.querySelectorAll("#winline line.wl-front").length >= 1, level + ": a line is drawn through the five");
-    } else ok(g.d.querySelectorAll("#winline line").length === 0, level + ": no line when nobody made five");
+      ok(g.d.querySelectorAll(".gb-slot.win").length >= 5, level + ": the winning five is lit");
+      ok(g.d.querySelectorAll("#gb-line line.wl-front").length >= 1, level + ": a line is drawn through the five");
+    } else ok(g.d.querySelectorAll("#gb-line line").length === 0, level + ": no line when nobody made five");
     outcomes[level] = kind;
     /* Play again starts fresh at the same level */
     $("next-btn").click();
     ok(g.count(1) === 0 && g.count(2) === 0 && $("next-btn").classList.contains("invisible")
        && !$("skip-btn").classList.contains("invisible") && $("result-view").classList.contains("hide"),
        level + ": Play again clears the board and the bottom slot");
-    ok(g.d.querySelectorAll("#winline line").length === 0, level + ": Play again clears the win line");
+    ok(g.d.querySelectorAll("#gb-line line").length === 0, level + ": Play again clears the win line");
     ok(g.errors.length === 0, level + ": no page errors in a whole game: " + g.errors.join("; "));
     g.w.close();
   }

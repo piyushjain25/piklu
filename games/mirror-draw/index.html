@@ -298,7 +298,7 @@ function sound(kind){
 }
 
 /* ---- rendering ---- */
-function buildBoard(){
+function buildGrid(){
   const size = P.size, g = $("grid");
   g.style.gridTemplateColumns = g.style.gridTemplateRows = "repeat(" + size + ",1fr)";
   g.innerHTML = "";
@@ -465,7 +465,7 @@ function newPuzzle(){
   P = genPuzzle(level, Math.random, P && P.level === level ? sigOf(P) : null);
   filled = new Set(); phase = "play"; hints = 0; fails = 0;
   focusIdx = [...Array(P.size * P.size).keys()].find(i => fillable(i));
-  buildBoard();
+  buildGrid();
   $("result-view").classList.add("hide");
   $("check-btn").classList.remove("hide");
   $("next-btn").classList.add("hide");

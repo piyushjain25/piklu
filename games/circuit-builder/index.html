@@ -732,7 +732,7 @@ function sound(kind){
 /* ---- drawing one part (shared by the bench and the rules diagrams) ---- */
 const EDGE = [[50,0],[100,50],[50,100],[0,50]], INSET = [[50,11],[89,50],[50,89],[11,50]];
 const isPlainWire = p => p.kind === "conductor" && (p.shape !== "straight" || p.id === "wire");
-function pieceHTML(p, joins, state){
+function partHTML(p, joins, state){
   let g;
   if(p.shape === "corner") g = '<path class="w" d="M50 0 V36 Q50 50 64 50 H100"/>';
   else if(p.shape === "tee") g = '<path class="w" d="M0 50 H100 M50 50 V100"/><circle class="jn" cx="50" cy="50" r="8"/>';
@@ -791,7 +791,7 @@ function paint(){
     const shown = p || (ghost ? held.p : null);
     const state = shown && shown.kind === "load" ? (p ? loadState(p, sim) : "off") : "";
     cell.className = "cell" + (p && p.locked ? " locked" : "") + (ghost ? " ghost" : "") + (state ? " " + state : "");
-    cell.innerHTML = shown ? pieceHTML(shown, p && !p.pulled ? conn.get(p.uid) : null, state) : "";
+    cell.innerHTML = shown ? partHTML(shown, p && !p.pulled ? conn.get(p.uid) : null, state) : "";
     cell.dataset.id = p ? p.id : ""; cell.dataset.rot = p ? p.rot : "";
     cell.title = shown ? shown.name : "";
     cell.tabIndex = cursor.zone === "grid" && cursor.r === r && cursor.c === c ? 0 : -1;
@@ -1054,7 +1054,7 @@ function mini(rows, cols, pieces){
   let h = '<div class="mini" style="--cols:' + cols + '" aria-hidden="true">';
   for(let r = 0; r < rows; r++) for(let c = 0; c < cols; c++){
     const p = pieces.find(q => q.r === r && q.c === c), st = p && p.kind === "load" ? loadState(p, sim) : "";
-    h += '<div class="cell' + (st ? " " + st : "") + '">' + (p ? pieceHTML(p, conn.get(p.uid), st) : "") + "</div>";
+    h += '<div class="cell' + (st ? " " + st : "") + '">' + (p ? partHTML(p, conn.get(p.uid), st) : "") + "</div>";
   }
   return h + "</div>";
 }

@@ -63,7 +63,7 @@ async function playOut(g) {
     const { $, d } = g;
     g.start("EASY");
     ok($("screen-home").classList.contains("hide") && !$("screen-game").classList.contains("hide"), "Start shows the game");
-    ok(g.cols().length === COLS && d.querySelectorAll(".slot").length === COLS * ROWS, "a 7×6 board");
+    ok(g.cols().length === COLS && d.querySelectorAll("#gb-pieces .gb-slot").length === COLS * ROWS, "a 7×6 board");
     ok($("pops-wrap").classList.contains("hide"), "no pop buttons outside EXPERT");
     ok(!$("skip-btn").classList.contains("invisible") && $("next-btn").classList.contains("invisible"),
        "Skip visible, Play again holding its slot invisibly");
@@ -201,16 +201,16 @@ async function playOut(g) {
     else if (/owl got/.test(label)) { kind = "loss"; ok(filled === 0, level + ": a loss earns no stars"); }
     else { kind = "tie"; ok(/tie/.test(label) && filled === 1, level + ": a tie earns one star"); }
     if (kind !== "tie") {
-      ok(g.d.querySelectorAll(".slot.win").length >= 4, level + ": the winning four is lit");
-      ok(g.d.querySelectorAll("#winline line.wl-front").length >= 1, level + ": a line is drawn through the four");
-    } else ok(g.d.querySelectorAll("#winline line").length === 0, level + ": no line on a tie");
+      ok(g.d.querySelectorAll(".gb-slot.win").length >= 4, level + ": the winning four is lit");
+      ok(g.d.querySelectorAll("#gb-line line.wl-front").length >= 1, level + ": a line is drawn through the four");
+    } else ok(g.d.querySelectorAll("#gb-line line").length === 0, level + ": no line on a tie");
     outcomes[level] = (outcomes[level] || "") + kind[0];
     /* Play again starts fresh at the same level */
     $("next-btn").click();
     ok(g.count(1) === 0 && g.count(2) === 0 && $("next-btn").classList.contains("invisible")
        && !$("skip-btn").classList.contains("invisible") && $("result-view").classList.contains("hide"),
        level + ": Play again resets the board and the bottom slot");
-    ok(g.d.querySelectorAll("#winline line").length === 0, level + ": Play again clears the win line");
+    ok(g.d.querySelectorAll("#gb-line line").length === 0, level + ": Play again clears the win line");
     ok(g.errors.length === 0, level + ": no page errors in a whole game: " + g.errors.join("; "));
     g.w.close();
   }
@@ -225,7 +225,7 @@ async function playOut(g) {
     ok(disc && disc.classList.contains("drop") && disc.style.getPropertyValue("--fall") === "6", "a dropped disc animates from the top");
     ok(g.$("hand-disc").classList.contains("show") === false, "your hand empties as the disc drops");
     await sleep(800);
-    ok(g.count(2) === 0 && g.$("hand-disc").classList.contains("show") && !!g.$("hand-disc").querySelector(".disc.bird"),
+    ok(g.count(2) === 0 && g.$("hand-disc").classList.contains("show") && !!g.$("hand-disc").querySelector(".piece.bird"),
        "the owl holds its disc over a column before dropping it");
     await sleep(700);
     ok(g.count(2) === 1, "the owl replies with motion on too");

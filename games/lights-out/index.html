@@ -333,7 +333,7 @@ function drawShapeGlyph(){
   for(let i = 0; i < 9; i++) h += '<i class="' + (i === 4 ? "c" : on.indexOf(i) >= 0 ? "f" : "") + '"></i>';
   $("shape-glyph").innerHTML = h;
 }
-function buildBoard(){
+function buildGrid(){
   const size = cfg().size, b = $("board");
   b.style.gridTemplateColumns = "repeat(" + size + ",1fr)";
   b.innerHTML = "";
@@ -470,7 +470,7 @@ function newRound(){
   /* pass the outgoing board so Skip and Next can never hand back the same puzzle */
   board = genBoard(level, Math.random, board.length === cfg().size * cfg().size ? board : null);
   minClicks = solveMin(board, cfg().size);
-  buildBoard();
+  buildGrid();
   drawShapeGlyph();
   clearPreview();
   setOwl("think");

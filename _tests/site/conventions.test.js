@@ -18,7 +18,12 @@ ok(SHARED.length > 10, "should have found site.js's shared globals, got " + SHAR
    (CLAUDE.md allows one-off overrides like .app{max-width}), but re-declaring the LAYOUT is how
    the control scheme silently forks — so only structural properties are flagged. */
 const SHARED_CSS = [".topbar", ".tlink", ".actions", ".serve-row", ".invisible", ".level-switch",
-                    ".sheet-ov", ".sheet", ".sheet-body", ".rule", ".rrow", ".rarrow", ".rsolo"];
+                    ".sheet-ov", ".sheet", ".sheet-body", ".rule", ".rrow", ".rarrow", ".rsolo",
+                    /* the shared board: buildBoard() writes this markup, site.css lays it out.
+                       .piece is NOT here — a game decides how big its piece is, but never how
+                       it looks (checked separately below). */
+                    ".gb-stage", ".gb-rig", ".gb-board", ".gb-layer", ".gb-slot", ".gb-back",
+                    ".gb-frame", ".gb-lips", ".gb-rim", ".gb-fx", ".gb-line"];
 const STRUCTURAL = /(^|[;{\s])(display|position|flex|flex-direction|justify-content|align-items|grid-template|z-index)\s*:/;
 
 /* The only hosts a game may reach (CLAUDE.md rule 4). www.w3.org is the SVG xmlns namespace
@@ -82,6 +87,12 @@ for (const g of loadCatalog()) {
   ok(!/id="rules-ov"/.test(html), at + "carries the rules-sheet markup — wireRulesSheet() builds it");
   ok(!/@keyframes\s+\w+\{0%,100%\{transform:translateX\(0\)\}25%\{transform:translateX\(-7px\)\}75%\{transform:translateX\(7px\)\}\}/.test(style),
      at + "re-declares the ±7px wrong-answer shake — use site.css's wrongShake");
+  /* the board games' shared board: its chrome is buildBoard() + site.css's GAME BOARD section.
+     A game sizes its piece in its own square, but never re-colours it. */
+  ok(!/\.piece\.(you|bird)\s*[,{:]/.test(style),
+     at + "re-colours the shared .piece — site.css owns how a piece looks");
+  ok(!/mask:\s*radial-gradient/.test(style),
+     at + "looks like a copy of the board frame — call buildBoard() instead of rebuilding it");
 
   /* --- kid-safe: no trackers, no storage, no stray hosts --- */
   for (const m of html.matchAll(/https?:\/\/([^/"'\s)]+)/g))

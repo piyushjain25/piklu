@@ -69,11 +69,13 @@ online toy store later. Read the rules below before changing anything.
 /                       root — redirects to /games/ (future store home)
 /games.js               THE CATALOG — single source of truth for the game list
 /assets/site.css        shared styles — hub layout AND the shared game-page design
-                        system (colours, owl moods, buttons, topbar/tlink/level-switch, etc.)
+                        system (colours, owl moods, buttons, topbar/tlink/level-switch, the
+                        board games' board and piece, etc.)
 /assets/site.js         shared JS helpers every game links before its own inline script
                         (the owl drawing itself — MASCOT_SVG/drawMascots — and
                         $, reduceMotion, flash, setOwl, level-menu, beep, confetti, title,
-                        loadGameData for JSON data files, wireRulesSheet, speak/stopSpeech)
+                        loadGameData for JSON data files, wireRulesSheet, speak/stopSpeech,
+                        buildBoard + pieceHTML for the board games)
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
@@ -119,7 +121,8 @@ Two steps — never edit the hub's HTML or CSS to add a game:
    directly, unqualified. Never redeclare any of those names in the game's own script.
    Only put a rule in the game's own `<style>` if it's genuinely unique to that
    game (colors, a `.app{max-width}` / `.title{font-size}` override, one-off components);
-   never re-declare something `site.css` already defines. If the game has a content list
+   never re-declare something `site.css` already defines. A game played on a grid of holes
+   calls `buildBoard()` for the board and adds only its own layer on top — see "The board". If the game has a content list
    — apply rule 4's test: *would adding a new entry ever need a code change?* — put it as
    JSON in the **same folder** and load it with `loadGameData()` (see rules 3–4 — such a
    game must be viewed on the hosted site or a local server, not via `file://`).
@@ -169,7 +172,8 @@ The card, its link, and the search filter appear automatically.
   A game may put its **own extras** inside a placeholder (sentence-doctor's stethoscope,
   drawn on top of the owl); an extra marked `data-under` (word-guess's shadow) is drawn
   beneath it.
-  All of this — colours as CSS vars, the owl mood CSS, `.btn`/`.card`/`.chip`/`.diff`
+  All of this — colours as CSS vars, the owl mood CSS, `.btn`/`.card`/`.chip`/`.diff`, the
+  board games' board and piece
   etc. — is defined once in `assets/site.css` (and the owl drawing in `assets/site.js`)
   and shared by every game via `<link>`/`<script>`; a game only adds its own extra CSS
   vars (theme colors like `--paper`) and components. That includes the standard
@@ -303,6 +307,41 @@ don't redefine these classes in a game's own `<style>`.
   `circuit-builder`, `connect-four`, `checkers`, `gomoku`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
+## The board (`.gb-*` + `.piece`) — every board game shares one
+
+A game that plays on a grid of round holes — Connect Four, Gomoku, whatever comes next —
+**never writes the board**. `buildBoard()` (see below) puts the shared one inside an empty
+`<div id="stage">`, and the game adds only its own layer over it: Connect Four's column
+buttons and the disc you hold, Gomoku's one tap target per spot. The look lives once in
+`assets/site.css`'s **GAME BOARD** section, so changing a board there changes every board game
+at once, and `_tests/site/conventions.test.js` fails a game that re-lays-out a `.gb-*` class or
+rebuilds the frame itself.
+
+- **The chrome.** Back to front: the back panel, the pieces, the frame (one lavender sheet with
+  a hole cut for every square by a mask, so a falling piece slides *behind* it), the holes'
+  lips, the leaving-piece layer (`.gb-fx`), the rim, the win line (`.gb-line`), then the game's
+  own layer. `buildBoard` sets `--cols`, `--rows` and `--cell` on the `.gb-stage`; every size is
+  worked out from those.
+- **Squares** are `<div class="gb-slot" id="s{i}">`, already positioned — a game reaches one
+  with `$("s" + i)` and marks it `.last` (the white "just played" dot) or `.win` (the pulse).
+  `i` is the game's **own** index: a board whose rows run the other way (Connect Four counts
+  rows up from the bottom) passes its own `index(row, col)`.
+- **The piece** is `.piece.you` (coral, yours) or `.piece.bird` (sun, the owl's) — written by
+  `pieceHTML()`, and shared by **every** board game, including ones with no holes at all
+  (`checkers` sizes it inside its own chequered square). A game may decide **how big** its
+  piece is; it must never re-colour it. Its states are shared too: `.place` (popped onto an
+  empty square), `.drop` (fell down a column, `--fall` cells), `.slide` (dropped after a pop)
+  and `.gone` (taken off the board).
+- **Tuning knobs**, all passed to `buildBoard` so a board's numbers sit in one call, never
+  scattered through a game's CSS: `hole` (hole radius), `inset` (how much smaller a piece is
+  than its square — the default sits a piece *inside* its hole; Connect Four passes a bigger
+  piece on purpose, so the frame clips it), `edge` (the piece's darker bottom edge), `head`
+  (room above the board for a held piece) and `label`.
+- **The board palette** is four CSS vars on `:root` — `--board-frame`, `--board-frame-lo`,
+  `--board-back`, `--board-line` — plus `--board-rim`, the key-line rim every board sits in.
+  `checkers`' chequered board is not a `.gb-*` board but is coloured from the same vars, so the
+  whole site's boards still change together.
+
 ## Shared JS helpers (`assets/site.js`)
 
 `assets/site.js` holds the JS that was byte-identical (or safely parameterized) across
@@ -371,6 +410,20 @@ globals the game calls directly:
   (`.sheet-ov`, `.sheet`, `.rule`, `.rrow`, `.rarrow`, `.rsolo`) is in `site.css` — never
   copy it into a game; a game adds only diagram CSS unique to itself.
   `rulesSheetOpen()` / `closeRulesSheet()` / `openRulesSheet(opener)` are available too.
+- `boardCell(cols, {min, max, gutter})` — a `clamp()` cell size that keeps a board of `cols`
+  columns inside the card at any screen width.
+- `buildBoard(mount, opts)` — builds (or rebuilds, for a game whose board changes size with the
+  level) the shared board inside `mount`, leaving anything else in there alone, and returns
+  `{ stage, rig, board, pieces, fx, line }` — append the game's own layer to `board`. `opts` is
+  `cols`, `rows` (defaults to `cols`), `cell`, and the knobs listed in "The board" above. Never
+  write board markup in a game.
+- `boardSlot(id, row, col)` — one square, parked at its place; pass `id: null` for a loose one
+  (a piece on its way off the board, dropped into `.gb-fx`).
+- `pieceHTML(side, inner)` — one piece: `side` is `"you"` or `"bird"`.
+- `drawWinLine(runs, xy)` / `clearWinLine()` — the line through a win. `runs` is a list of runs
+  of square indexes; `xy(i)` gives a square's centre in cell units (that is how a board with its
+  rows the other way up draws the same line). Redrawing does nothing until `clearWinLine()`, so
+  a re-render never restarts the animation.
 - `speak(text, rate)` — reads `text` aloud via `speechSynthesis`, picking the best
   available English voice itself (Chrome defaults to a low-quality local voice unless one
   is picked explicitly; this also handles the voice list loading asynchronously). No-op if
@@ -438,7 +491,7 @@ _tests/site/conventions.test.js the structural rules of this file — every game
                                 re-styled shared class, no stray host, no storage, JSON parses,
                                 empty mascot placeholders that site.js really draws into,
                                 and no game-local copy of the level menu, confetti loop,
-                                rules-sheet markup or wrong-answer shake
+                                rules-sheet markup, board chrome, piece colours or wrong-answer shake
 _tests/site/rules-sheet.test.js the shared rules sheet, in the games that use it
 _tests/site/snippets.test.js    _ref/snippets.md still matches the real files, byte for byte
 _tests/games/<slug>/*.test.js   per-game engine stress tests and jsdom play-throughs
@@ -533,7 +586,9 @@ four levels, while the in-game `📖 Rules` shows detailed rules for the **curre
 (each level is a different game) — it calls `wireRulesSheet()` for the shared wiring and sets
 its own `onclick`s on `#rules-home` / `#rules-btn`.
 
-`connect-four` is classic 7×6 Connect Four against the owl; you always go first. EASY, MEDIUM
+`connect-four` is classic 7×6 Connect Four against the owl; you always go first. Its board is
+the shared one (see "The board"), with the holes made smaller than the discs so a falling disc
+is clipped by the frame and looks like it is sliding down behind it. EASY, MEDIUM
 and HARD differ only in the owl: EASY plays loosely (takes a win it sees 75% of the time, blocks
 50%), MEDIUM searches 3 plies and sometimes plays a simpler careful move instead, and HARD runs
 an alpha-beta search 6 plies deep. EXPERT changes the **rules** to **PopOut**: on your turn you
@@ -568,8 +623,8 @@ node budget to its cap and ranks the owls by how much each gives away — **run 
 the move generator, the search or the level table.** `_tests/games/checkers/play.test.js` drives
 the real page, rebuilding the board from its own aria-labels, and wins a game through the DOM.
 
-`gomoku` is five in a row against the owl, on Connect Four's board without the gravity: you
-always go first and put a stone on any empty spot. It is **freestyle** gomoku — five **or more**
+`gomoku` is five in a row against the owl, on the shared board (see "The board") without the
+gravity: you always go first and put a stone on any empty spot. It is **freestyle** gomoku — five **or more**
 in a row wins, so an overline of six counts, which is the rule a child expects. The board grows
 with the level (EASY 9×9, MEDIUM 11×11, HARD and EXPERT 13×13) and so does the owl: EASY is
 sleepy (it takes a win it can see 70% of the time and blocks 55%), MEDIUM looks two plies ahead

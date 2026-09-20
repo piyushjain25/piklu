@@ -5,6 +5,9 @@
   --coral:#FF6B7A; --coral-dark:#e24a5c; --leaf:#2FB37D; --leaf-dark:#218a60;
   --sky:#3FA7E0; --sky-dark:#2b86ba; --card:#FFFFFF; --key-line:#E4DCF5;
   --paper:#FBF3E4; --paper-line:#EAD9BC;
+  /* the board games' shared board (see the GAME BOARD section at the end) */
+  --board-frame:#ECE4FB; --board-frame-lo:#DFD4F6; --board-back:#F6F2FF; --board-line:#D3C6F0;
+  --board-rim:0 0 0 3px var(--key-line), 0 7px 0 3px #D9D0EF;
   --shadow:0 18px 40px rgba(72,45,130,.18); --radius:26px;
 }
 *{box-sizing:border-box;} html,body{margin:0;padding:0;}
@@ -90,7 +93,7 @@ body::before{width:90px;height:34px;top:6%;left:6%;} body::after{width:70px;heig
 
 .home-top{display:flex; margin-bottom:4px;}
 .hub-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:none; opacity:.8;}
-.hub-link:hover{opacity:1; text-decoration:underline;}
+.hub-link:hover{opacity:1;}
 
 /* owl mascot (mood states: idle / think / worried / happy / win) */
 .owl{width:60px; height:60px; flex:0 0 auto;}
@@ -267,6 +270,89 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 /* a row of little diagrams with arrows between them */
 .rrow{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:8px 0 2px;}
 .rarrow{font-size:20px; color:var(--grape); font-weight:800;}
+
+/* ============================================================
+   GAME BOARD — the board every board game shares, and the
+   piece that stands on it. Change a board's look HERE and
+   every board game changes with it; a game carries no copy.
+
+   The piece (.piece) is used by all of them, on a holed board
+   or a chequered one: the game gives it its box, site.css
+   gives it its colours (yours coral, the owl's sun — .bird,
+   because .owl is the mascot's class).
+
+   The holed board (.gb-*) is Connect Four's lavender sheet
+   with a hole punched for every square, reused by Gomoku and
+   whatever comes next. buildBoard() in site.js writes the
+   markup and sets --cols/--rows/--cell on the .gb-stage; every
+   size below is worked out from those, and a game tunes it
+   only through buildBoard's options (hole, inset, edge, head).
+   Back to front: the back panel, the pieces, the frame (one
+   sheet with the holes cut by a mask, so a falling piece slides
+   BEHIND it), the holes' lips, the leaving-piece layer, the
+   rim, the win line, then the game's own layer of buttons.
+   ============================================================ */
+.piece{position:relative; border-radius:50%;}
+.piece::before{content:""; position:absolute; inset:23%; border-radius:50%;}
+.piece.you{background:var(--coral);
+  box-shadow:inset 0 calc(-1 * var(--piece-edge, 4px)) 0 var(--coral-dark), inset 0 3px 0 rgba(255,255,255,.3);}
+.piece.you::before{box-shadow:inset 0 2px 0 rgba(120,0,30,.18), 0 1px 0 rgba(255,255,255,.35);}
+.piece.bird{background:var(--sun);
+  box-shadow:inset 0 calc(-1 * var(--piece-edge, 4px)) 0 var(--sun-dark), inset 0 3px 0 rgba(255,255,255,.4);}
+.piece.bird::before{box-shadow:inset 0 2px 0 rgba(140,90,0,.18), 0 1px 0 rgba(255,255,255,.45);}
+
+/* --pad stays under half a cell minus a hole, so no part-hole shows in the frame's border */
+.gb-stage{--pad:calc(var(--cell) * .15); --hole:calc(var(--cell) * .42); --piece-inset:10%; --piece-edge:4px;}
+.gb-rig{position:relative; margin:var(--head, 0px) auto 0; padding-bottom:8px;
+  width:calc(var(--cols) * var(--cell) + 2 * var(--pad));}
+.gb-board{position:relative; height:calc(var(--rows) * var(--cell) + 2 * var(--pad));}
+.gb-layer{position:absolute; left:var(--pad); top:var(--pad);
+  width:calc(var(--cols) * var(--cell)); height:calc(var(--rows) * var(--cell));}
+.gb-slot{position:absolute; width:var(--cell); height:var(--cell);}
+.gb-back{background:radial-gradient(circle at 50% 50%, #fff calc(var(--hole) * .78), var(--board-back) var(--hole))
+  0 0 / var(--cell) var(--cell);}
+.gb-frame{position:absolute; inset:0; border-radius:22px; pointer-events:none;
+  background:linear-gradient(180deg, var(--board-frame), var(--board-frame-lo));
+  -webkit-mask:radial-gradient(circle at 50% 50%, transparent var(--hole), #000 calc(var(--hole) + .5px)) var(--pad) var(--pad) / var(--cell) var(--cell);
+          mask:radial-gradient(circle at 50% 50%, transparent var(--hole), #000 calc(var(--hole) + .5px)) var(--pad) var(--pad) / var(--cell) var(--cell);}
+/* each hole is ringed in a lavender line */
+.gb-lips{pointer-events:none;
+  background:radial-gradient(circle at 50% 50%, transparent calc(var(--hole) - .5px), var(--board-line) var(--hole),
+    var(--board-line) calc(var(--hole) + 2px), transparent calc(var(--hole) + 2.5px)) 0 0 / var(--cell) var(--cell);}
+.gb-rim{position:absolute; inset:0; border-radius:22px; pointer-events:none; box-shadow:var(--board-rim);}
+.gb-fx{pointer-events:none; z-index:3;}        /* pieces on their way off the board */
+
+.gb-slot .piece{position:absolute; inset:var(--piece-inset);}
+/* the piece just played wears a white dot, so the owl's reply is easy to spot */
+.gb-slot.last .piece::after{content:""; position:absolute; inset:36%; border-radius:50%; background:rgba(255,255,255,.85);}
+.gb-slot.win{animation:gbWin 1s ease-in-out .7s infinite;}
+@keyframes gbWin{50%{transform:scale(1.08);}}
+/* dropped down a column (--fall cells, --dur long), slid down after a pop, placed on an empty
+   square, or taken off the board */
+.gb-slot .piece.drop{animation:gbDrop var(--dur, .55s) both;}
+@keyframes gbDrop{
+  0%{transform:translateY(calc(-1 * (var(--fall) * var(--cell) + var(--pad) + 4px))); animation-timing-function:cubic-bezier(.55,0,1,.9);}
+  70%{transform:translateY(0); animation-timing-function:cubic-bezier(0,0,.4,1);}
+  85%{transform:translateY(-10%); animation-timing-function:cubic-bezier(.6,0,1,1);}
+  100%{transform:translateY(0);}}
+.gb-slot .piece.slide{animation:gbSlide .3s cubic-bezier(.55,0,1,.9);}
+@keyframes gbSlide{from{transform:translateY(calc(-1 * var(--cell)));}}
+.gb-slot .piece.place{animation:gbPlace .26s cubic-bezier(.2,1.5,.5,1) both;}
+@keyframes gbPlace{0%{transform:scale(.2); opacity:.35} 60%{transform:scale(1.13)} 100%{transform:scale(1)}}
+.gb-slot .piece.gone{animation:gbGone .45s ease-out both;}
+@keyframes gbGone{0%{transform:scale(1)} 35%{transform:scale(1.22)} 100%{transform:scale(.15) rotate(30deg); opacity:0}}
+
+/* the line drawn through a winning row, over the frame (the board's viewBox is
+   --cols x --rows, one unit per cell) — drawWinLine() in site.js fills it */
+.gb-line{position:absolute; left:var(--pad); top:var(--pad); z-index:4; overflow:visible; pointer-events:none;
+  width:calc(var(--cols) * var(--cell)); height:calc(var(--rows) * var(--cell));}
+.gb-line line{stroke-linecap:round; stroke-dasharray:1; animation:gbLine .55s ease-out .2s both;}
+.gb-line .wl-back{stroke:#fff; stroke-width:.3;}
+.gb-line .wl-front{stroke:var(--grape); stroke-width:.16;}
+.gb-line circle{fill:#fff; stroke:var(--grape); stroke-width:.06; transform-box:fill-box; transform-origin:center;
+  animation:gbDot .25s ease-out .65s both;}
+@keyframes gbLine{from{stroke-dashoffset:1;}}
+@keyframes gbDot{from{transform:scale(0);}}
 
 canvas#confetti{position:fixed; inset:0; z-index:60; pointer-events:none; display:none;}
 .hide{display:none !important;}

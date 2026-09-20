@@ -14,6 +14,7 @@ const ROOT = path.resolve(__dirname, "..");
 
 const P = "games/pizza-party/index.html", L = "games/lights-out/index.html", J = "games/juice-jumble/index.html";
 const W = "games/spot-the-words/index.html", SJ = "assets/site.js";
+const G = "games/gomoku/index.html", C = "games/connect-four/index.html";
 
 function block(file, anchor, from, count, lang){
   const lines = fs.readFileSync(path.join(ROOT, file), "utf8").split("\n");
@@ -151,7 +152,33 @@ solver/checker, the star rule — so \`loadEngine()\` can prove it without a DOM
 `,
   block(L, 'if(typeof module !== "undefined")', 0, 5, "js"),
   `
-## 9. \`site.js\` globals
+## 9. Board games: the shared board
+
+A board game does **not** write the board. \`buildBoard()\` puts the shared one (site.css's
+GAME BOARD section) inside an empty \`<div id="stage">\`, and the game adds only its own layer of
+tap targets over it. Squares are \`<div class="gb-slot" id="s{i}">\`, so a game reaches one with
+\`$("s" + i)\`; a piece inside one is \`pieceHTML("you" | "bird")\`. Gomoku's whole board, markup
+and all:
+
+`,
+  block(G, "buildBoard() puts the shared board here", -1, 2, "html"),
+  "\n",
+  block(G, "function setupBoard()", 0, 18, "js"),
+  `
+Connect Four's board is the same one with different knobs — room above it for the disc you are
+holding, holes smaller than the discs (so a falling disc is clipped by the frame and looks like
+it is behind it), and its own row numbering, because row 0 is the bottom of that board:
+
+`,
+  block(C, "const b = buildBoard(\"stage\", {", 0, 5, "js"),
+  `
+The line through a winning row is drawn by \`drawWinLine(runs, xy)\` — a list of runs of square
+indexes, and where a square's centre sits in cell units — and cleared by \`clearWinLine()\`:
+
+`,
+  block(G, "if (game.winner && game.line.length) drawWinLine(", 0, 2, "js"),
+  `
+## 10. \`site.js\` globals
 
 Every top-level name \`assets/site.js\` defines. A game calls these directly and must **never
 redeclare any of them** (that throws a \`SyntaxError\` at load) — including the internal ones.
@@ -190,9 +217,15 @@ CONFETTI_COLORS                         the default confetti palette
 throwConfetti(options)                  the celebration; call as if(!reduceMotion) throwConfetti(...)
 stopConfetti()                          clear and hide #confetti; call when leaving a round
 initBouncyTitle(word)                   build the animated per-letter #title
+boardCell(cols, o)                      a cell size that keeps a board of cols columns inside the card
+buildBoard(mount, o)                    build the shared board into mount; returns { stage, rig, board, pieces, fx, line }
+boardSlot(id, row, col)                 one square, parked at its place (id null for a loose one, e.g. a piece leaving)
+pieceHTML(side, inner)                  one piece: side is 'you' | 'bird'
+drawWinLine(runs, xy)                   draw the line through a win; xy(i) is a square's centre in cell units
+clearWinLine()                          wipe it, for the next round
 \`\`\`
 
-## 10. Shared CSS classes
+## 11. Shared CSS classes
 
 Every class \`assets/site.css\` defines for game pages. If a name is here, it already exists — use
 it, don't redeclare it in a game's \`<style>\`. Names only; the rules are in \`site.css\`.
@@ -209,6 +242,9 @@ controls:    tlink off actions serve-row invisible stats-row
 tiles:       tilegrid tile wrong-flash hintglow
 result:      result rlabel stars rsub feedback good bad hint
 rules sheet: sheet-ov show sheet sheet-top sheet-x sheet-body sheet-foot rule cap rrow rarrow rsolo o fade
+board:       piece you bird gb-stage gb-rig gb-board gb-layer gb-slot gb-back gb-frame gb-lips gb-rim gb-fx
+board line:  gb-line wl-back wl-front
+board state: last win place drop slide gone
 \`\`\`
 `,];
 fs.writeFileSync(path.join(__dirname, "snippets.md"), out.join(""));
