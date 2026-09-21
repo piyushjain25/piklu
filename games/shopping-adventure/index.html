@@ -205,6 +205,12 @@ function starsFor(leftover){ if(leftover===0) return {stars:3,label:"🎯 BULLSE
   if(leftover<=15) return {stars:1,label:"Nice haul!"};
   return {stars:0,label:"Lots left over — spend closer next time!"}; }
 
+if(typeof module !== "undefined") module.exports = { ITEM_POOL, LEVELS, shuffle, randPrice,
+  partition, makeDiscount, genShop };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", shop=null, cart=[], phase='shop', prevSig=null;
 
@@ -376,6 +382,7 @@ function sound(kind){ if(kind==="tick") beep(520,.05,"square",0,.05);
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

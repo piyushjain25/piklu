@@ -151,6 +151,11 @@ function genRound(level){
   return { level, n:cfg.n, shown, kind, options, answer, refItem, prompt:`Which one came right after ${refItem}?` };
 }
 
+if(typeof module !== "undefined") module.exports = { POOL, LEVELS, COLS, ordinal, shuffle, genRound };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", R=null, phase='memorize', prevSig=null, memoTimer=null, peekTimer=null;
 function setLevel(l){
@@ -257,6 +262,7 @@ function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
