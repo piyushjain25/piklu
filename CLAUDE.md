@@ -73,9 +73,36 @@ online toy store later. Read the rules below before changing anything.
    `allow_ad_personalization_signals:false`, so the traffic data is never used for ads
    personalisation, and it skips `file://` and `localhost` so local previews stay out of the
    real numbers. Root `index.html` links no shared JS, so it carries the only inline copy.
-   **A game must never contain a tag, a `gtag(` call, or any other measurement code** —
-   `_tests/site/conventions.test.js` fails on one, and it is also why
+   **A game must never contain a tag, a `gtag(` call, a `trackEvent(` call, or any other
+   measurement code** — `_tests/site/conventions.test.js` fails on one, and it is also why
    `www.googletagmanager.com` is *not* in that test's `ALLOWED_HOSTS`: no game may reach it.
+
+   **What is measured, and how a game is measured without containing any of it.** `site.js`
+   instruments the **shared control scheme** every game already uses, so a new game is
+   measured the day it is added and its own file stays clean. `trackEvent(name, params)`
+   fills in `game_slug` and `level` itself — the level is read back from the `.diff` card
+   that is currently `aria-pressed`, so it is always what the page is really showing.
+
+   | Event | Where it is wired | What it answers |
+   |---|---|---|
+   | `level_select` | `markLevel()`, only on a real change | Is EXPERT ever touched? Were 3 levels right? |
+   | `game_start` | `showScreen()`, only when leaving the start screen | Does the `.howto` get a child into the game? |
+   | `round_end` | a `MutationObserver` on `#result-view` (in all 37 games) | The difficulty curve: `stars` (0 = lost) + `result_label` |
+   | `hint_used` / `puzzle_skipped` | delegated clicks on `#hint-link` / `#skip-btn` | Which puzzles are too hard or unclear |
+   | `rules_opened` | `openRulesSheet()`, with `from: start\|game` | Opened from *inside* a game = its `.howto` is failing |
+   | `left_game` | `showHome()` | Where children give up |
+   | `data_load_failed` | `loadGameData()` returning null | A broken JSON deploy, which is otherwise silent |
+   | `hub_search` / `age_filter` | the hub's `#search` / `.age-chip` | What people look for that does not exist yet |
+
+   Only 15 games rate a round, so `round_end` sends `stars` only when `#stars` exists rather
+   than a misleading zero. The **hub search term is the only free text the site sends**: it
+   goes a full second after typing stops, lowercased, stripped to `[a-z0-9 ]`, capped at 40
+   characters and never twice in a row — the test enforces the stripping and the cap.
+
+   ⚠️ **A manual step outside this repo:** custom params (`game_slug`, `level`, `stars`,
+   `result_label`, `term`, …) only reach the standard reports once they are registered in
+   **GA4 → Admin → Custom definitions**. Until then they appear in Realtime/DebugView only,
+   and `round_end` shows up as a bare count.
 
 ## How the site is organised
 
@@ -91,7 +118,8 @@ online toy store later. Read the rules below before changing anything.
                         (the owl drawing itself — MASCOT_SVG/drawMascots — and
                         $, reduceMotion, flash, setOwl, level-menu, beep, confetti, title,
                         loadGameData for JSON data files, wireRulesSheet, speak/stopSpeech,
-                        buildBoard + pieceHTML for the board games)
+                        buildBoard + pieceHTML for the board games) — AND the site's one
+                        analytics tag + the trackEvent() wiring (rule 5); a game calls neither
 /games/index.html       the hub — auto-builds the grid from /games.js
 /games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css,
                         games.js and site.js

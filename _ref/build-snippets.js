@@ -196,6 +196,7 @@ GAME                                    this page's own entry in /games.js, foun
 applyGameText()                         fills <i class="gemoji"> and <p class="subtitle"> from GAME (runs by itself)
 loadGameData(path)                      async; fetch a relative JSON file, resolve to the parsed data or null
 flash(msg, kind)                        write into #feedback; kind is '' | 'good' | 'bad' | 'hint'
+trackEvent(name, params)                internal: ONE analytics event, game_slug + level filled in — site.js only, never a game
 MASCOT_SVG                              the one copy of the owl drawing
 drawMascots()                           draws the owl into every empty svg.owl / svg.hub-owl (runs by itself)
 setOwl(mood)                            idle | happy | worried | win | think on #owl-game / #owl-quiz / #owl-home

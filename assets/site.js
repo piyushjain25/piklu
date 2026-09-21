@@ -22,6 +22,10 @@ async function loadGameData(path) {
     const res = await fetch(path, { cache: "no-store" });
     if (res.ok) return await res.json();
   } catch (e) { /* file:// or offline */ }
+  /* A data-driven game that cannot load its data is simply unplayable, and nothing on the
+     page says so loudly. Under file:// the tag never loaded, so this reports only the case
+     that matters: a real visitor on the real site, i.e. a broken deploy. */
+  trackEvent("data_load_failed", { file: String(path).slice(0, 60) });
   return null;
 }
 
@@ -151,6 +155,10 @@ function buildLevelMenu(levels, onPick) {
    given, the top-bar chip's #q-level-label. */
 function markLevel(key, label) {
   key = String(key);
+  /* before the cards move: a level the player actually CHOSE differs from the one already
+     showing, so the setLevel() every game runs at load reports nothing */
+  const was = document.querySelector('.diff[aria-pressed="true"]');
+  if (was && was.dataset.diff !== key) trackEvent("level_select", { level: key });
   document.querySelectorAll(".diff").forEach(b => b.setAttribute("aria-pressed", b.dataset.diff === key));
   document.querySelectorAll(".level-opt").forEach(b => b.setAttribute("aria-current", b.dataset.diff === key));
   const lbl = $("q-level-label");
@@ -249,6 +257,8 @@ function openRulesSheet(opener) {
   if (!o) return;
   if (!rulesBuilt && rulesBody) { rulesBody(); rulesBuilt = true; }
   rulesOpener = opener || null;
+  /* opened often from inside a game = that game's .howto block is not doing its job */
+  trackEvent("rules_opened", { from: opener && opener.id === "rules-home" ? "start" : "game" });
   o.classList.add("show");
   const body = $("rules-body");
   if (body) body.scrollTop = 0;
@@ -478,10 +488,15 @@ function showScreen(which) {
   /* guess-the-capital calls its play screen #screen-quiz, the same exception setOwl makes
      for that game's #owl-quiz mascot placeholder */
   const play = $("screen-game") || $("screen-quiz");
+  /* leaving the start screen for the first time is the one that measures whether the
+     how-to and the level picker actually get a child INTO the game; Skip and Next swap
+     nothing (they are already on the play screen), so they don't report a second start */
+  if (which !== "home" && home && !home.classList.contains("hide")) trackEvent("game_start");
   if (home) home.classList.toggle("hide", which !== "home");
   if (play) play.classList.toggle("hide", which === "home");
 }
 function showHome() {
+  trackEvent("left_game");
   stopConfetti();
   showScreen("home");
   setOwl("idle");
@@ -509,7 +524,82 @@ function showHome() {
   window.dataLayer = window.dataLayer || [];
   window.gtag = function () { window.dataLayer.push(arguments); };
   window.gtag("js", new Date());
-  window.gtag("config", ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+  /* content_group + game_slug ride along on the page view, so every standard report can be
+     broken down by game without touching a single game file. */
+  window.gtag("config", ID, Object.assign(
+    { allow_google_signals: false, allow_ad_personalization_signals: false },
+    GAME ? { content_group: "game", game_slug: GAME.slug } : { content_group: "hub" }));
+})();
+
+/* One event, with the two things every question about this site starts from — which game,
+   and which level — filled in automatically. The level is READ BACK from the level picker
+   rather than tracked in a variable, so it is always whatever the page is actually showing.
+   A no-op when the tag never loaded (a local preview, or a blocker), so nothing below has
+   to check first.
+   ONLY site.js calls this. A game measuring something of its own is exactly what CLAUDE.md
+   rule 5 forbids, and _tests/site/conventions.test.js fails a game that does. */
+function trackEvent(name, params) {
+  if (typeof window.gtag !== "function") return;
+  const base = {};
+  if (GAME) base.game_slug = GAME.slug;
+  const picked = document.querySelector('.diff[aria-pressed="true"]');
+  if (picked && picked.dataset.diff) base.level = picked.dataset.diff;
+  try { window.gtag("event", name, Object.assign(base, params || {})); } catch (e) {}
+}
+
+/* Everything the site measures, wired to the shared control scheme every game already uses —
+   so all of it costs a game exactly nothing, and a new game is measured the day it is added.
+   Named events: level_select, game_start, round_end, hint_used, puzzle_skipped, rules_opened,
+   left_game, data_load_failed (games) and hub_search, age_filter (the hub). The per-event
+   params (game_slug, level, stars, …) must also be registered in GA4 → Admin → Custom
+   definitions, or they only ever show up in DebugView. */
+(function () {
+  /* a win/loss banner appearing IS the end of a round: #result-view is in every game, and
+     the two lines inside it are the game's own copy, never anything a child typed */
+  const rv = $("result-view");
+  if (rv) {
+    let shown = !rv.classList.contains("hide");
+    new MutationObserver(() => {
+      const now = !rv.classList.contains("hide");
+      if (now === shown) return;
+      shown = now;
+      if (!now) return;
+      const p = {};
+      /* only 15 of the games rate a round in stars; the rest simply report no star count
+         rather than a misleading zero */
+      const st = $("stars");
+      if (st) p.stars = (st.textContent.match(/★/g) || []).length;
+      const lb = $("rlabel");
+      if (lb && lb.textContent.trim()) p.result_label = lb.textContent.trim().slice(0, 80);
+      trackEvent("round_end", p);
+    }).observe(rv, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  document.addEventListener("click", e => {
+    if (!e.target || !e.target.closest) return;
+    if (e.target.closest("#hint-link")) trackEvent("hint_used");
+    else if (e.target.closest("#skip-btn")) trackEvent("puzzle_skipped");
+    const chip = e.target.closest(".age-chip");
+    if (chip) trackEvent("age_filter", { band: (chip.textContent || "").trim().slice(0, 12) });
+  });
+
+  /* The hub's search box is the one place a visitor types free text, and the one event that
+     answers "what are people looking for that I haven't built?". It is sent a full second
+     after the typing stops (so half-typed words never are), stripped to plain lowercase
+     words, capped, and never sent twice in a row for the same term. */
+  const box = $("search");
+  if (box) {
+    let timer = null, sent = null;
+    box.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const term = box.value.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+        if (!term || term === sent) return;
+        sent = term;
+        trackEvent("hub_search", { term, results: document.querySelectorAll("#grid .game-card").length });
+      }, 1000);
+    });
+  }
 })();
 
 /* ---------- bouncy animated <title> ---------- */

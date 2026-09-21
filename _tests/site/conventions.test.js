@@ -172,8 +172,9 @@ for (const g of loadCatalog()) {
   ok(!/\b(localStorage|sessionStorage)\b/.test(code), at + "should not use localStorage/sessionStorage");
   /* The site's one analytics tag lives in site.js (rule 5). A game carrying its own — or any
      ad code at all — is exactly what that single-source rule exists to stop. */
-  ok(!/gtag|googletagmanager|analytics|doubleclick/i.test(html),
-     at + "no ad code, and no analytics tag of its own — site.js carries the site's only one");
+  ok(!/gtag|googletagmanager|analytics|doubleclick|trackEvent/i.test(html),
+     at + "no ad code, and no measurement of its own — site.js instruments the shared "
+        + "controls, so a game is measured without containing a line of it");
 
   /* --- the standard control scheme --- */
   ok(/class="[^"]*\btopbar\b/.test(html), at + "needs the standard .topbar row");
@@ -221,6 +222,14 @@ ok(/allow_google_signals:\s*false/.test(siteJS) && /allow_ad_personalization_sig
    "analytics must switch Google's ad signals off — this is a site for children");
 ok(/location\.protocol === "file:"/.test(siteJS) && /localhost/.test(siteJS),
    "analytics must skip file:// and localhost so local previews stay out of the real numbers");
+/* what the site measures, all of it wired to the shared control scheme inside site.js — a
+   game is measured without containing a line of measurement code */
+for (const ev of ["level_select", "game_start", "round_end", "hint_used", "puzzle_skipped",
+                  "rules_opened", "left_game", "data_load_failed", "hub_search"])
+  ok(siteJS.includes('trackEvent("' + ev + '"'), "site.js should still send the " + ev + " event");
+/* the hub search box is the only free text the site sends: it must be stripped and capped */
+ok(/replace\(\/\[\^a-z0-9 \]\+\/g/.test(siteJS) && /slice\(0, 40\)/.test(siteJS),
+   "the hub search term must be stripped to plain words and capped before it is sent");
 
 /* The <h1> is built letter by letter by initBouncyTitle(), which joins words with a NO-BREAK
    space on purpose so a game's name never wraps mid-title — so read it back with that undone. */
