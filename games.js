@@ -63,7 +63,7 @@ window.GAMES = [
   { slug: "math-monsters",       title: "Math Monsters",       emoji: "👾", accent: "grape",  ageGroup: "6+",
     tagline: "Feed the monster the right answer!",             skills: ["Math"] },
 
-  { slug: "shape-sorter",        title: "Shape Sorter",        emoji: "🔷", accent: "sky",    ageGroup: "3+",
+  { slug: "shape-sorter",        title: "Shape Sorter",        emoji: "🪁", accent: "sky",    ageGroup: "3+",
     tagline: "Find and tap the matching shapes.",              skills: ["Spatial reasoning"] },
 
   { slug: "color-match",         title: "Color Match",         emoji: "🎨", accent: "sun",    ageGroup: "3+",
@@ -78,7 +78,7 @@ window.GAMES = [
   { slug: "spell-a-bee",         title: "Spell-a-Bee",         emoji: "🐝", accent: "grape",  ageGroup: "6+",
     tagline: "Listen to the word and spell it, letter by letter.", skills: ["Spelling", "Listening"] },
 
-  { slug: "shape-math",          title: "Shape Math",          emoji: "🔷", accent: "sky",    ageGroup: "6+",
+  { slug: "shape-math",          title: "Shape Math",          emoji: "🧮", accent: "sky",    ageGroup: "6+",
     tagline: "Add and subtract shapes to find the answer!",    skills: ["Math", "Logic"] },
 
   { slug: "what-am-i",           title: "What Am I?",          emoji: "🤔", accent: "sun",    ageGroup: "6+",
@@ -120,13 +120,13 @@ window.GAMES = [
   { slug: "circuit-builder",     title: "Circuit Builder",     emoji: "💡", accent: "sun",    ageGroup: "9+",
     tagline: "Wire it up and make the bulb light.",            skills: ["Science", "Logic"], badge: "New" },
 
-  { slug: "connect-four",        title: "Connect Four",        emoji: "🔴", accent: "grape",  ageGroup: "6+",
+  { slug: "connect-four",        title: "Connect Four",        emoji: "🎯", accent: "grape",  ageGroup: "6+",
     tagline: "Drop your discs and get four in a row before the owl does!", skills: ["Strategy", "Logic"], badge: "New" },
 
-  { slug: "checkers",            title: "Checkers",            emoji: "⚫", accent: "leaf",   ageGroup: "9+",
+  { slug: "checkers",            title: "Checkers",            emoji: "👑", accent: "leaf",   ageGroup: "9+",
     tagline: "Jump the owl's pieces, crown your kings, and take the board!", skills: ["Strategy", "Logic"], badge: "New" },
 
-  { slug: "gomoku",              title: "Gomoku",              emoji: "5️⃣", accent: "sky",    ageGroup: "9+",
+  { slug: "gomoku",              title: "Gomoku",              emoji: "🌟", accent: "sky",    ageGroup: "9+",
     tagline: "Five in a row wins — line them up before the owl does!", skills: ["Strategy", "Logic"], badge: "New" },
 
   { slug: "crazy-eights",        title: "Crazy Eights",        emoji: "🃏", accent: "coral",  ageGroup: "6+",
