@@ -66,10 +66,9 @@
       </div>
       <p class="subtitle">🔴 Jump the owl's pieces before it jumps yours!</p>
       <div class="block-label">Choose a level</div>
-      <div class="diff-grid" role="group" aria-label="Level">
+      <div class="diff-grid three" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">casual owl</div></button>
         <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">thinks ahead</div></button>
-        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">deep search</div></button>
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">flying kings</div></button>
       </div>
       <div class="howto">
@@ -150,7 +149,6 @@ const QUIET_LIMIT = 60;
 const LEVELS = {
   EASY:   { label: "🌱 Easy",   fly: false, depth: 2,  budget: 4000,   tol: 80, slip: 0.35 },
   MEDIUM: { label: "⭐ Medium", fly: false, depth: 5,  budget: 30000,  tol: 25, slip: 0.10 },
-  HARD:   { label: "🔥 Hard",   fly: false, depth: 9,  budget: 120000, tol: 0,  slip: 0    },
   EXPERT: { label: "🏆 Expert", fly: true,  depth: 11, budget: 200000, tol: 0,  slip: 0    },
 };
 

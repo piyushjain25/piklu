@@ -244,7 +244,7 @@ result:      result rlabel stars rsub feedback good bad hint
 rules sheet: sheet-ov show sheet sheet-top sheet-x sheet-body sheet-foot rule cap rrow rarrow rsolo o fade
 board:       piece you bird gb-stage gb-rig gb-board gb-layer gb-slot gb-back gb-frame gb-lips gb-rim gb-fx
 board line:  gb-line wl-back wl-front
-board state: last win place drop slide gone
+board state: last win place drop gone
 \`\`\`
 `,];
 fs.writeFileSync(path.join(__dirname, "snippets.md"), out.join(""));

@@ -145,7 +145,15 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 .block-label{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape); font-size:15px;
   text-transform:uppercase; letter-spacing:1px; margin:20px 0 10px;}
 .diff-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
-@media(min-width:560px){.diff-grid{grid-template-columns:repeat(4,1fr);}}
+/* A game with THREE levels (the board games against the owl) adds .three, so the row fills
+   instead of leaving a fourth, empty column. On a narrow screen the cards stay two-up and the
+   third takes the full width below them, which reads as deliberate rather than half-finished. */
+.diff-grid.three .diff:last-child{grid-column:span 2;}
+@media(min-width:560px){
+  .diff-grid{grid-template-columns:repeat(4,1fr);}
+  .diff-grid.three{grid-template-columns:repeat(3,1fr);}
+  .diff-grid.three .diff:last-child{grid-column:auto;}
+}
 .diff{border:3px solid #EEE8FB; background:#fff; border-radius:18px; cursor:pointer; padding:14px 10px; text-align:center; transition:all .15s ease;}
 .diff:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
 /* Cards in a row always share one height (grid stretch), and their contents stack from the
@@ -338,8 +346,6 @@ svg.monster.mini{width:100%; height:auto; display:block;}
   70%{transform:translateY(0); animation-timing-function:cubic-bezier(0,0,.4,1);}
   85%{transform:translateY(-10%); animation-timing-function:cubic-bezier(.6,0,1,1);}
   100%{transform:translateY(0);}}
-.gb-slot .piece.slide{animation:gbSlide .3s cubic-bezier(.55,0,1,.9);}
-@keyframes gbSlide{from{transform:translateY(calc(-1 * var(--cell)));}}
 .gb-slot .piece.place{animation:gbPlace .26s cubic-bezier(.2,1.5,.5,1) both;}
 @keyframes gbPlace{0%{transform:scale(.2); opacity:.35} 60%{transform:scale(1.13)} 100%{transform:scale(1)}}
 .gb-slot .piece.gone{animation:gbGone .45s ease-out both;}

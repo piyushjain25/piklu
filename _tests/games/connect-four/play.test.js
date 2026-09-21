@@ -1,6 +1,6 @@
 "use strict";
 /* connect-four play-through: boots the real page in jsdom and drives it like a player —
-   start, drop, the owl's reply, full columns, hints, pops at EXPERT, Skip/Home cancelling the
+   start, drop, the owl's reply, full columns, hints, Skip/Home cancelling the
    owl's pending move, the level switcher, keyboard play, and whole games to the end at every
    level with the result and bottom slot checked. */
 const { bootGame, sleep, tally } = require("../../lib/harness.js");
@@ -26,7 +26,7 @@ async function playOut(g) {
   let turns = 0, hints = 0;
   while (!g.over() && turns < 200) {
     g.$("hint-link").click(); hints++;
-    const pick = g.d.querySelector(".col.hinted, .pop.hinted") || g.d.querySelector(".col:not(:disabled)");
+    const pick = g.d.querySelector(".col.hinted") || g.d.querySelector(".col:not(:disabled)");
     if (!pick) break;
     pick.click();
     await sleep(OWL_WAIT);
@@ -41,12 +41,12 @@ async function playOut(g) {
     const g = boot();
     const { $, d } = g;
     ok(!$("screen-home").classList.contains("hide") && $("screen-game").classList.contains("hide"), "opens on the start screen");
-    ok(d.querySelectorAll(".diff").length === 4, "four level cards");
+    ok(d.querySelectorAll(".diff").length === 3, "three level cards");
     ok(d.querySelector('.diff[data-diff="EASY"]').getAttribute("aria-pressed") === "true", "EASY picked by default");
     ok(d.querySelector(".hub-link").getAttribute("href") === "../", "← All games points to the hub");
     ok($("title").textContent.replace(/\s/g, "") === "ConnectFour", "bouncy title reads Connect Four");
-    d.querySelector('.diff[data-diff="HARD"]').click();
-    ok(d.querySelector('.diff[data-diff="HARD"]').getAttribute("aria-pressed") === "true"
+    d.querySelector('.diff[data-diff="MEDIUM"]').click();
+    ok(d.querySelector('.diff[data-diff="MEDIUM"]').getAttribute("aria-pressed") === "true"
        && d.querySelector('.diff[data-diff="EASY"]').getAttribute("aria-pressed") === "false", "tapping a card picks that level");
     $("rules-home").click();
     ok(d.getElementById("rules-ov").classList.contains("show") && d.querySelectorAll("#rules-body .rule").length >= 5,
@@ -64,7 +64,6 @@ async function playOut(g) {
     g.start("EASY");
     ok($("screen-home").classList.contains("hide") && !$("screen-game").classList.contains("hide"), "Start shows the game");
     ok(g.cols().length === COLS && d.querySelectorAll("#gb-pieces .gb-slot").length === COLS * ROWS, "a 7×6 board");
-    ok($("pops-wrap").classList.contains("hide"), "no pop buttons outside EXPERT");
     ok(!$("skip-btn").classList.contains("invisible") && $("next-btn").classList.contains("invisible"),
        "Skip visible, Play again holding its slot invisibly");
     ok($("q-level-label").textContent === "🌱 Easy", "level chip reads Easy");
@@ -105,7 +104,7 @@ async function playOut(g) {
     const { $, d } = g;
     g.start("MEDIUM");
     $("hint-link").click();
-    ok(d.querySelectorAll(".col.hinted, .pop.hinted").length === 1, "Hint lights exactly one column");
+    ok(d.querySelectorAll(".col.hinted").length === 1, "Hint lights exactly one column");
     ok($("feedback").className.includes("hint") && /column \d/.test($("feedback").textContent), "Hint names the column");
     d.querySelector(".col.hinted").click();
     ok(d.querySelectorAll(".col.hinted").length === 0, "the glow clears once you move");
@@ -140,12 +139,11 @@ async function playOut(g) {
     g.cols()[3].click();
     await sleep(OWL_WAIT);
     $("q-level").click();
-    ok(d.querySelectorAll(".level-opt").length === 4, "the level menu lists four levels");
+    ok(d.querySelectorAll(".level-opt").length === 3, "the level menu lists three levels");
     d.querySelector('.level-opt[data-diff="EXPERT"]').click();
     ok($("q-level-label").textContent === "🏆 Expert" && !$("screen-game").classList.contains("hide"),
        "picking Expert switches level and stays in the game");
     ok(g.count(1) === 0 && g.count(2) === 0, "the new level starts on an empty board");
-    ok(!$("pops-wrap").classList.contains("hide"), "EXPERT shows the pop buttons");
     d.dispatchEvent(new g.w.KeyboardEvent("keydown", { key: "5", bubbles: true }));
     ok(g.disc(4) === 1, "pressing 5 drops into column 5");
     await sleep(OWL_WAIT);
@@ -158,32 +156,9 @@ async function playOut(g) {
     g.w.close();
   }
 
-  /* ---- EXPERT: popping your own bottom disc --------------------------------------------- */
-  {
-    const g = boot({ seed: 11 });
-    const { $, d } = g;
-    g.start("EXPERT");
-    const pops = () => [...d.querySelectorAll(".pop")];
-    ok(pops().length === COLS && pops().every(p => p.disabled), "no pops before you have a bottom disc");
-    g.cols()[0].click();
-    await sleep(OWL_WAIT);
-    ok(!g.over() && g.disc(0) === 1, "your disc stays at the bottom of column 1 (the owl can only pop its own)");
-    {
-      ok(!pops()[0].disabled, "your bottom disc in column 1 can be popped");
-      ok(pops().every((p, c) => p.disabled === (g.disc(c) !== 1)), "only columns with your disc at the bottom can pop");
-      const above = g.disc(COLS);                 /* whatever sits on top of it */
-      const yours = g.count(1);
-      pops()[0].click();
-      ok(g.count(1) === yours - 1 && g.disc(0) === above && g.disc(COLS) === 0, "the pop removes your disc and the column slides down");
-      await sleep(OWL_WAIT);
-    }
-    ok(g.errors.length === 0, "no page errors popping: " + g.errors.join("; "));
-    g.w.close();
-  }
-
   /* ---- whole games at every level ------------------------------------------------------- */
   const outcomes = {};
-  for (const level of ["EASY", "MEDIUM", "HARD", "EXPERT"]) for (const seed of [1, 2, 3]) {
+  for (const level of ["EASY", "MEDIUM", "EXPERT"]) for (const seed of [1, 2, 3]) {
     const g = boot({ seed });
     const { $ } = g;
     g.start(level);

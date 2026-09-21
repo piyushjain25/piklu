@@ -128,4 +128,7 @@ window.GAMES = [
 
   { slug: "gomoku",              title: "Gomoku",              emoji: "5️⃣", accent: "sky",    ageGroup: "9+",
     tagline: "Five in a row wins — line them up before the owl does!", skills: ["Strategy", "Logic"], badge: "New" },
+
+  { slug: "crazy-eights",        title: "Crazy Eights",        emoji: "🃏", accent: "coral",  ageGroup: "6+",
+    tagline: "Match the suit or the number — and save your wild eights!", skills: ["Strategy", "Planning"], badge: "New" },
 ];

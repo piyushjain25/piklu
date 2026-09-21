@@ -78,8 +78,8 @@ async function settle(d, ms) {
        "the start screen links back to the hub");
 
     const cards = [...d.querySelectorAll(".diff")];
-    ok(cards.length === 4, "four level cards, got " + cards.length);
-    ok(cards.map(c => c.dataset.diff).join(",") === "EASY,MEDIUM,HARD,EXPERT", "in the level table's order");
+    ok(cards.length === 3, "three level cards, got " + cards.length);
+    ok(cards.map(c => c.dataset.diff).join(",") === "EASY,MEDIUM,EXPERT", "in the level table's order");
     for (const c of cards) {
       ok(/^\S+ [A-Z][a-z]+$/.test(c.querySelector(".d-name").textContent),
          "level card name is one line of emoji + word: " + c.querySelector(".d-name").textContent);
@@ -215,7 +215,7 @@ async function settle(d, ms) {
     $("q-level").click();
     ok($("level-menu").classList.contains("open"), "the level chip opens its menu");
     const opts = [...d.querySelectorAll(".level-opt")];
-    ok(opts.length === 4, "the menu lists all four levels, got " + opts.length);
+    ok(opts.length === 3, "the menu lists all three levels, got " + opts.length);
     opts.find(o => o.textContent.includes("Expert")).click();
     ok(!$("level-menu").classList.contains("open"), "picking a level closes the menu");
     ok($("q-level-label").textContent === E.LEVELS.EXPERT.label, "the chip shows the new level");

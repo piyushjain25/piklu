@@ -33,8 +33,9 @@ const STRUCTURAL = /(^|[;{\s])(display|position|flex|flex-direction|justify-cont
 const ALLOWED_HOSTS = ["cdnjs.cloudflare.com",
                        "flagcdn.com",   /* guess-the-capital's flag images */
                        "www.w3.org"];
-/* guess-the-capital is purely a choice of game, so it has no level chip at all */
-const NO_LEVEL_CHIP = ["guess-the-capital"];
+/* guess-the-capital is purely a choice of game, and crazy-eights is one game of cards whose
+   deal decides far more than any owl would, so neither has a level chip at all */
+const NO_LEVEL_CHIP = ["guess-the-capital", "crazy-eights"];
 
 for (const g of loadCatalog()) {
   const slug = g.slug, html = gameHTML(slug), at = slug + ": ";

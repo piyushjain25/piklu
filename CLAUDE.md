@@ -183,10 +183,20 @@ The card, its link, and the search filter appear automatically.
   wrong-answer wobble: use `animation:wrongShake .35s ease` rather than declaring your own
   ±7px shake keyframes.
 - **Four difficulty levels** — `EASY`, `MEDIUM`, `HARD`, `EXPERT` — each meaningfully
-  different. Exception: `guess-the-capital` has no difficulty levels — it's purely a
+  different. Exception: the **board games against the owl** (`connect-four`, `checkers`,
+  `gomoku`) have **three** — `EASY`, `MEDIUM`, `EXPERT` — because a fourth rung bought
+  nothing: their levels differ only in how well the owl plays, and past a certain search
+  depth a child cannot tell two owls apart (the engine tests measure it: against a careful
+  player the old HARD and EXPERT owls both won every game). Three rungs are three real
+  experiences — you almost always win, an even fight, and a wall — and those games mark
+  their `.diff-grid` with `three` so the row of cards fills properly. `guess-the-capital`
+  has no difficulty levels — it's purely a
   choice of game (Indian States vs World Countries), so it has no level chip at all (see
   below). `spot-the-words` has no levels either: each theme in its `words.json` declares its
-  own grid size and word directions, and the theme *is* the difficulty. `spell-a-bee` and
+  own grid size and word directions, and the theme *is* the difficulty. `crazy-eights` has
+  none either — the deal decides far more of a card game than any owl would, so a second
+  owl would be a label with almost nothing behind it; like `guess-the-capital` it has no
+  level chip at all. `spell-a-bee` and
   `what-am-i` add an optional **fifth** level on top of the four — `📝 My Words` (the `MY`
   list in `spell-a-bee/words.json`) and `📝 My Riddles` (`what-am-i/my.json`) — a hidden
   `.diff` card and level-menu entry that appear only when that data is non-empty.
@@ -307,7 +317,7 @@ don't redefine these classes in a game's own `<style>`.
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`,
-  `circuit-builder`, `connect-four`, `checkers`, `gomoku`.
+  `circuit-builder`, `connect-four`, `checkers`, `gomoku`, `crazy-eights`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## The board (`.gb-*` + `.piece`) — every board game shares one
@@ -333,8 +343,7 @@ rebuilds the frame itself.
   `pieceHTML()`, and shared by **every** board game, including ones with no holes at all
   (`checkers` sizes it inside its own chequered square). A game may decide **how big** its
   piece is; it must never re-colour it. Its states are shared too: `.place` (popped onto an
-  empty square), `.drop` (fell down a column, `--fall` cells), `.slide` (dropped after a pop)
-  and `.gone` (taken off the board).
+  empty square), `.drop` (fell down a column, `--fall` cells) and `.gone` (taken off the board).
 - **Tuning knobs**, all passed to `buildBoard` so a board's numbers sit in one call, never
   scattered through a game's CSS: `hole` (hole radius), `inset` (how much smaller a piece is
   than its square — the default sits a piece *inside* its hole; Connect Four passes a bigger
@@ -552,7 +561,8 @@ word-guess · guess-the-capital · math-monsters · shape-sorter · color-match 
 calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
-balance-scales · tic-tac-toe · circuit-builder · connect-four · checkers · gomoku
+balance-scales · tic-tac-toe · circuit-builder · connect-four · checkers · gomoku ·
+crazy-eights
 
 `word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word`,
 `what-am-i` and `circuit-builder` are the **data-driven** games: each loads its data from JSON in its own folder
@@ -606,16 +616,16 @@ its own `onclick`s on `#rules-home` / `#rules-btn`.
 
 `connect-four` is classic 7×6 Connect Four against the owl; you always go first. Its board is
 the shared one (see "The board"), with the holes made smaller than the discs so a falling disc
-is clipped by the frame and looks like it is sliding down behind it. EASY, MEDIUM
-and HARD differ only in the owl: EASY plays loosely (takes a win it sees 75% of the time, blocks
-50%), MEDIUM searches 3 plies and sometimes plays a simpler careful move instead, and HARD runs
-an alpha-beta search 6 plies deep. EXPERT changes the **rules** to **PopOut**: on your turn you
-may pop one of your own discs out of the bottom row (the column slides down), and the owl
-searches 8 plies. The owl's thinking is capped by a node budget, not a clock, so it costs the
-same on every machine. The PopOut edge cases are house rules: a pop that makes four for both
-sides wins for the popper; a pop that makes four only for the other side loses; a full board
-is a draw only when the player to move has nothing to pop; and a third repeat of a position is
-a draw. Hint is the careful move (win, else block, else never hand over a win). Stars: a win
+is clipped by the frame and looks like it is sliding down behind it. Its **three** levels differ
+only in the owl, and the rules never change: EASY plays loosely (takes a win it sees 75% of the
+time, blocks 50%), MEDIUM searches 3 plies and sometimes plays a simpler careful move instead,
+and EXPERT runs an alpha-beta search 6 plies deep. The owl's thinking is capped by a node budget,
+not a clock, so it costs the same on every machine. Because a disc only ever lands on top of a
+column, a move can never complete a line for the *other* side, and a position can never come
+round twice — so the only ending without a winner is a full board. (An earlier EXPERT level
+played **PopOut**, where you could pop your own bottom disc out; it was removed — its house
+rules about double fours, repetition and full-board draws were far too fiddly for the age group.)
+Hint is the careful move (win, else block, else never hand over a win). Stars: a win
 earns ★★★ minus one per hint (at least ★), a tie ★, a loss none.
 `_tests/games/connect-four/engine.test.js` checks the rules against an independent oracle over
 thousands of random games, proves the alpha-beta search equal to plain minimax (and exact in
@@ -623,10 +633,10 @@ endgames), and ranks the owls by strength — **run it after touching the search
 or the level table.**
 
 `checkers` is 8×8 English draughts against the owl; you are red (coral) and move first, the owl
-plays the sun-coloured pieces. The rules are the strict ones: **captures are compulsory**, a jump
+plays the sun-coloured pieces. It has **three** levels. The rules are the strict ones: **captures are compulsory**, a jump
 chain **must** be played to its end, men move and jump forward only, and a man crowned mid-jump
-stops there. EASY, MEDIUM and HARD differ only in the owl (depth 2 / 5 / 9, with the weaker two
-slipping to a random or near-best move on purpose); EXPERT changes the **rules** to **flying
+stops there. EASY and MEDIUM differ only in the owl (depth 2 / 5, both slipping to a random or
+near-best move on purpose); EXPERT changes the **rules** to **flying
 kings** — a king slides any distance along a diagonal and jumps from afar, landing anywhere past
 its victim — with the deepest owl. Men never fly, at any level. The owl is capped by a node
 budget, not a clock, so it costs the same on every machine. A run of 60 quiet king moves (no
@@ -643,10 +653,10 @@ the real page, rebuilding the board from its own aria-labels, and wins a game th
 
 `gomoku` is five in a row against the owl, on the shared board (see "The board") without the
 gravity: you always go first and put a stone on any empty spot. It is **freestyle** gomoku — five **or more**
-in a row wins, so an overline of six counts, which is the rule a child expects. The board grows
-with the level (EASY 9×9, MEDIUM 11×11, HARD and EXPERT 13×13) and so does the owl: EASY is
+in a row wins, so an overline of six counts, which is the rule a child expects. It has **three** levels. The board grows
+with the level (EASY 9×9, MEDIUM 11×11, EXPERT 13×13) and so does the owl: EASY is
 sleepy (it takes a win it can see 70% of the time and blocks 55%), MEDIUM looks two plies ahead
-and sometimes just plays the careful move, HARD searches four plies. EXPERT changes the **rules**
+and sometimes just plays the careful move. EXPERT changes the **rules**
 to **captures** (the Ninuki-renju / Pente rule): a stone that traps **exactly two** of the
 opponent's stones between two of yours takes them off the board, and **five captured pairs wins**
 just like five in a row — three in a row are safe, and moving *into* a gap between two enemy
@@ -663,6 +673,26 @@ stone), proves alpha-beta equal to plain minimax over the same candidates, holds
 to its cap and ranks the owls by how much each gives away — **run it after touching the search,
 the evaluation or the level table.** `_tests/games/gomoku/play.test.js` drives the real page and
 plays it into captures at EXPERT.
+
+`crazy-eights` is the card game against the owl, played with one 52-card deck: seven cards
+each, and you go first. A card may be laid on the pile when it matches the **suit in force** or
+the **rank** of the top card; an **8 is wild** and its player names the next suit, which is why
+the suit is held in the state separately from the top card. Two house rules keep it simple for a
+child and finite for the engine: you may **only take a card when nothing in your hand matches**
+(and only one per turn — play it if you can, otherwise the turn ends), and once the pack is empty
+a stuck player passes, with **two passes in a row** ending the round in favour of the smaller
+hand (level hands tie). It has **no levels** (see the level rule above) and one owl, which keeps
+its eights back for when it is stuck and names the suit it holds most of. The "already took a
+card" flag belongs to the **turn**, not the round: it stays set only while the same player still
+holds the turn (they drew something playable, so they must play it) and is cleared the moment the
+turn passes. Letting it survive the turn change is what made a tap on the pack get refused, so
+the player silently passed and the card they were owed went to the owl instead — both the engine
+test and the play-through now check that a card taken lands in the taking player's own hand. The pile keeps **every**
+card played, not just the top one — `_tests/games/crazy-eights/engine.test.js` counts hands +
+pile + pack after every move and fails if the total is ever anything but one whole deck, which is
+how the first version's vanishing cards were caught. That test also proves every random game
+finishes and that the owl never spends an eight while a plain card would do — **run it after
+touching the rules or the owl.**
 
 `dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
 player can clear from there without ever guessing; the same solver powers its Hint.

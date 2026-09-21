@@ -89,16 +89,15 @@ function randomPosition(rng, level, plies) {
 }
 
 /* ---- 1. the level table ------------------------------------------------------------------ */
-ok(JSON.stringify(Object.keys(LEVELS)) === '["EASY","MEDIUM","HARD","EXPERT"]', "four levels in order");
-ok([9, 11, 13, 13].every((n, i) => Object.values(LEVELS)[i].n === n), "boards grow 9 → 11 → 13, and EXPERT keeps 13");
+ok(JSON.stringify(Object.keys(LEVELS)) === '["EASY","MEDIUM","EXPERT"]', "three levels in order");
+ok([9, 11, 13].every((n, i) => Object.values(LEVELS)[i].n === n), "boards grow 9 → 11 → 13");
 for (const [k, L] of Object.entries(LEVELS)) ok(L.n % 2 === 1, k + "'s board has a middle square to open on");
-ok(["EASY", "MEDIUM", "HARD"].every(k => LEVELS[k].rules === "classic"), "EASY/MEDIUM/HARD are plain five in a row");
+ok(["EASY", "MEDIUM"].every(k => LEVELS[k].rules === "classic"), "EASY/MEDIUM are plain five in a row");
 ok(LEVELS.EXPERT.rules === "capture", "EXPERT adds captures");
-ok(LEVELS.EASY.owl === "gentle" && LEVELS.MEDIUM.slip > 0 && LEVELS.MEDIUM.depth < LEVELS.HARD.depth,
-   "MEDIUM looks less far than HARD, and slips");
-for (const k of ["HARD", "EXPERT"]) ok(!LEVELS[k].slip && LEVELS[k].depth >= 4 && LEVELS[k].nodes > 0 && LEVELS[k].cand > 0,
-   k + " owl searches a trimmed list under a node budget");
-ok(LEVELS.EXPERT.depth > LEVELS.HARD.depth, "EXPERT looks further than HARD");
+ok(LEVELS.EASY.owl === "gentle" && LEVELS.MEDIUM.slip > 0 && LEVELS.MEDIUM.depth < LEVELS.EXPERT.depth,
+   "MEDIUM looks less far than EXPERT, and slips");
+ok(!LEVELS.EXPERT.slip && LEVELS.EXPERT.depth >= 4 && LEVELS.EXPERT.nodes > 0 && LEVELS.EXPERT.cand > 0,
+   "the EXPERT owl searches a trimmed list under a node budget");
 
 /* ---- 2. the windows of five --------------------------------------------------------------- */
 for (const n of [9, 11, 13]) {
@@ -247,7 +246,7 @@ for (const n of [9, 11, 13]) {
   dbl[at(6, 5)] = OWL; dbl[at(7, 5)] = OWL; dbl[at(8, 5)] = YOU;
   ok(E.capturesAt(dbl, at(5, 5), YOU, n).length === 4, "one stone can close two sandwiches at once");
   /* and never in the classic rules */
-  let c = E.newGame("HARD");
+  let c = E.newGame("MEDIUM");
   c = E.applyMove(c, at(6, 6)); c = E.applyMove(c, at(6, 7));
   c = E.applyMove(c, at(0, 0)); c = E.applyMove(c, at(6, 8));
   c = E.applyMove(c, at(6, 9));
@@ -356,7 +355,7 @@ function checkGames(level, games, rng) {
   const rng = mulberry32(19);
   let bad = 0, gifted = 0;
   for (let t = 0; t < stress(150); t++) {
-    const level = t % 2 ? "EXPERT" : "HARD";
+    const level = t % 2 ? "EXPERT" : "MEDIUM";
     const s = randomPosition(rng, level, 10 + Math.floor(rng() * 30));
     const rules = s.rules, n = s.n, p = s.turn;
     for (const m of E.topMoves(s.board, p, rules, n, 6)) {
@@ -394,7 +393,7 @@ function childMinimax(b, caps, p, m, depth, rules, n, cand) {
   const rng = mulberry32(23);
   let bad = 0, runs = 0, wins = 0;
   for (let t = 0; t < stress(120); t++) {
-    const level = t % 3 === 2 ? "EXPERT" : "HARD";
+    const level = t % 3 === 2 ? "EXPERT" : "MEDIUM";
     const s = randomPosition(rng, level, 6 + Math.floor(rng() * 26));
     const cand = 5, depth = 2 + (t % 2);
     const want = minimax(s.board, s.caps, s.turn, depth, s.rules, s.n, cand, 2);
@@ -428,7 +427,7 @@ function childMinimax(b, caps, p, m, depth, rules, n, cand) {
   /* every level's owl answers on any position, and its move is legal */
   const rng2 = mulberry32(41);
   let bad = 0;
-  for (const level of ["EASY", "MEDIUM", "HARD", "EXPERT"])
+  for (const level of ["EASY", "MEDIUM", "EXPERT"])
     for (let t = 0; t < stress(20); t++) {
       const s = randomPosition(rng2, level, 4 + Math.floor(rng2() * 24));
       if (!E.isLegal(s.board, E.owlMove(s, rng2))) bad++;
@@ -470,10 +469,10 @@ function giveaway(spec, positions, refs, seed) {
     { nodes: 0, limit: Infinity, cand: REF.cand }).best);
   const g = {};
   for (const [name, spec] of [["EASY", LEVELS.EASY], ["careful", { owl: "careful" }], ["MEDIUM", LEVELS.MEDIUM],
-                              ["HARD", LEVELS.HARD], ["EXPERT", LEVELS.EXPERT]])
+                              ["EXPERT", LEVELS.EXPERT]])
     g[name] = giveaway(spec, positions, refs, 7);
   ok(g.EASY > 2 * g.MEDIUM, "EASY gives away far more than MEDIUM (" + g.EASY + " vs " + g.MEDIUM + ")");
-  ok(g.MEDIUM > 4 * g.HARD, "MEDIUM gives away far more than HARD (" + g.MEDIUM + " vs " + g.HARD + ")");
+  ok(g.MEDIUM > 4 * g.EXPERT, "MEDIUM gives away far more than EXPERT (" + g.MEDIUM + " vs " + g.EXPERT + ")");
   ok(g.EXPERT * 4 < g.MEDIUM, "the EXPERT owl is in the top class too (" + g.EXPERT + " vs MEDIUM's " + g.MEDIUM + ")");
   ok(g.EASY > g.careful, "EASY is looser than plain careful play (" + g.EASY + " vs " + g.careful + ")");
   console.log("  give-away per move (smaller is sharper): " + JSON.stringify(g));
@@ -481,7 +480,7 @@ function giveaway(spec, positions, refs, seed) {
 
 /* and the levels really do beat each other over whole games */
 function duel(A, B, n, rules, rng) {
-  let s = { level: "HARD", n, rules, board: E.emptyBoard(n), turn: YOU, winner: 0, draw: null,
+  let s = { level: "EXPERT", n, rules, board: E.emptyBoard(n), turn: YOU, winner: 0, draw: null,
             line: [], last: null, caps: [0, 0, 0], moves: 0 };
   s = E.applyMove(s, ((n - 1) >> 1) * n + ((n - 1) >> 1));           /* a fixed opening move … */
   const near = E.nearMoves(s.board, n, 1);

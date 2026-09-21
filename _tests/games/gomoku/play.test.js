@@ -50,12 +50,12 @@ async function playOut(g) {
     const g = boot();
     const { $, d } = g;
     ok(!$("screen-home").classList.contains("hide") && $("screen-game").classList.contains("hide"), "opens on the start screen");
-    ok(d.querySelectorAll(".diff").length === 4, "four level cards");
+    ok(d.querySelectorAll(".diff").length === 3, "three level cards");
     ok(d.querySelector('.diff[data-diff="EASY"]').getAttribute("aria-pressed") === "true", "EASY picked by default");
     ok(d.querySelector(".hub-link").getAttribute("href") === "../", "← All games points to the hub");
     ok($("title").textContent.replace(/\s/g, "") === "Gomoku", "bouncy title reads Gomoku");
-    d.querySelector('.diff[data-diff="HARD"]').click();
-    ok(d.querySelector('.diff[data-diff="HARD"]').getAttribute("aria-pressed") === "true"
+    d.querySelector('.diff[data-diff="MEDIUM"]').click();
+    ok(d.querySelector('.diff[data-diff="MEDIUM"]').getAttribute("aria-pressed") === "true"
        && d.querySelector('.diff[data-diff="EASY"]').getAttribute("aria-pressed") === "false", "tapping a card picks that level");
     $("rules-home").click();
     ok(d.getElementById("rules-ov").classList.contains("show") && d.querySelectorAll("#rules-body .rule").length >= 5,
@@ -179,7 +179,7 @@ async function playOut(g) {
     g.cells()[40].click();
     await owlReply(g);
     $("q-level").click();
-    ok(d.querySelectorAll(".level-opt").length === 4, "the level menu lists four levels");
+    ok(d.querySelectorAll(".level-opt").length === 3, "the level menu lists three levels");
     d.querySelector('.level-opt[data-diff="EXPERT"]').click();
     ok($("q-level-label").textContent === "🏆 Expert" && !$("screen-game").classList.contains("hide"),
        "picking Expert switches level and stays in the game");
@@ -245,7 +245,7 @@ async function playOut(g) {
 
   /* ---- whole games at every level ------------------------------------------------------- */
   const outcomes = {};
-  for (const level of ["EASY", "MEDIUM", "HARD", "EXPERT"]) {
+  for (const level of ["EASY", "MEDIUM", "EXPERT"]) {
     const g = boot({ seed: level === "EASY" ? 3 : 7 });
     const { $ } = g;
     g.start(level);

@@ -304,13 +304,13 @@ tap targets over it. Squares are `<div class="gb-slot" id="s{i}">`, so a game re
 `$("s" + i)`; a piece inside one is `pieceHTML("you" | "bird")`. Gomoku's whole board, markup
 and all:
 
-Source: `games/gomoku/index.html` lines 96-97
+Source: `games/gomoku/index.html` lines 95-96
 ```html
       <div id="stage">
         <!-- buildBoard() puts the shared board here; the spots to tap go on top of it -->
 ```
 
-Source: `games/gomoku/index.html` lines 502-519
+Source: `games/gomoku/index.html` lines 500-517
 ```js
 function setupBoard() {
   const n = game.n;
@@ -336,7 +336,7 @@ Connect Four's board is the same one with different knobs — room above it for 
 holding, holes smaller than the discs (so a falling disc is clipped by the frame and looks like
 it is behind it), and its own row numbering, because row 0 is the bottom of that board:
 
-Source: `games/connect-four/index.html` lines 428-432
+Source: `games/connect-four/index.html` lines 371-375
 ```js
   const b = buildBoard("stage", {
     cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58, gutter: 110 }),
@@ -348,7 +348,7 @@ Source: `games/connect-four/index.html` lines 428-432
 The line through a winning row is drawn by `drawWinLine(runs, xy)` — a list of runs of square
 indexes, and where a square's centre sits in cell units — and cleared by `clearWinLine()`:
 
-Source: `games/gomoku/index.html` lines 536-537
+Source: `games/gomoku/index.html` lines 534-535
 ```js
   if (game.winner && game.line.length) drawWinLine(runsOf(b, game.winner, n), i => [(i % n) + .5, ((i / n) | 0) + .5]);
   else clearWinLine();
@@ -420,5 +420,5 @@ result:      result rlabel stars rsub feedback good bad hint
 rules sheet: sheet-ov show sheet sheet-top sheet-x sheet-body sheet-foot rule cap rrow rarrow rsolo o fade
 board:       piece you bird gb-stage gb-rig gb-board gb-layer gb-slot gb-back gb-frame gb-lips gb-rim gb-fx
 board line:  gb-line wl-back wl-front
-board state: last win place drop slide gone
+board state: last win place drop gone
 ```

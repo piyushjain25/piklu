@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crazy Eights</title>
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{max-width:640px;}
+  /* One card's size drives everything else, so a hand of twenty still fits a phone. */
+  .felt{--cw:clamp(38px,10vw,54px); --ch:calc(var(--cw)*1.42); --cr:calc(var(--cw)*.15);
+    background:linear-gradient(180deg,#F6F2FF,#EFE9FC); border-radius:22px; padding:14px 10px;
+    box-shadow:inset 0 0 0 3px var(--key-line);}
+  .hand{display:flex; flex-wrap:wrap; justify-content:center; gap:4px; min-height:calc(var(--ch) + 6px);}
+  .hand.yours{margin-top:12px;}
+
+  /* ---- a real card face: corner index, big centre pip, mirrored index ---- */
+  .card-btn{position:relative; display:block; width:var(--cw); height:var(--ch); padding:0;
+    border-radius:var(--cr); border:1px solid #DDD5F0; overflow:hidden; cursor:pointer;
+    background:linear-gradient(158deg,#fff 0%,#fff 60%,#FAF7FF 100%);
+    box-shadow:0 2px 0 #D9D0EF, 0 5px 12px rgba(72,45,130,.15);
+    font-family:'Fredoka',sans-serif; font-weight:700; transition:transform .12s ease, box-shadow .12s ease;}
+  .card-btn .idx{position:absolute; display:flex; flex-direction:column; align-items:center; line-height:.92;}
+  .card-btn .idx.tl{top:5%; left:8%;}
+  .card-btn .idx.br{bottom:5%; right:8%; transform:rotate(180deg);}
+  .card-btn .idx .r{font-size:calc(var(--cw)*.30);}
+  .card-btn .idx .r.ten{font-size:calc(var(--cw)*.23); letter-spacing:-.5px;}
+  .card-btn .idx .s{font-size:calc(var(--cw)*.25);}
+  .card-btn .pip{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:calc(var(--cw)*.58); opacity:.92;}
+  .card-btn.red{color:var(--coral-dark);} .card-btn.black{color:var(--ink);}
+  /* On your turn a card you cannot play is dimmed AND desaturated, so the difference never
+     rests on colour alone. While the owl thinks, nothing is playable by definition — dimming
+     the whole hand then would just make the table look switched off. */
+  .card-btn:disabled{cursor:default; opacity:.55; filter:saturate(.35);}
+  .hand.waiting .card-btn:disabled{opacity:.9; filter:none;}
+  .card-btn.playable:not(:disabled){border-color:var(--leaf);
+    box-shadow:0 0 0 2px var(--leaf), 0 2px 0 var(--leaf-dark), 0 6px 14px rgba(47,179,125,.22);}
+  .card-btn.playable:not(:disabled):hover{transform:translateY(-5px);}
+  .card-btn.hinted{background:var(--sun); border-color:var(--sun-dark); color:var(--ink);}
+  .card-btn:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+
+  /* ---- the back: the site's grape, a white key-line and a soft lattice ---- */
+  .back{position:relative; display:block; width:var(--cw); height:var(--ch); border-radius:var(--cr);
+    border:1px solid var(--grape-dark); overflow:hidden;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 5px, rgba(255,255,255,0) 5px 10px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,.12) 0 5px, rgba(255,255,255,0) 5px 10px),
+      linear-gradient(158deg, var(--grape) 0%, var(--grape-dark) 100%);
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.6), 0 2px 0 #3f2a75, 0 5px 12px rgba(72,45,130,.18);}
+  /* a diamond in the middle, the way a real card back carries a motif */
+  .back::before{content:""; position:absolute; left:50%; top:50%; width:38%; height:38%;
+    transform:translate(-50%,-50%) rotate(45deg); border:2px solid rgba(255,255,255,.8);
+    border-radius:3px; background:rgba(255,255,255,.14);}
+  .back::after{content:""; position:absolute; left:50%; top:50%; width:14%; height:14%;
+    transform:translate(-50%,-50%) rotate(45deg); background:rgba(255,255,255,.85); border-radius:2px;}
+
+  /* ---- the middle: the pack (a stack you can see) and the pile ---- */
+  .middle{display:flex; align-items:flex-start; justify-content:center; gap:22px; margin:16px 0 6px;}
+  .stock{position:relative; width:var(--cw);}
+  /* two faint cards peeking out behind, so the pack reads as a stack rather than one card */
+  .stock::before,.stock::after{content:""; position:absolute; left:0; top:0; width:var(--cw); height:var(--ch);
+    border-radius:var(--cr); background:var(--grape-dark); opacity:.3;}
+  .stock::before{transform:translate(5px,5px);} .stock::after{transform:translate(2.5px,2.5px); opacity:.45;}
+  .stock.empty::before,.stock.empty::after{display:none;}
+  .stock-btn{position:relative; z-index:1; padding:0; border:none; background:none; cursor:pointer; display:block;}
+  .stock-btn:disabled{cursor:default;}
+  .stock-btn:disabled .back{opacity:.72;}
+  .stock-btn:focus-visible{outline:3px solid var(--grape); outline-offset:3px; border-radius:var(--cr);}
+  .pass-face{display:flex; width:var(--cw); height:var(--ch); border-radius:var(--cr);
+    border:2px dashed #CFC4EC; align-items:center; justify-content:center;
+    font-size:calc(var(--cw)*.4); color:var(--ink-soft); background:rgba(255,255,255,.55);}
+  .stock-count{font-size:12px; font-weight:700; color:var(--ink-soft); text-align:center; margin-top:8px;}
+  .pile{display:flex; flex-direction:column; align-items:center;}
+  /* the played cards, squared up under the top one */
+  .pile-top{position:relative; width:var(--cw); height:var(--ch);}
+  .pile-top::before{content:""; position:absolute; inset:0; border-radius:var(--cr);
+    background:#fff; border:1px solid #E6DFF7; transform:rotate(-7deg); box-shadow:0 2px 6px rgba(72,45,130,.12);}
+  .pile-top .card-btn{position:absolute; inset:0; width:auto; height:auto; transform:rotate(3deg); cursor:default;}
+  .suit-now{margin-top:8px; font-size:13px; font-weight:700; color:var(--ink-soft);}
+  .hand-label{font-size:13px; font-weight:700; color:var(--ink-soft); text-align:center; margin-bottom:6px;
+    display:flex; align-items:center; justify-content:center; gap:7px;}
+  /* how many cards that hand holds — the thing you check on every turn, so never make it
+     something to count by eye */
+  .count{display:inline-flex; align-items:center; gap:4px; background:#fff; color:var(--grape);
+    border:2px solid var(--key-line); border-radius:999px; padding:1px 9px; font-size:12px; font-weight:800;}
+  .count.low{background:var(--sun); border-color:var(--sun-dark); color:var(--ink);}
+
+  /* choosing a suit after an eight */
+  .suit-pick{display:flex; justify-content:center; gap:10px; margin:12px 0 2px;}
+  .suit-pick button{width:54px; height:54px; border-radius:14px; border:3px solid var(--key-line);
+    background:#fff; font-size:25px; cursor:pointer; box-shadow:0 3px 0 #D9D0EF; line-height:1;}
+  .suit-pick button:hover{transform:translateY(-2px);}
+  .suit-pick button.red{color:var(--coral-dark);} .suit-pick button.black{color:var(--ink);}
+  .suit-pick button:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  /* rules-sheet diagrams */
+  .rcard{position:relative; display:inline-block; width:44px; height:62px; border:1px solid #DDD5F0;
+    border-radius:7px; background:#fff; font-family:'Fredoka',sans-serif; font-weight:700;
+    box-shadow:0 2px 0 #D9D0EF;}
+  .rcard .idx{position:absolute; top:3px; left:4px; display:flex; flex-direction:column;
+    align-items:center; line-height:.92; font-size:13px;}
+  .rcard .pip{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:22px;}
+  .rcard.red{color:var(--coral-dark);} .rcard.black{color:var(--ink);}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home"></svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle">🃏 Match the suit or the number — and be first to empty your hand!</p>
+      <div class="howto">
+        🃏 <b>How to play:</b> You and the owl each get <b>seven cards</b>. Play a card that matches the
+        pile's <b>suit</b> (♠ ♥ ♦ ♣) or its <b>number</b>. An <b>8 is wild</b> — play it any time and
+        choose the next suit! Can't go? Take a card from the pack. First to run out of cards wins.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+
+      <div class="felt">
+        <div class="hand-label">🦉 The owl's cards <span class="count" id="owl-count">7 cards</span></div>
+        <div class="hand" id="owl-hand" aria-hidden="true"></div>
+
+        <div class="middle">
+          <div class="stock">
+            <button class="stock-btn" id="stock-btn" aria-label="Take a card from the pack">
+              <span class="back" aria-hidden="true"></span>
+            </button>
+            <div class="stock-count" id="stock-count"></div>
+          </div>
+          <div class="pile">
+            <div class="pile-top" id="pile-top"></div>
+            <div class="suit-now" id="suit-now"></div>
+          </div>
+        </div>
+
+        <div class="hand-label">🙋 Your cards <span class="count" id="your-count">7 cards</span></div>
+        <div class="hand yours" id="your-hand" role="group" aria-label="Your cards"></div>
+      </div>
+
+      <div class="suit-pick hide" id="suit-pick" role="group" aria-label="Choose the next suit"></div>
+
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="next-btn" class="btn btn-primary invisible">Play again ▶</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+/* ===== ENGINE ============================================================================
+   Crazy Eights, two hands: you and the owl. A card is an int 0..51 — suit*13 + rank, where
+   rank 0..12 is A,2,3,…,10,J,Q,K, so rank 6 is the 8 (the wild card).
+
+   A card may be played when it matches the pile's CURRENT SUIT or the top card's rank. The
+   current suit is usually the top card's own suit, but after an eight it is whatever the
+   player who laid it asked for — so the suit is held separately from the card.
+
+   Nobody may draw while they hold a playable card; that keeps the game moving and is one
+   less thing for a child to get wrong. With nothing to play you take one card: if it can be
+   played you may play it, otherwise the turn passes. When the pack is empty a stuck player
+   simply passes, and two passes in a row end the game — fewest cards wins, level is a tie.
+   That, plus a hand that only ever shrinks when you play, is what makes every game finite.
+
+   There are no difficulty levels: the deal decides most of a round, so a second owl would
+   change far less than the shuffle does. */
+const SUITS = ["♠", "♥", "♦", "♣"];
+const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const EIGHT = 7;                                    /* index of "8" in RANKS */
+const HAND = 7;                                     /* cards dealt to each player */
+const YOU = 0, OWL = 1;
+const suitOf = c => Math.floor(c / 13);
+const rankOf = c => c % 13;
+const isEight = c => rankOf(c) === EIGHT;
+const isRed = c => suitOf(c) === 1 || suitOf(c) === 2;
+const cardName = c => RANKS[rankOf(c)] + SUITS[suitOf(c)];
+
+/* a card is playable on (top, suit) if it is an eight, matches the suit, or matches the rank */
+const playable = (c, top, suit) => isEight(c) || suitOf(c) === suit || rankOf(c) === rankOf(top);
+const playableIn = (hand, top, suit) => hand.filter(c => playable(c, top, suit));
+
+/* a shuffled deck, Fisher-Yates from the given random source */
+function shuffled(rng) {
+  const d = Array.from({ length: 52 }, (_, i) => i);
+  for (let i = d.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const t = d[i]; d[i] = d[j]; d[j] = t;
+  }
+  return d;
+}
+
+/* Deal from an already-shuffled deck, so Reset can replay the very same deal. The starter
+   card is never an eight — the round would otherwise open by asking a child to choose a
+   suit before they have seen a single card. */
+function dealFrom(deck) {
+  const d = deck.slice();
+  const hands = [[], []];
+  for (let k = 0; k < HAND; k++) { hands[YOU].push(d.shift()); hands[OWL].push(d.shift()); }
+  let i = d.findIndex(c => !isEight(c));
+  if (i < 0) i = 0;                                  /* cannot happen with one deck, but stay safe */
+  const top = d.splice(i, 1)[0];
+  /* `pile` keeps every card laid down, newest last, and `top` is its last card — the cards
+     already played have to stay somewhere, or a deck's worth of them quietly leaks away. */
+  return { deck: deck.slice(), stock: d, hands, pile: [top], top, suit: suitOf(top),
+           turn: YOU, winner: -1, tie: false, passes: 0, drew: false, pending: false, last: null, moves: 0 };
+}
+const newGame = rng => dealFrom(shuffled(rng || Math.random));
+const isOver = s => s.winner >= 0 || s.tie;
+const myPlayable = s => playableIn(s.hands[s.turn], s.top, s.suit);
+
+/* the state after the player to move lays `c` down. `suit` is the suit they ask for, and is
+   only read when `c` is an eight. Returns null if that is not a legal card right now. */
+function playCard(s, c, suit) {
+  if (isOver(s) || s.pending) return null;
+  const hand = s.hands[s.turn];
+  if (!hand.includes(c) || !playable(c, s.top, s.suit)) return null;
+  const hands = [s.hands[0].slice(), s.hands[1].slice()];
+  hands[s.turn].splice(hands[s.turn].indexOf(c), 1);
+  const asked = isEight(c) ? (suit === undefined ? suitOf(c) : suit) : suitOf(c);
+  const winner = hands[s.turn].length === 0 ? s.turn : -1;
+  return Object.assign({}, s, { hands, pile: s.pile.concat([c]), top: c, suit: asked, winner,
+    turn: winner >= 0 ? s.turn : 1 - s.turn, passes: 0, drew: false,
+    last: { by: s.turn, kind: "play", card: c, suit: asked }, moves: s.moves + 1 });
+}
+
+/* Take one card. Only legal with nothing playable and only once per turn: with a card in
+   hand to play, or a card already taken this turn, the turn has to end instead.
+   `drew` belongs to the TURN, not the round — it stays true only while the same player still
+   holds the turn (they took a card they can play, so they must play it). The moment the turn
+   passes it goes back to false, or the next player inherits a spent turn: their tap on the
+   pack would be refused and they would silently pass instead, handing their card to the owl. */
+function drawCard(s) {
+  if (isOver(s) || s.pending || s.drew || myPlayable(s).length || !s.stock.length) return null;
+  const stock = s.stock.slice(), got = stock.shift();
+  const hands = [s.hands[0].slice(), s.hands[1].slice()];
+  hands[s.turn].push(got);
+  const can = playable(got, s.top, s.suit);
+  return Object.assign({}, s, { stock, hands, drew: can,
+    turn: can ? s.turn : 1 - s.turn, passes: 0,
+    last: { by: s.turn, kind: "draw", card: got, could: can }, moves: s.moves + 1 });
+}
+
+/* Give up the turn: only with nothing to play AND an empty pack — while the pack holds a card
+   you have to take it. Two passes in a row end the round: the smaller hand wins, equal ties. */
+function passTurn(s) {
+  if (isOver(s) || s.pending || myPlayable(s).length || s.stock.length) return null;
+  const passes = s.passes + 1;
+  let winner = -1, tie = false;
+  if (passes >= 2) {
+    const a = s.hands[YOU].length, b = s.hands[OWL].length;
+    if (a === b) tie = true; else winner = a < b ? YOU : OWL;
+  }
+  return Object.assign({}, s, { turn: 1 - s.turn, passes, drew: false, winner, tie,
+    last: { by: s.turn, kind: "pass" }, moves: s.moves + 1 });
+}
+
+/* the only move left when you hold no playable card: take one if the pack has any, else pass.
+   (`drew` cannot be true here — a player who drew a playable card is not stuck.) */
+const stuckMove = s => (s.stock.length ? "draw" : "pass");
+
+/* ---- the owl ---------------------------------------------------------------------------
+   One owl, played the way a sensible person would: keep the eights for when you are stuck,
+   shed your biggest cards first, and when you do lay an eight, ask for the suit you hold
+   most of. It plays well enough to be worth beating and loses often enough to be fun. */
+function owlChoice(s, rng) {
+  const hand = s.hands[s.turn], can = playableIn(hand, s.top, s.suit);
+  if (!can.length) return { kind: stuckMove(s) };
+  const plain = can.filter(c => !isEight(c));
+  if (plain.length) {
+    /* prefer a card whose suit it holds plenty of, then the highest rank */
+    const count = suit => hand.filter(c => suitOf(c) === suit && !isEight(c)).length;
+    let best = plain[0];
+    for (const c of plain)
+      if (count(suitOf(c)) > count(suitOf(best)) ||
+         (count(suitOf(c)) === count(suitOf(best)) && rankOf(c) > rankOf(best))) best = c;
+    return { kind: "play", card: best, suit: suitOf(best) };
+  }
+  const eight = can[0];                               /* nothing else: spend an eight */
+  const rest = hand.filter(c => c !== eight);
+  let ask = suitOf(eight), most = -1;
+  for (let t = 0; t < 4; t++) {
+    const n = rest.filter(c => suitOf(c) === t).length;
+    if (n > most) { most = n; ask = t; }
+  }
+  return { kind: "play", card: eight, suit: ask };
+}
+
+/* the player's Hint: the same judgement, for whoever is to move */
+const hintChoice = (s, rng) => owlChoice(s, rng || Math.random);
+
+/* apply a choice from owlChoice/hintChoice */
+function applyChoice(s, ch) {
+  if (ch.kind === "play") return playCard(s, ch.card, ch.suit);
+  if (ch.kind === "draw") return drawCard(s);
+  return passTurn(s);
+}
+
+const starsFor = (winner, hints) => winner === YOU ? Math.max(1, 3 - hints) : winner === OWL ? 0 : 1;
+
+if (typeof module !== "undefined") module.exports = { SUITS, RANKS, EIGHT, HAND, YOU, OWL,
+  suitOf, rankOf, isEight, isRed, cardName, playable, playableIn, shuffled, dealFrom, newGame,
+  isOver, myPlayable, playCard, drawCard, passTurn, stuckMove, owlChoice, hintChoice, applyChoice, starsFor };
+
+/* ===== DOM ===============================================================================
+   Guarded so the tests can load the engine above in plain Node, where `document` really is
+   undefined and none of this runs (see _tests/lib/harness.js). */
+if (typeof document !== "undefined") {
+
+let game = null, busy = false, hintsUsed = 0, owlTimer = null, pendingEight = null;
+
+function sound(kind) {
+  if (reduceMotion) return;
+  if (kind === "play") { beep(520, .07, "triangle"); }
+  else if (kind === "draw") { beep(300, .06, "sine"); }
+  else if (kind === "owl") { beep(400, .07, "sine"); }
+  else if (kind === "bad") { beep(180, .12, "sawtooth", 0, .05); }
+  else if (kind === "hint") { beep(880, .06, "sine"); }
+  else if (kind === "win") { [660, 830, 990].forEach((f, i) => beep(f, .12, "triangle", i * .1)); }
+  else if (kind === "lose") { beep(300, .16, "sine"); beep(220, .2, "sine", .14); }
+  else if (kind === "tie") { beep(430, .12, "sine"); }
+}
+
+/* a real card face: the rank-and-suit index in one corner, repeated upside down in the other
+   (which is what lets a fanned hand be read from either end), and the big suit in the middle */
+function cardHTML(c) {
+  const r = RANKS[rankOf(c)], s = SUITS[suitOf(c)];
+  const idx = '<span class="r' + (r === "10" ? " ten" : "") + '">' + r + '</span><span class="s">' + s + '</span>';
+  return '<span class="idx tl">' + idx + '</span>'
+       + '<span class="pip">' + s + '</span>'
+       + '<span class="idx br">' + idx + '</span>';
+}
+
+function faceCard(c, cls) {
+  const el = document.createElement("div");
+  el.className = "card-btn " + (isRed(c) ? "red " : "black ") + (cls || "");
+  el.innerHTML = cardHTML(c);
+  el.setAttribute("aria-hidden", "true");
+  return el;
+}
+
+function setCount(el, n, who) {
+  el.textContent = n + (n === 1 ? " card" : " cards");
+  el.classList.toggle("low", n <= 2);
+  el.setAttribute("aria-label", who + n + (n === 1 ? " card" : " cards"));
+}
+
+function render() {
+  const over = isOver(game), yours = game.turn === YOU && !over && !busy && !game.pending;
+  const can = playableIn(game.hands[YOU], game.top, game.suit);
+
+  /* the owl's hand, face down */
+  const oh = $("owl-hand");
+  oh.innerHTML = "";
+  for (let i = 0; i < game.hands[OWL].length; i++) {
+    const b = document.createElement("span");
+    b.className = "back";
+    oh.appendChild(b);
+  }
+  /* both counts are on screen, so neither hand has to be counted by eye. The last card or two
+     is when the round is about to turn, so that chip lights up. */
+  setCount($("owl-count"), game.hands[OWL].length, "The owl has ");
+  setCount($("your-count"), game.hands[YOU].length, "You have ");
+
+  /* the pile */
+  $("pile-top").innerHTML = "";
+  $("pile-top").appendChild(faceCard(game.top));
+  $("suit-now").textContent = "Suit: " + SUITS[game.suit];
+  /* The pack is only open when you have nothing to play — that is the rule, and it keeps a
+     child from burying a playable hand. With the pack empty the same button passes instead,
+     so being stuck is never a dead end. */
+  const sb = $("stock-btn"), empty = !game.stock.length;
+  sb.parentNode.classList.toggle("empty", empty);      /* the stack behind it goes with it */
+  $("stock-count").textContent = empty ? "empty" : game.stock.length + " left";
+  sb.innerHTML = empty ? '<span class="pass-face" aria-hidden="true">⏭</span>'
+                       : '<span class="back" aria-hidden="true"></span>';
+  sb.setAttribute("aria-label", empty ? "Pass — the pack is empty" : "Take a card from the pack");
+  sb.disabled = !yours || can.length > 0;
+
+  /* your hand */
+  const yh = $("your-hand");
+  yh.classList.toggle("waiting", !yours && !over);
+  yh.innerHTML = "";
+  for (const c of game.hands[YOU]) {
+    const b = document.createElement("button");
+    b.className = "card-btn " + (isRed(c) ? "red" : "black");
+    b.dataset.card = c;
+    b.innerHTML = cardHTML(c);
+    b.setAttribute("aria-label", RANKS[rankOf(c)] + " of " + ["spades", "hearts", "diamonds", "clubs"][suitOf(c)]);
+    const ok = playable(c, game.top, game.suit);
+    if (ok && yours) b.classList.add("playable");
+    b.disabled = !yours || !ok;
+    b.onclick = () => humanPlay(c);
+    yh.appendChild(b);
+  }
+}
+
+function startGame(deck) {
+  clearTimeout(owlTimer); owlTimer = null;
+  stopConfetti();
+  game = deck ? dealFrom(deck) : newGame();
+  busy = false; hintsUsed = 0; pendingEight = null;
+  $("suit-pick").classList.add("hide");
+  $("screen-home").classList.add("hide");
+  $("screen-game").classList.remove("hide");
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("invisible");
+  $("skip-btn").classList.remove("invisible");
+  setOwl("idle");
+  render();
+  flash("🙋 Your turn — match the suit or the number!", "");
+}
+
+function humanPlay(c) {
+  if (busy || !game || isOver(game) || game.turn !== YOU || game.pending) return;
+  if (!playable(c, game.top, game.suit)) { sound("bad"); flash("That card doesn't match — try another, or take one from the pack.", "bad"); return; }
+  if (isEight(c)) { askSuit(c); return; }
+  commit(playCard(game, c), "play");
+}
+
+/* an eight is wild: the page asks which suit before the move is made */
+function askSuit(c) {
+  pendingEight = c;
+  game = Object.assign({}, game, { pending: true });
+  const pick = $("suit-pick");
+  pick.innerHTML = "";
+  for (let t = 0; t < 4; t++) {
+    const b = document.createElement("button");
+    b.className = t === 1 || t === 2 ? "red" : "black";
+    b.textContent = SUITS[t];
+    b.setAttribute("aria-label", "Choose " + ["spades", "hearts", "diamonds", "clubs"][t]);
+    b.onclick = () => {
+      pick.classList.add("hide");
+      const card = pendingEight;
+      pendingEight = null;
+      game = Object.assign({}, game, { pending: false });
+      commit(playCard(game, card, t), "play");
+    };
+    pick.appendChild(b);
+  }
+  pick.classList.remove("hide");
+  render();
+  flash("🌟 A wild eight! Choose the next suit.", "hint");
+  const first = pick.querySelector("button");
+  if (first) first.focus();
+}
+
+/* one move by you, then hand over to the owl */
+function commit(next, kind) {
+  if (!next) return;
+  game = next;
+  sound(kind);
+  render();
+  if (isOver(game)) return finish();
+  if (game.turn === OWL) {
+    busy = true;
+    setOwl("think");
+    flash("🦉 The owl is thinking…", "");
+    render();
+    owlTimer = setTimeout(owlTurn, reduceMotion ? 250 : 650);
+  } else {
+    flash(game.last && game.last.kind === "draw" && game.last.could
+      ? "You took a card you can play — go on!" : "🙋 Your turn!", "");
+    render();
+  }
+}
+
+/* the owl keeps going while the turn is still its own (it may take a card and then play it) */
+function owlTurn() {
+  owlTimer = null;
+  const ch = owlChoice(game, Math.random);
+  const next = applyChoice(game, ch);
+  if (!next) { busy = false; render(); return; }
+  game = next;
+  sound("owl");
+  render();
+  if (isOver(game)) { busy = false; return finish(); }
+  if (game.turn === OWL) { owlTimer = setTimeout(owlTurn, reduceMotion ? 200 : 500); return; }
+  busy = false;
+  setOwl("idle");
+  render();
+  const l = game.last;
+  flash(l.kind === "play" ? "🦉 The owl played " + cardName(l.card)
+        + (isEight(l.card) ? " and chose " + SUITS[l.suit] : "") + " — 🙋 your turn!"
+      : l.kind === "draw" ? "🦉 The owl took a card — 🙋 your turn!"
+      : "🦉 The owl couldn't go — 🙋 your turn!", "");
+}
+
+function takeCard() {
+  if (busy || !game || isOver(game) || game.turn !== YOU || game.pending) return;
+  const next = drawCard(game);
+  if (!next) {
+    const p = passTurn(game);
+    if (!p) { sound("bad"); flash("You have a card you can play — play it!", "bad"); return; }
+    commit(p, "draw");
+    return;
+  }
+  commit(next, "draw");
+}
+
+function finish() {
+  busy = false;
+  const stars = starsFor(game.winner, hintsUsed);
+  let label, sub;
+  if (game.winner === YOU) {
+    label = "🎉 You played your last card — you win!";
+    sub = hintsUsed ? "Try winning with no hints for all three stars!" : "You beat the owl all by yourself!";
+    setOwl("win"); sound("win");
+    if (!reduceMotion) throwConfetti();
+  } else if (game.winner === OWL) {
+    label = "🦉 The owl went out first!";
+    sub = "Keep an eight back for when you're stuck next time.";
+    setOwl("happy"); sound("lose");
+  } else {
+    label = "🤝 It's a tie!";
+    sub = "Nobody could go, and you both had the same number of cards.";
+    setOwl("happy"); sound("tie");
+  }
+  $("stars").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+  $("stars").setAttribute("aria-label", stars + " of 3 stars");
+  $("rlabel").textContent = label;
+  $("rsub").textContent = sub;
+  flash("", "");
+  $("suit-pick").classList.add("hide");
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+  render();
+}
+
+function hint() {
+  if (busy || !game || isOver(game) || game.turn !== YOU || game.pending) return;
+  const ch = hintChoice(game);
+  hintsUsed++;
+  sound("hint");
+  render();
+  if (ch.kind === "play") {
+    const b = document.querySelector('.card-btn[data-card="' + ch.card + '"]');
+    if (b) b.classList.add("hinted");
+    flash("💡 Try the " + cardName(ch.card) + (isEight(ch.card) ? " — an eight is wild!" : "") + ".", "hint");
+  } else if (ch.kind === "draw") {
+    flash("💡 Nothing matches — take a card from the pack.", "hint");
+  } else {
+    flash("💡 Nothing matches and the pack is empty — you have to pass.", "hint");
+  }
+}
+
+/* ---- wiring ---------------------------------------------------------------------------- */
+$("start-btn").onclick = () => startGame();
+$("next-btn").onclick = () => startGame();
+$("skip-btn").onclick = () => startGame();
+$("reset-btn").onclick = () => startGame(game ? game.deck : null);
+$("hint-link").onclick = hint;
+$("stock-btn").onclick = takeCard;
+$("home-btn").onclick = () => {
+  clearTimeout(owlTimer); owlTimer = null;
+  busy = false; stopConfetti();
+  $("screen-game").classList.add("hide");
+  $("screen-home").classList.remove("hide");
+  setOwl("idle");
+};
+
+document.addEventListener("keydown", e => {
+  if (rulesSheetOpen()) return;
+  if (!game || isOver(game) || game.turn !== YOU || busy || game.pending) return;
+  if (e.key === "d" || e.key === "D") { takeCard(); e.preventDefault(); }   /* d: draw, or pass */
+});
+
+const rcardHTML = c => '<span class="rcard ' + (isRed(c) ? "red" : "black") + '">'
+  + '<span class="idx"><span class="r">' + RANKS[rankOf(c)] + '</span><span class="s">' + SUITS[suitOf(c)] + '</span></span>'
+  + '<span class="pip">' + SUITS[suitOf(c)] + '</span></span>';
+
+wireRulesSheet(function () {
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>Be the <b>first to play all your cards</b>. You and the owl start with <b>seven</b> each.</p></div>'
+
+    + '<div class="rule"><h3>🃏 Playing a card</h3>'
+    + '<p>Look at the card on the pile. You can play any card that matches its <b>suit</b> '
+    + '(♠ ♥ ♦ ♣) <b>or</b> its <b>number</b>.</p>'
+    + '<div class="rrow">' + rcardHTML(2 * 13 + 4) + '<span class="rarrow">➡️</span>'
+    + rcardHTML(2 * 13 + 10) + rcardHTML(0 * 13 + 4) + '</div>'
+    + '<span class="cap">On the 5♦ you could play any ♦, or any other 5.</span></div>'
+
+    + '<div class="rule"><h3>🌟 Eights are wild</h3>'
+    + '<p>An <b>8</b> can be played on <b>anything</b> — then you choose which suit comes next. '
+    + 'Save one for when you are stuck!</p>'
+    + '<div class="rrow">' + rcardHTML(1 * 13 + EIGHT) + '<span class="rarrow">➡️</span>'
+    + '<span class="rsolo">♣</span></div>'
+    + '<span class="cap">Play the 8♥ and ask for clubs.</span></div>'
+
+    + '<div class="rule"><h3>📥 When you cannot go</h3>'
+    + '<p>Tap the <b>pack</b> to take one card. If it can be played, play it — otherwise it is '
+    + 'the owl\'s turn. You can only take a card when nothing in your hand matches.</p></div>'
+
+    + '<div class="rule"><h3>🤝 An empty pack</h3>'
+    + '<p>If the pack runs out and neither of you can go, the round ends and whoever holds '
+    + '<b>fewer cards</b> wins. Same number? It is a tie.</p></div>'
+
+    + '<div class="rule"><h3>⭐ Stars</h3>'
+    + '<p>Win with no hints for <b>★★★</b>. Each 💡 Hint costs one star (a win always earns at '
+    + 'least one). A tie earns <b>★</b>.</p></div>';
+});
+
+initBouncyTitle("Crazy Eights");
+}
+</script>
+</body>
+</html>

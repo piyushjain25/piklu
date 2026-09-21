@@ -59,10 +59,9 @@
       </div>
       <p class="subtitle">5️⃣ Line up five in a row before the owl does!</p>
       <div class="block-label">Choose a level</div>
-      <div class="diff-grid" role="group" aria-label="Level">
+      <div class="diff-grid three" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">9×9, sleepy owl</div></button>
         <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">11×11, sharp owl</div></button>
-        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">13×13, clever owl</div></button>
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">13×13, captures</div></button>
       </div>
       <div class="howto">
@@ -138,8 +137,8 @@
      MEDIUM  11×11 freestyle — a short-sighted owl: looks two moves ahead, and now and then
               just plays the careful move (win if it can, block, never hand you a win, else
               the best-looking spot) without looking further
-     HARD    13×13 freestyle — a searching owl (alpha-beta look-ahead, capped by a node budget)
-     EXPERT  13×13 capture   — the deepest owl, and either side may capture (below)
+     EXPERT  13×13 capture   — a searching owl (alpha-beta look-ahead, capped by a node
+              budget), and either side may capture (below)
    You always go first.
 
    Freestyle means five OR MORE in a row wins, so an overline of six counts (the simplest
@@ -161,7 +160,6 @@ const CAP_DIRS = [...DIRS, ...DIRS.map(([r, c]) => [-r, -c])];     /* a sandwich
 const LEVELS = {
   EASY:   { label: "🌱 Easy",   n: 9,  rules: "classic", owl: "gentle" },
   MEDIUM: { label: "⭐ Medium", n: 11, rules: "classic", owl: "search", depth: 2, nodes: 4000,  cand: 10, slip: 0.35 },
-  HARD:   { label: "🔥 Hard",   n: 13, rules: "classic", owl: "search", depth: 4, nodes: 6000, cand: 12 },
   EXPERT: { label: "🏆 Expert", n: 13, rules: "capture", owl: "search", depth: 6, nodes: 6000, cand: 10 },
 };
 /* EASY's owl: chance it takes a win it can see, and chance it blocks yours */
@@ -732,7 +730,6 @@ wireRulesSheet(function () {
     + '<div class="rule"><h3>🦉 The owl at each level</h3>'
     + '<p>🌱 <b>Easy</b> — a small 9×9 board and a sleepy owl that sometimes misses a win or forgets to block.</p>'
     + '<p>⭐ <b>Medium</b> — an 11×11 board and a sharp owl: it takes a win when it sees one and blocks your four.</p>'
-    + '<p>🔥 <b>Hard</b> — a full 13×13 board and a clever owl that thinks several moves ahead.</p>'
     + '<p>🏆 <b>Expert</b> — the cleverest owl, playing with <b>captures</b> (below).</p></div>'
 
     + '<div class="rule"><h3>✋ Captures (Expert)</h3>'

@@ -36,8 +36,8 @@ ok(start.b.slice(24, 40).every(v => v === E.EMPTY), "the two middle rows start e
 
 /* ===== 2. the level table =============================================================== */
 
-const KEYS = ["EASY", "MEDIUM", "HARD", "EXPERT"];
-ok(Object.keys(E.LEVELS).join(",") === KEYS.join(","), "four levels, in order");
+const KEYS = ["EASY", "MEDIUM", "EXPERT"];
+ok(Object.keys(E.LEVELS).join(",") === KEYS.join(","), "three levels, in order");
 for (const k of KEYS) {
   const L = E.LEVELS[k];
   ok(/^\S+ [A-Z][a-z]+$/.test(L.label), k + ": label is one line of emoji + name, got " + L.label);
@@ -49,7 +49,7 @@ for (let i = 1; i < KEYS.length; i++) {
   ok(E.LEVELS[KEYS[i]].slip <= E.LEVELS[KEYS[i - 1]].slip, KEYS[i] + " slips no more often than " + KEYS[i - 1]);
 }
 ok(KEYS.every(k => E.LEVELS[k].fly === (k === "EXPERT")), "only EXPERT changes the rules to flying kings");
-ok(E.newGame("EXPERT").fly === true && E.newGame("HARD").fly === false, "newGame carries its level's rules");
+ok(E.newGame("EXPERT").fly === true && E.newGame("MEDIUM").fly === false, "newGame carries its level's rules");
 
 /* the owl must cost the same on every machine: a node budget, never a clock */
 const SRC = inlineScript(gameHTML("checkers"));
@@ -450,7 +450,7 @@ const trapMoves = E.legalMoves(trap);
 const winners = trapMoves.filter(m => E.result(E.applyMove(trap, m)) === "red");
 ok(trapMoves.length === 3 && winners.length === 1, "the trap position has one winning move out of three");
 ok(canonMove(E.hintMove(trap)) === canonMove(winners[0]), "the hint finds the move that wins on the spot");
-for (const lv of ["MEDIUM", "HARD", "EXPERT"])
+for (const lv of ["MEDIUM", "EXPERT"])
   ok(canonMove(E.owlMove(trap, lv, () => 0.99)) === canonMove(winners[0]), lv + " owl finds it too");
 
 /* both moves of the man at (5,2) walk into a jump it cannot answer; the far man is safe */
@@ -473,7 +473,7 @@ ok(E.starsFor("draw", 0) === 1 && E.starsFor("black", 0) === 0, "a draw is one s
 
 {
   const mid = (() => {
-    let st = E.newGame("HARD");
+    let st = E.newGame("MEDIUM");
     const rnd = mulberry32(8);
     for (let k = 0; k < 10; k++) {
       const all = E.legalMoves(st);
@@ -543,7 +543,7 @@ function ladder(fly, levels, refOpts, label) {
   return loss;
 }
 
-ladder(false, ["HARD", "MEDIUM", "EASY", "RANDOM"], { depth: 9, budget: 400000, rng: () => 0 },
+ladder(false, ["MEDIUM", "EASY", "RANDOM"], { depth: 9, budget: 400000, rng: () => 0 },
        "classic owls");
 ladder(true, ["EXPERT", "MEDIUM", "RANDOM"], { depth: 11, budget: 500000, rng: () => 0 },
        "flying-king owls");
@@ -554,7 +554,7 @@ ladder(true, ["EXPERT", "MEDIUM", "RANDOM"], { depth: 11, budget: 500000, rng: (
   for (let g = 0; g < stress(10); g++) {
     const rnd = mulberry32(2000 + g);
     const redIsMedium = g % 2 === 0;
-    let st = E.newGame("HARD"), plies = 0, res;
+    let st = E.newGame("MEDIUM"), plies = 0, res;
     while ((res = E.result(st)) === null && plies++ < 400) {
       const medTurn = (st.turn === E.RED) === redIsMedium;
       st = E.applyMove(st, E.owlMove(st, medTurn ? "MEDIUM" : "EASY", rnd));
