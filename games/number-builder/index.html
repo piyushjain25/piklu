@@ -253,6 +253,13 @@ const placeName = (D,i) => PLACE_NAMES[D][i];
 const placeMult = (D,i) => Math.pow(10, D-1-i);
 const fmtMult = m => m===1?'×1':(m>=1000?'×1000':(m>=100?'×100':'×10'));
 
+if(typeof module !== "undefined") module.exports = { LEVELS, GOAL, PLACE_NAMES, placeName,
+  placeMult, fmtMult, permutations, isValidNum, valueOf, validArrangements,
+  pickThreshold, pickTarget, buildGoal, randomDigits, buildChallenge };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ============================================================
    GAME STATE (endless play, no scoring)
    Tiles: [{id, digit, loc}] where loc='tray' or slot index 0..D-1
@@ -510,6 +517,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

@@ -195,6 +195,12 @@ function bestMove(c,d,target){
   return { op:best, result:bRes, E:bE };
 }
 
+if(typeof module !== "undefined") module.exports = { OPS, OP_SYM, LEVELS, opResult, rollDie,
+  buildE, ensureE, bestMove, Elook, table: () => ({ TAB, E, eTarget }) };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state (solo) ===== */
 let level="EASY", race=null;
 
@@ -375,6 +381,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
