@@ -334,6 +334,14 @@ function generatePuzzle(level){
   return { start: new Set(filled) };
 }
 
+if(typeof module !== "undefined") module.exports = { DIGIT_SEGS, DIGIT_ON, SEG2DIGIT,
+  OP_SEGS, OPX_SEGS, EQ_SEGS, tokensToCells, layout, decodeCell, evalExprSafe, decodeEquation,
+  singleMoves, findSolution, makeTrue, generatePuzzle,
+  board: () => ({ cells, slots, fixed, filled }) };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ============================================================
    RENDERING
    ============================================================ */
@@ -684,6 +692,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

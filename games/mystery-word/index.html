@@ -150,17 +150,6 @@ const rnd = n => Math.floor(Math.random()*n);
 // fallback word list, by design: see CLAUDE.md.
 let BANK = { EASY:[], MEDIUM:[], HARD:[], EXPERT:[] };
 let DICTIONARY = null; // Set of every word accepted as a guess, or null until loaded
-Promise.all([ loadGameData("words.json"), loadGameData("dictionary.json") ]).then(([words, dict]) => {
-  if(words){
-    for(const k of Object.keys(LEVELS)){
-      BANK[k] = Array.isArray(words[k]) ? words[k].filter(w => /^[A-Za-z]{5}$/.test(w)).map(w => w.toUpperCase()) : [];
-    }
-  }
-  if(Array.isArray(dict)){
-    DICTIONARY = new Set(dict.filter(w => /^[A-Za-z]{5}$/.test(w)).map(w => w.toUpperCase()));
-  }
-});
-
 /* ===== scoring engine (verified: handles duplicate letters like standard Wordle) ===== */
 function scoreGuess(guess, secret){
   const res = new Array(WORD_LEN).fill("absent");
@@ -205,6 +194,24 @@ function pickWord(lvl){
   lastServed[lvl] = w;
   return w;
 }
+
+if(typeof module !== "undefined") module.exports = { WORD_LEN, MAX_TRIES, MAX_HINTS, LEVELS,
+  BANK, scoreGuess, shuffle, poolFor, pickWord, queues, lastServed,
+  setBank: b => { for(const k in b) BANK[k] = b[k]; for(const k in queues) delete queues[k]; } };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
+Promise.all([ loadGameData("words.json"), loadGameData("dictionary.json") ]).then(([words, dict]) => {
+  if(words){
+    for(const k of Object.keys(LEVELS)){
+      BANK[k] = Array.isArray(words[k]) ? words[k].filter(w => /^[A-Za-z]{5}$/.test(w)).map(w => w.toUpperCase()) : [];
+    }
+  }
+  if(Array.isArray(dict)){
+    DICTIONARY = new Set(dict.filter(w => /^[A-Za-z]{5}$/.test(w)).map(w => w.toUpperCase()));
+  }
+});
 
 // ---------- level select (home) ----------
 function setLevel(l){
@@ -537,6 +544,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
