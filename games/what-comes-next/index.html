@@ -130,6 +130,12 @@ function genGeo(level){ const cfg=LEVELS[level].arith; const r=pick(cfg.geo); co
 function genPuzzle(level){ const cfg=LEVELS[level]; for(let a=0;a<100;a++){ const k=pick(cfg.kinds); let p=null;
   if(k==='repeat') p=genRepeat(level); else if(k==='arith') p=genArith(level); else if(k==='geo') p=genGeo(level); if(p) return p; } return genRepeat(level); }
 
+if(typeof module !== "undefined") module.exports = { LEVELS, SYMBOLS, shuffle,
+  distinctDistractors, genRepeat, genArith, genGeo, genPuzzle };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", P=null, phase='play', prevSig=null;
 function setLevel(l){
@@ -209,6 +215,7 @@ function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
