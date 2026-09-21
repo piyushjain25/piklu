@@ -281,8 +281,7 @@ $("hint-btn").onclick   = giveHint;
 function startGame(){
   game = { ch:null };
   setLevel(level);
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   setOwl('idle');
   newBuild();
 }
@@ -484,10 +483,7 @@ function giveHint(){
 }
 
 function goHome(){
-  stopConfetti();
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl('idle');
+  showHome();
 }
 
 // keyboard: type digits to place, Backspace to undo, Esc reset, U undo, H hint, Enter next when solved
@@ -508,7 +504,7 @@ document.addEventListener("keydown", e=>{
 function sound(kind){
   if(kind==="tick"){ beep(520,.05,"square",0,.06); }
   else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
-  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
+  else if(kind==="win"){ beepWin(.18,.10); }
 }
 
 initBouncyTitle("Number Builder");

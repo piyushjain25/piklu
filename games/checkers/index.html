@@ -480,16 +480,14 @@ function setLevel(l) {
 }
 
 function goToGame() {
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   newRound();
 }
 function goHome() {
   clearTimers();
   stopSpeech();
   stopConfetti();
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
+  showScreen("home");
 }
 function newRound() {
   clearTimers();

@@ -170,7 +170,8 @@ const sig = r => r.target+":"+r.tiles.map(t=>t.kind).join(",");
 function newRound(fromHome){
   let r; for(let a=0;a<40;a++){ r=genRound(level); if(!prevSig || sig(r)!==prevSig) break; }
   R=r; prevSig=sig(R); found=0; phase='play';
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   $("target-icon").innerHTML=shapeMarkup(R.target,"var(--grape)");
   renderTiles(); updatePrompt();
@@ -231,7 +232,10 @@ function giveHint(){
   setTimeout(()=>btn.classList.remove('hintglow'), 1150);
   flash(`💡 Look closely at the outline of that one!`, 'hint');
 }
-function goHome(){ stopConfetti(); R=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); }
+function goHome(){
+  stopConfetti(); R=null;
+  showScreen("home");
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -242,7 +246,7 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
-function sound(kind){ if(kind==="good") beep(660,.08,"triangle",0,.08); else if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function sound(kind){ if(kind==="good") beep(660,.08,"triangle",0,.08); else if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Shape Sorter");
 setLevel("EASY");

@@ -172,7 +172,8 @@ function newRound(fromHome){
   clearTimeout(memoTimer); clearTimeout(peekTimer);
   let r; for(let a=0;a<15;a++){ r=genRound(level); if(!prevSig || sig(r)!==prevSig) break; }
   R=r; prevSig=sig(R); phase='memorize';
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   $("caption").textContent="👀 Watch closely — remember what you see!"; $("caption").classList.remove("hide");
   $("timerbar").classList.remove("hide");
@@ -237,7 +238,10 @@ function giveHint(){
   renderGrid(true); flash('💡 Quick peek!', 'hint'); setOwl('think');
   peekTimer=setTimeout(()=>{ if(phase==='question') renderGrid(false); }, 1200);
 }
-function goHome(){ stopConfetti(); clearTimeout(memoTimer); clearTimeout(peekTimer); R=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  clearTimeout(memoTimer); clearTimeout(peekTimer); R=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -248,7 +252,7 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
-function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Sneak Peek");
 setLevel("EASY");

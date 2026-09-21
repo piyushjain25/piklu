@@ -6,6 +6,7 @@
 <title>Guess the Capital</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
+  .optlist{--opt-pad:16px 14px; --opt-size:18px; --opt-num:30px; --opt-numsize:15px;}
   .app{--app-w:var(--app-wide);}
   .modes{display:grid; grid-template-columns:1fr; gap:14px;}
   @container card (min-width:460px){.modes{grid-template-columns:1fr 1fr;}}
@@ -29,24 +30,6 @@
   .ask{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:15px;}
   .place{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape);
     font-size:clamp(24px,7.1cqw,34px); line-height:1.15; margin-top:2px;}
-  .options{display:grid; grid-template-columns:1fr; gap:12px; margin:18px 0 6px;}
-  @container card (min-width:460px){.options{grid-template-columns:1fr 1fr;}}
-  .opt{border:3px solid #EEE8FB; background:#fff; border-radius:16px; cursor:pointer; padding:16px 14px;
-    font-family:'Fredoka',sans-serif; font-weight:600; font-size:18px; color:var(--ink);
-    text-align:left; display:flex; align-items:center; gap:12px; transition:all .12s ease;}
-  .opt:hover:not(:disabled){border-color:var(--grape); transform:translateY(-1px);}
-  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
-  .opt .num{font-family:'Fredoka',sans-serif; font-weight:600; background:#F1EDFA; color:var(--grape);
-    width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; flex:0 0 auto;}
-  .opt.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
-  .opt.correct .num{background:rgba(255,255,255,.3); color:#fff;}
-  .opt.wrong{background:#FFE1E6; border-color:var(--coral); color:var(--coral-dark);}
-  .opt.wrong .num{background:var(--coral); color:#fff;}
-  .opt.gone{background:#F2EEF9; border-color:#E0D8F0; color:#b7abd6; cursor:not-allowed; text-decoration:line-through;}
-  .opt.gone .num{background:#E0D8F0; color:#b7abd6;}
-  .opt:disabled{cursor:default;}
-  @keyframes oshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  .opt.shake{animation:oshake .3s ease;}
   .result{padding:8px 4px 4px;}
   .fact{text-align:center; background:#F4F0FE; border-radius:14px; padding:10px 14px; color:var(--ink);
     font-weight:700; font-size:14px; margin:10px 0 4px; display:none;}
@@ -107,7 +90,7 @@
         <div class="place" id="place">—</div>
       </div>
 
-      <div class="options" id="options"></div>
+      <div class="optlist" id="options"></div>
       <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
       <div class="fact" id="fact"></div>
       <div class="feedback" id="feedback"></div>
@@ -170,8 +153,7 @@ $("next-btn").onclick = newQuestion;
 $("hint-link").onclick = giveHint;
 
 function startQuiz(){
-  $("screen-home").classList.add("hide");
-  $("screen-quiz").classList.remove("hide");
+  showScreen("game");
   setOwl("idle");
   newQuestion();
 }
@@ -230,8 +212,8 @@ function answer(idx, btn){
     setOwl('win'); sound('good');
     if(!reduceMotion) throwConfetti({ colors:["#2FB37D","#FFCF43","#3FA7E0","#FF6B7A"], count:60, frames:60, size:6, lift:4, spread:4, gravity:.15, vr:.2 });
   } else {
-    btn.classList.remove("wrong","shake"); void btn.offsetWidth; btn.classList.add("wrong","shake");
-    setTimeout(()=>{ btn.classList.remove("shake","wrong"); btn.classList.add("gone"); btn.disabled=true; }, 300);
+    btn.classList.remove("wrong","wrong-flash"); void btn.offsetWidth; btn.classList.add("wrong","wrong-flash");
+    setTimeout(()=>{ btn.classList.remove("wrong-flash","wrong"); btn.classList.add("gone"); btn.disabled=true; }, 350);
     flash(`Not ${Q.options[idx]} — try again!`, 'bad'); setOwl('worried'); sound('bad');
   }
 }
@@ -251,7 +233,7 @@ function giveHint(){
   flash(`💡 It's not ${Q.options[+b.dataset.idx]}.`, 'hint'); setOwl('think');
 }
 
-function goHome(){ stopConfetti(); Q=null; $("screen-quiz").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){ showHome(); Q=null; }
 
 // keyboard: 1-6 to answer, Enter/Space for next, H hint
 document.addEventListener("keydown", e=>{

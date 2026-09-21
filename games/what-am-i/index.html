@@ -17,22 +17,6 @@
   .replay-btn:hover{background:var(--grape); color:#fff;}
   .replay-btn:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
   .replay-btn .ic{font-size:18px;}
-  .options{display:grid; grid-template-columns:1fr; gap:12px; margin:0 0 6px;}
-  @container card (min-width:460px){.options{grid-template-columns:1fr 1fr;}}
-  .opt{border:3px solid var(--key-line); background:#fff; border-radius:16px; cursor:pointer; padding:14px 14px;
-    font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:var(--ink);
-    text-align:left; display:flex; align-items:center; gap:12px; transition:all .12s ease;}
-  .opt:hover:not(:disabled){border-color:var(--grape); transform:translateY(-1px);}
-  .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
-  .opt .num{font-family:'Fredoka',sans-serif; font-weight:600; background:#F1EDFA; color:var(--grape);
-    width:28px; height:28px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:14px; flex:0 0 auto;}
-  .opt .otxt{flex:1; line-height:1.3;}
-  .opt.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
-  .opt.correct .num{background:rgba(255,255,255,.3); color:#fff;}
-  .opt.wrong-flash{animation:wrongShake .35s ease;}
-  .opt.gone{background:#F2EEF9; border-color:#E0D8F0; color:#b7abd6; cursor:not-allowed; text-decoration:line-through;}
-  .opt.gone .num{background:#E0D8F0; color:#b7abd6;}
-  .opt:disabled{cursor:default;}
 </style>
 </head>
 <body class="game">
@@ -90,7 +74,7 @@
         </div>
       </div>
 
-      <div class="options" id="options" role="group" aria-label="Choose the answer"></div>
+      <div class="optlist" id="options" role="group" aria-label="Choose the answer"></div>
 
       <div id="result-view" class="hide"><div class="result"><div class="rlabel" id="rlabel"></div></div></div>
       <div class="feedback" id="feedback"></div>
@@ -184,7 +168,8 @@ function newRiddle(fromHome){
   const opts = shuffle(q.options);
   Q = { q:q.q, answer:q.answer, options:opts, correctIdx: opts.indexOf(q.answer) };
   prevSig=qSig(Q); phase='play'; hintUsed=false;
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   renderRiddle();
   $("result-view").classList.add("hide"); $("serve-view").classList.remove("hide");
@@ -238,10 +223,8 @@ function pickPraise(){
   return p[rnd(p.length)];
 }
 function goHome(){
-  stopConfetti(); stopSpeech(); Q=null;
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl('idle');
+  showHome();
+  stopSpeech(); Q=null;
 }
 
 // keyboard: 1-4 pick an option, H hint, Enter/Space -> next when solved, Escape closes the level menu
@@ -260,8 +243,8 @@ document.addEventListener("keydown", e=>{
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle/speak/stopSpeech are shared in site.js) ===== */
 function sound(kind){
-  if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
-  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
+  if(kind==="bad") beepBad();
+  else if(kind==="win") beepWin();
   else if(kind==="tick") beep(700,.08,"sine",0,.08);
 }
 

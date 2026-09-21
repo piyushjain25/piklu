@@ -869,7 +869,8 @@ function finish(){
 function newRound(fromHome){
   round++;                                      // invalidate any beat still in flight
   busy=false;
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   $("q-level-label").textContent=LEVELS[level].label;
   $("result-view").classList.add("hide");
   $("next-btn").classList.add("invisible");
@@ -892,11 +893,9 @@ function newRound(fromHome){
 }
 
 function goHome(){
+  showHome();
   round++;
-  stopConfetti(); busy=false; S=null;
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl('idle');
+  busy=false; S=null;
 }
 
 /* ---- levels ---- */
@@ -1164,7 +1163,7 @@ function sound(kind){
   else if(kind==="nope") beep(150,.14,"sawtooth",0,.08);
   else if(kind==="lose") beep(230,.22,"sawtooth",0,.09);
   else if(kind==="tie"){ beep(440,.12,"sine",0,.08); beep(560,.14,"sine",.12,.08); }
-  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
+  else if(kind==="win") beepWin();
 }
 
 initBouncyTitle("Tic Tac Toe");

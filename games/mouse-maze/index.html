@@ -206,7 +206,8 @@ function newMaze(fromHome){
   // fresh maze, different from the one just shown (Skip/Next never repeat the current puzzle)
   let m; for(let a=0;a<20;a++){ m=genMaze(level); if(!prevSig || sig(m)!==prevSig) break; }
   M=m; prevSig=sig(M); path=[M.start]; phase='play';
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   $("mazewrap").style.setProperty('--N', M.N);
   renderMazeSVG(); renderHitgrid(); updateCellStates(); renderToken();
@@ -321,7 +322,10 @@ function giveHint(){
   const ARROW={up:'⬆️',down:'⬇️',left:'⬅️',right:'➡️'};
   flash(`💡 Try heading ${ARROW[word]} ${word}!`, 'hint'); setOwl('think');
 }
-function goHome(){ stopConfetti(); M=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  M=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -337,7 +341,7 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="step") beep(520,.05,"square",0,.05);
   else if(kind==="bad") beep(180,.16,"sawtooth",0,.10);
-  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+  else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Mouse Maze");
 setLevel("EASY");

@@ -872,7 +872,8 @@ function newPuzzle(fromHome){
   pickedValue=null;
   pickOptions = isEditLevel() ? null : shuffle([...ITEM.slots[ITEM.chosenKeys[0]].options]);
 
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   const kinds = ITEM.chosenKeys.map(k=>ITEM.slots[k].kind);
   $("dx-line").textContent = diagnosisFor(kinds);
@@ -983,7 +984,10 @@ function revealAnswer(){
   flash('', '');
   updateCritterVisual(1); setOwl('idle'); sound('hint');
 }
-function goHome(){ stopConfetti(); ITEM=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  ITEM=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -1001,9 +1005,9 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){
   if(kind==="tick") beep(500,.05,"square",0,.05);
-  else if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
+  else if(kind==="bad") beepBad();
   else if(kind==="hint") beep(440,.08,"sine",0,.07);
-  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08));
+  else if(kind==="win") beepWin();
 }
 
 initBouncyTitle("Sentence Doctor");

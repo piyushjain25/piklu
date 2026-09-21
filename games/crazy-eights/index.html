@@ -436,8 +436,7 @@ function startGame(deck) {
   game = deck ? dealFrom(deck) : newGame();
   busy = false; hintsUsed = 0; pendingEight = null;
   $("suit-pick").classList.add("hide");
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   $("result-view").classList.add("hide");
   $("next-btn").classList.add("invisible");
   $("skip-btn").classList.remove("invisible");
@@ -589,11 +588,9 @@ $("reset-btn").onclick = () => startGame(game ? game.deck : null);
 $("hint-link").onclick = hint;
 $("stock-btn").onclick = takeCard;
 $("home-btn").onclick = () => {
+  showHome();
   clearTimeout(owlTimer); owlTimer = null;
-  busy = false; stopConfetti();
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl("idle");
+  busy = false;
 };
 
 document.addEventListener("keydown", e => {

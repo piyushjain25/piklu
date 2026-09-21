@@ -359,6 +359,19 @@ no longer waits ~300ms on every tap to find out. Controls are ≥44px: `.tlink` 
 `min-height:44px`. Keep new tap targets to that floor — small targets are what made double-tap
 misfire in the first place.
 
+## The multiple-choice list (`.optlist`) — three games share one
+
+A game whose answers are a **numbered list of full-width choices** (`calendar-quest`,
+`what-am-i`, `guess-the-capital`) marks its container `class="optlist"` and writes **no CSS of
+its own** for it: `site.css` owns the row, the `.num` badge, the `.otxt` label, the `.correct` /
+`.wrong` / `.gone` states, the `.wrong-flash` wobble, and the two-up switch once the card is
+wide enough. Resize it with `--opt-pad`, `--opt-size`, `--opt-num` and `--opt-numsize` rather
+than restating the component.
+
+Note `.opt` on its own is **not** this component: `math-monsters`, `shape-math`, `sneak-peek`
+and `tally-chart` use that name for a compact answer **tile**, which is a different thing and
+stays game-local. Only `.optlist .opt` is shared.
+
 ## The board (`.gb-*` + `.piece`) — every board game shares one
 
 A game that plays on a grid of round holes — Connect Four, Gomoku, whatever comes next —
@@ -429,6 +442,18 @@ globals the game calls directly:
   `level = l; markLevel(l, LEVELS[l].label);`.
 - `beep(freq, dur, type, when, gain)` — a single WebAudio oscillator beep; build a game's
   `sound(kind)` dispatcher out of calls to this.
+- `beepWin(dur, gap, delay)` / `beepBad(dur, gain)` — the site's two stock outcome sounds: the
+  rising four-note win arpeggio and the wrong-answer buzz. Every game's `sound(kind)` used to
+  spell these out (22 and 12 copies), so "right" and "wrong" drifted apart across the site. The
+  game still decides **when** they play and what else it makes; only the notes are shared. The
+  defaults are the common spelling — pass your own for a slower or delayed one.
+- `showScreen(which)` — swaps the two screens every game has, `#screen-home` and `#screen-game`
+  (`guess-the-capital`'s is `#screen-quiz`, the same exception `setOwl` makes for its
+  `#owl-quiz`), by toggling `.hide`. Pass `"home"` or `"game"`; never write the `classList`
+  lines in a game.
+- `showHome()` — `stopConfetti()` + `showScreen("home")` + `setOwl("idle")`: the three things
+  every `goHome()` opens with. A game calls this first, then does its **own** cleanup (its
+  timers, the piece it was holding, `stopSpeech()`).
 - `throwConfetti(options)` — every game's celebration, drawn on `#confetti` by one shared
   particle loop; call it as `if (!reduceMotion) throwConfetti(...)`. No options gives the
   small burst most games use; a game tunes its own look with options (`colors` — extend the

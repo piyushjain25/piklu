@@ -150,7 +150,8 @@ function newRound(fromHome){
   let r; for(let a=0;a<15;a++){ r=genRound(level); if(!prevSig || roundSig(r)!==prevSig) break; }
   R=r; prevSig=roundSig(R);
   cleanRound=true; phase='play';
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   $("fact").innerHTML=`${R.a} <span style="color:var(--ink)">×</span> ${R.b} <span style="color:var(--ink)">=</span> <span class="q" id="qmark">?</span>`;
   renderArray(); renderBalloons();
@@ -206,7 +207,10 @@ function giveHint(){
   flash(`💡 ${R.a} × ${R.b} means ${R.b} groups of ${R.a}. Count the dots — it's ${R.product}!`, 'hint'); setOwl('think');
 }
 function clearHint(){ document.querySelectorAll('.balloon').forEach(b=>b.style.outline=''); }
-function goHome(){ clearTimeout(nextTimer); stopConfetti(); R=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  clearTimeout(nextTimer); R=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -218,7 +222,7 @@ document.addEventListener("keydown", e=>{
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="pop"){ beep(700,.06,"triangle",0,.08); beep(1100,.05,"sine",.03,.05); }
-  else if(kind==="bad") beep(180,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+  else if(kind==="bad") beep(180,.16,"sawtooth",0,.10); else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Times Table Pop");
 setLevel("EASY");

@@ -243,8 +243,7 @@ $("start-btn").onclick = ()=>{
   $("start-error").classList.add("hide");
   const w = pickWord(level);
   if(!w){ $("start-error").classList.remove("hide"); return; }
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   startGame(w);
 };
 
@@ -432,9 +431,8 @@ function goHome(){
   stopConfetti();
   stopSpeech();
   state=null;
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
   setMood("idle");
+  showScreen("home");
 }
 
 // physical keyboard support
@@ -464,7 +462,7 @@ document.addEventListener("keydown", e=>{
 // ---------- sound (beep/setOwl/stopConfetti shared in site.js) ----------
 function sound(kind){
   if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
-  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.11)); }
+  else if(kind==="win"){ beepWin(.18,.11); }
 }
 
 

@@ -333,7 +333,8 @@ function newRound(fromHome){
   const r = genPuzzle(level, prevSig); prevSig = sig(r);
   P = { ...r, options: generateOptions(r.a, r.b, r.answer) };
   phase='play';
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   $("play-view").classList.remove("hide"); $("result-view").classList.add("hide");
   $("next-btn").classList.add("invisible");
@@ -381,7 +382,10 @@ function giveHint(){
   renderTeachInto($("teach-stage"), P.a, P.b, P.op, P.answer);
   flash("💡 Watch how the shapes combine, then find it below!", 'hint'); setOwl('think');
 }
-function goHome(){ stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  P=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -392,7 +396,7 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
-function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Shape Math");
 setLevel("EASY");

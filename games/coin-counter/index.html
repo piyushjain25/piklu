@@ -220,7 +220,8 @@ function newPuzzle(fromHome){
   // a new animal walks into the shop each round (never the same one twice in a row)
   const others=SHOPPERS.filter(s=>s!==shopper); shopper=others[rnd(others.length)];
   shopItem=P.item || ITEMS[rnd(ITEMS.length)];
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   const par=$("par-chip"); if(P.par){ par.classList.remove("hide"); par.textContent=`🎯 Fewest: ${P.optimal}`; } else par.classList.add("hide");
   $("build-view").classList.remove("hide"); $("result-view").classList.add("hide");
@@ -361,7 +362,10 @@ function giveHint(){
   flash(`💡 Add a ₹${best} — it's the biggest that still fits in ₹${rem}.`, 'hint');
 }
 function clearHint(){ document.querySelectorAll('.money.hintit').forEach(b=>b.classList.remove('hintit')); }
-function goHome(){ stopConfetti(); clearFlight(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  clearFlight(); P=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -375,7 +379,7 @@ document.addEventListener("keydown", e=>{
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="tick") beep(520,.05,"square",0,.05); else if(kind==="coin"){ beep(880,.05,"square",0,.05); beep(1250,.07,"square",.04,.04); }
-  else if(kind==="good") beep(660,.09,"triangle",0,.07); else if(kind==="bad") beep(190,.16,"sawtooth",0,.10);
+  else if(kind==="good") beep(660,.09,"triangle",0,.07); else if(kind==="bad") beepBad();
   else if(kind==="clink") beep(1400+rnd(500),.04,"triangle",0,.04);
   else if(kind==="kaching"){ beep(1568,.06,"square",0,.05); beep(2093,.22,"triangle",.06,.07); }
   else if(kind==="win") [523,659,784,1047,1319].forEach((f,i)=>beep(f,.2,"triangle",i*.09)); }

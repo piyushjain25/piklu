@@ -312,8 +312,7 @@ function startGame(secret){
     wordLeft: MAX_WORD_WRONG,
     status: "playing",
   };
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   updateLevelChip();
   $("word-guess").disabled = false;
   $("word-guess").maxLength = secret.length;
@@ -521,18 +520,15 @@ function startNext(){
   startGame(w);
 }
 function goHome(){
-  stopConfetti();
+  showHome();
   stopSpeech();
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl("idle");
 }
 
 // ---------- sound (setOwl/beep are shared in site.js) ----------
 function sound(kind){
   if(kind==="good"){ beep(660,.12,"triangle"); beep(880,.14,"triangle",.08); }
   else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
-  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.11)); }
+  else if(kind==="win"){ beepWin(.18,.11); }
   else if(kind==="lose"){ [392,330,262].forEach((f,i)=>beep(f,.25,"sine",i*.16,.13)); }
 }
 

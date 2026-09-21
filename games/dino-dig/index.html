@@ -497,7 +497,7 @@ function sound(kind){
   else if(kind === "woke")  beep(170, .24, "sine", 0, .10);
   else if(kind === "hint")  { beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
   else if(kind === "lost")  { beep(260, .18, "sine", 0, .08); beep(200, .26, "sine", .16, .08); }
-  else if(kind === "win")   [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+  else if(kind === "win")   beepWin();
 }
 
 /* ---- rendering ---- */
@@ -759,18 +759,14 @@ function setLevel(l){
   markLevel(l, LEVELS[l].label);
 }
 function goHome(){
-  stopConfetti();
+  showHome();
   clearTimeout(owlTimer);
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl("idle");
 }
 
 /* ---- wiring ---- */
 document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
 $("start-btn").onclick = () => {
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   newRound();
 };
 $("home-btn").onclick = goHome;

@@ -193,6 +193,34 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 .diff.hard{--dc:var(--sun-dark); --dbg:#FFF6DC;} .diff.expert{--dc:var(--coral); --dbg:#FFEAED;}
 .diff.my{grid-column:1 / -1;}
 
+/* ---------- numbered multiple-choice list ----------
+   One full-width choice per row, each with a .num badge and .otxt label, going two-up once the
+   card is wide enough. calendar-quest, what-am-i and guess-the-capital each carried their own
+   byte-identical copy of this. A game resizes it with the four vars and adds nothing else.
+   (The compact answer TILES in math-monsters / shape-math / sneak-peek / tally-chart are a
+   different component that happens to share the .opt name — they are not .optlist.) */
+.optlist{display:grid; grid-template-columns:1fr; gap:12px;}
+@container card (min-width:460px){ .optlist{grid-template-columns:1fr 1fr;} }
+.optlist .opt{border:3px solid var(--key-line); background:#fff; border-radius:16px; cursor:pointer;
+  padding:var(--opt-pad,14px 14px); font-family:'Fredoka',sans-serif; font-weight:600;
+  font-size:var(--opt-size,16px); color:var(--ink); text-align:left;
+  display:flex; align-items:center; gap:12px; transition:all .12s ease;}
+.optlist .opt:hover:not(:disabled){border-color:var(--grape); transform:translateY(-1px);}
+.optlist .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+.optlist .opt:disabled{cursor:default;}
+.optlist .opt .num{font-family:'Fredoka',sans-serif; font-weight:600; background:#F1EDFA; color:var(--grape);
+  width:var(--opt-num,28px); height:var(--opt-num,28px); border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:var(--opt-numsize,14px); flex:0 0 auto;}
+.optlist .opt .otxt{flex:1; line-height:1.3;}
+.optlist .opt.correct{background:var(--leaf); border-color:var(--leaf-dark); color:#fff;}
+.optlist .opt.correct .num{background:rgba(255,255,255,.3); color:#fff;}
+.optlist .opt.wrong{background:#FFE1E6; border-color:var(--coral); color:var(--coral-dark);}
+.optlist .opt.wrong .num{background:var(--coral); color:#fff;}
+.optlist .opt.gone{background:#F2EEF9; border-color:#E0D8F0; color:#b7abd6; cursor:not-allowed; text-decoration:line-through;}
+.optlist .opt.gone .num{background:#E0D8F0; color:#b7abd6;}
+.optlist .opt.wrong-flash{animation:wrongShake .35s ease;}
+
 /* row of small stat chips under the topbar (moves count, par/best, etc.) */
 .stats-row{display:flex; gap:8px; justify-content:center; align-items:center; margin-bottom:14px; flex-wrap:wrap; min-height:1px;}
 

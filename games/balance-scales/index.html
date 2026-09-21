@@ -547,17 +547,13 @@ function setLevel(l){
   markLevel(l, LEVELS[l].label);
 }
 function goHome(){
-  stopConfetti();
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl("idle");
+  showHome();
 }
 
 /* ---- wiring ---- */
 document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
 $("start-btn").onclick = () => {
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   newPuzzle();
 };
 $("home-btn").onclick = goHome;

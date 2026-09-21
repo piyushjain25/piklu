@@ -218,8 +218,7 @@ function startRace(){
   const target=LEVELS[level].target;
   race={ you:0, target, moves:0, phase:'roll', die:0, winner:false, hintOp:null };
   ensureE(target);
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   setLevel(level);
   $("goal-chip").textContent=`🎯 Reach exactly ${target}`;
   $("result-view").classList.add("hide");
@@ -347,10 +346,8 @@ function giveHint(){
 function praise(){ const p=["Nice!","Great move!","Smart!","Good one!"]; return p[rnd(p.length)]; }
 
 function goHome(){
-  stopConfetti(); race=null;
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl('idle');
+  showHome();
+  race=null;
 }
 
 // keyboard: Space/Enter roll or play-again; 1-4 pick op; H hint
@@ -372,7 +369,7 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){
   if(kind==="tick") beep(520,.05,"square",0,.06);
-  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10));
+  else if(kind==="win") beepWin(.18,.10);
 }
 
 initBouncyTitle("Race to 100");

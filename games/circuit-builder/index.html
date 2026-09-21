@@ -722,7 +722,7 @@ function sound(kind){
   else if(kind === "light") [440, 587, 784, 1175].forEach((f, i) => beep(f, .12, "sine", i * .05, .08));
   else if(kind === "bad")   beep(220, .18, "sine", 0, .07);
   else if(kind === "hint"){ beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
-  else if(kind === "win")   [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", .3 + i * .08));
+  else if(kind === "win")   beepWin(.16, .08, .3);
 }
 
 /* ---- drawing one part (shared by the bench and the rules diagrams) ---- */
@@ -977,19 +977,15 @@ function newRound(){
 }
 function setLevel(l){ level = l; markLevel(l, LEVELS[l].label); }
 function goHome(){
-  stopConfetti();
+  showHome();
   held = null;
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl("idle");
 }
 
 /* ---- wiring ---- */
 document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
 $("start-btn").onclick = () => {
   if(!CATALOG) return;
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   newRound();
 };
 $("home-btn").onclick = goHome;

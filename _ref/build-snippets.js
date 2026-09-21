@@ -200,6 +200,8 @@ markLevel(key, label)                   show key as current: .diff aria-pressed,
 audioCtx                                internal: the shared AudioContext
 beepBus                                 internal: the shared compressor beep() plays through
 beep(freq, dur, type, when, gain)       one WebAudio oscillator beep
+beepWin(dur, gap)                       the four-note win arpeggio (the site's stock 'correct' sound)
+beepBad(dur, gain)                      the wrong-answer buzz
 ttsVoice                                internal: the chosen speech voice
 pickVoice()                             internal: picks ttsVoice
 speak(text, rate)                       read text aloud (rate defaults to 1)
@@ -216,6 +218,8 @@ confettiRAF                             the shared confetti animation-frame hand
 CONFETTI_COLORS                         the default confetti palette
 throwConfetti(options)                  the celebration; call as if(!reduceMotion) throwConfetti(...)
 stopConfetti()                          clear and hide #confetti; call when leaving a round
+showScreen(which)                       swap #screen-home / #screen-game ('home' | 'game')
+showHome()                              stopConfetti + showScreen('home') + setOwl('idle')
 initBouncyTitle(word)                   build the animated per-letter #title
 boardCell(cols, o)                      a cell size that keeps a board of cols columns inside the card
 buildBoard(mount, o)                    build the shared board into mount; returns { stage, rig, board, pieces, fx, line }
@@ -239,6 +243,7 @@ levels:      block-label diff-grid diff d-name d-range easy medium hard expert m
 start:       howto
 top bar:     topbar tb-center tb-right chip par level level-switch level-menu open level-opt caret tick
 controls:    tlink off actions serve-row invisible stats-row
+choices:     optlist opt num otxt correct wrong gone wrong-flash
 tiles:       tilegrid tile wrong-flash hintglow
 result:      result rlabel stars rsub feedback good bad hint
 rules sheet: sheet-ov show sheet sheet-top sheet-x sheet-body sheet-foot rule cap rrow rarrow rsolo o fade

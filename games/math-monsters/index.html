@@ -203,7 +203,8 @@ function newProblem(fromHome){
   clearTimeout(sadTimer);
   let p; for(let a=0;a<40;a++){ p=genProblem(level); if(!prevSig || sig(p)!==prevSig) break; }
   P=p; prevSig=sig(P); phase='play'; hintUsed=false;
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   renderMonster();
   $("prob").innerHTML=`${P.a} <span class="op">${P.op}</span> ${P.b} <span>=</span> <span class="q">?</span>`;
@@ -263,7 +264,10 @@ function setMonster(mood){
     if(smile) smile.style.opacity='1'; if(open) open.style.opacity='0'; if(tongue) tongue.style.opacity='0';
   }
 }
-function goHome(){ clearTimeout(sadTimer); clearTimeout(chompTimer); stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); }
+function goHome(){
+  clearTimeout(sadTimer); clearTimeout(chompTimer); stopConfetti(); P=null;
+  showScreen("home");
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -274,7 +278,7 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
-function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Math Monsters");
 setLevel("EASY");

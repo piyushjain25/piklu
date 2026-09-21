@@ -479,9 +479,9 @@ function sound(kind) {
   else if (kind === "owl") beep(380, .07, "triangle");
   else if (kind === "take") { beep(820, .05, "square", 0, .06); beep(500, .09, "triangle", .05); }
   else if (kind === "lost") beep(240, .12, "sawtooth", 0, .05);
-  else if (kind === "bad") beep(190, .16, "sawtooth", 0, .05);
+  else if (kind === "bad") beepBad(.16,.05);
   else if (kind === "hint") beep(880, .09, "sine", 0, .08);
-  else if (kind === "win") [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .1));
+  else if (kind === "win") beepWin(.16, .1);
   else if (kind === "lose") [440, 370, 311].forEach((f, i) => beep(f, .18, "sine", i * .13, .1));
   else if (kind === "tie") [523, 523].forEach((f, i) => beep(f, .12, "triangle", i * .15));
 }
@@ -581,8 +581,7 @@ function startGame() {
   stopConfetti(); closeLevelMenu();
   game = newGame(level);
   busy = false; hintsUsed = 0; keyPlay = false; lastPlayed = -1;
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   $("result-view").classList.add("hide");
   $("next-btn").classList.add("invisible");
   $("skip-btn").classList.remove("invisible");
@@ -681,11 +680,9 @@ function hint() {
 }
 
 function goHome() {
+  showHome();
   clearTimeout(owlTimer); owlTimer = null; busy = false;
-  stopConfetti(); closeLevelMenu();
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl("idle");
+  closeLevelMenu();
 }
 
 function pickLevel(l) { closeLevelMenu(); setLevel(l); startGame(); }

@@ -150,6 +150,18 @@ function beep(freq, dur, type = "sine", when = 0, gain = 0.12) {
   } catch (e) {}
 }
 
+/* The site's two stock outcome sounds. Every game's own sound(kind) dispatcher was spelling
+   these out: the rising four-note win arpeggio (22 games) and the wrong-answer buzz (12). The
+   game still decides WHEN they play and what else it makes — only the notes are shared, so
+   "getting it right" sounds the same across the site. The defaults are the spelling 14 (and
+   12) games used; the handful that wanted a slower one pass their own. */
+function beepWin(dur, gap, delay) {
+  [523, 659, 784, 1047].forEach((f, i) => beep(f, dur || 0.16, "triangle", (delay || 0) + i * (gap || 0.08)));
+}
+function beepBad(dur, gain) {
+  beep(190, dur || 0.16, "sawtooth", 0, gain || 0.10);
+}
+
 /* ---------- speech synthesis (read a word/phrase aloud) ---------- */
 let ttsVoice = null;
 function pickVoice() {
@@ -421,6 +433,26 @@ function stopConfetti() {
   if (confettiRAF) cancelAnimationFrame(confettiRAF);
   const cv = $("confetti");
   if (cv) { cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); cv.style.display = "none"; }
+}
+
+/* ---------- the two screens every game has ----------
+   Every game is one #screen-home (title, level picker, how-to) and one #screen-game, swapped
+   by toggling .hide. All 37 games wrote that pair of classList lines out by hand, twice each.
+   showScreen() is the swap on its own; showHome() is the three things 31 of the 36 goHome()
+   functions open with — stop the celebration, show the start screen, rest the owl — after
+   which a game does its OWN cleanup (its timers, the piece it was holding). */
+function showScreen(which) {
+  const home = $("screen-home");
+  /* guess-the-capital calls its play screen #screen-quiz, the same exception setOwl makes
+     for that game's #owl-quiz mascot placeholder */
+  const play = $("screen-game") || $("screen-quiz");
+  if (home) home.classList.toggle("hide", which !== "home");
+  if (play) play.classList.toggle("hide", which === "home");
+}
+function showHome() {
+  stopConfetti();
+  showScreen("home");
+  setOwl("idle");
 }
 
 /* ---------- bouncy animated <title> ---------- */

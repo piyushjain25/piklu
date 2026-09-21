@@ -236,7 +236,8 @@ function newShop(fromHome){
   let s; for(let a=0;a<15;a++){ s=genShop(level); if(!prevSig || shopSig(s)!==prevSig) break; }
   shop=s; prevSig=shopSig(shop);
   cart=[]; phase='shop';
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   $("mission").textContent=`🎯 Spend as close to ₹${shop.budget} as you can!`;
   $("target").textContent=`₹${shop.budget}`;
@@ -348,7 +349,10 @@ function giveHint(){
 }
 function clearHint(){ document.querySelectorAll('.item.hintit').forEach(c=>c.classList.remove('hintit')); }
 
-function goHome(){ stopConfetti(); shop=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  shop=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -366,7 +370,7 @@ document.addEventListener("keydown", e=>{
 function sound(kind){ if(kind==="tick") beep(520,.05,"square",0,.05);
   else if(kind==="cha"){ beep(880,.06,"square",0,.06); beep(1320,.09,"square",.05,.05); }
   else if(kind==="good") beep(660,.09,"triangle",0,.07);
-  else if(kind==="bad") beep(190,.18,"sawtooth",0,.10);
+  else if(kind==="bad") beepBad(.18,.10);
   else if(kind==="win") [523,659,784,1047,1319].forEach((f,i)=>beep(f,.2,"triangle",i*.09)); }
 
 initBouncyTitle("Shopping Adventure");

@@ -47,7 +47,7 @@ Source: `games/pizza-party/index.html` lines 96-103
 "use strict";
 ```
 
-Source: `games/pizza-party/index.html` lines 215-219
+Source: `games/pizza-party/index.html` lines 219-223
 ```js
 initBouncyTitle("Pizza Party");
 setLevel("EASY");
@@ -170,7 +170,7 @@ Source: `games/pizza-party/index.html` lines 92-95
       </div>
 ```
 
-Source: `games/pizza-party/index.html` lines 188-189
+Source: `games/pizza-party/index.html` lines 189-190
 ```js
     $("serve-btn").classList.add("hide"); $("skip-btn").classList.add("invisible");   // Next takes Serve's place; Skip keeps its slot so nothing shifts
     $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
@@ -205,7 +205,7 @@ A game carries **no** sheet markup: `wireRulesSheet()` builds the `.sheet-ov#rul
 itself (a site test fails if a game contains `id="rules-ov"`). This is what it builds, for
 reference only:
 
-Source: `assets/site.js` lines 229-233
+Source: `assets/site.js` lines 241-245
 ```js
   o.innerHTML =
     '<div class="sheet"><div class="sheet-top"><h2 id="rules-h"></h2>' +
@@ -218,7 +218,7 @@ The game supplies the two links (sections 3 and 4) and the body. The body is a s
 sections, each an `<h3>` with an emoji, short `<p>`s, and optional `.rrow` diagrams with a
 `.cap` caption:
 
-Source: `games/lights-out/index.html` lines 534-541
+Source: `games/lights-out/index.html` lines 530-537
 ```js
 wireRulesSheet(function(){
   $("rules-body").innerHTML =
@@ -232,7 +232,7 @@ wireRulesSheet(function(){
 
 Its own keydown handler must start by standing aside while the sheet is open:
 
-Source: `games/lights-out/index.html` lines 508-510
+Source: `games/lights-out/index.html` lines 504-506
 ```js
 document.addEventListener("keydown", e => {
   if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
@@ -376,6 +376,8 @@ markLevel(key, label)                   show key as current: .diff aria-pressed,
 audioCtx                                internal: the shared AudioContext
 beepBus                                 internal: the shared compressor beep() plays through
 beep(freq, dur, type, when, gain)       one WebAudio oscillator beep
+beepWin(dur, gap)                       the four-note win arpeggio (the site's stock 'correct' sound)
+beepBad(dur, gain)                      the wrong-answer buzz
 ttsVoice                                internal: the chosen speech voice
 pickVoice()                             internal: picks ttsVoice
 speak(text, rate)                       read text aloud (rate defaults to 1)
@@ -392,6 +394,8 @@ confettiRAF                             the shared confetti animation-frame hand
 CONFETTI_COLORS                         the default confetti palette
 throwConfetti(options)                  the celebration; call as if(!reduceMotion) throwConfetti(...)
 stopConfetti()                          clear and hide #confetti; call when leaving a round
+showScreen(which)                       swap #screen-home / #screen-game ('home' | 'game')
+showHome()                              stopConfetti + showScreen('home') + setOwl('idle')
 initBouncyTitle(word)                   build the animated per-letter #title
 boardCell(cols, o)                      a cell size that keeps a board of cols columns inside the card
 buildBoard(mount, o)                    build the shared board into mount; returns { stage, rig, board, pieces, fx, line }
@@ -415,6 +419,7 @@ levels:      block-label diff-grid diff d-name d-range easy medium hard expert m
 start:       howto
 top bar:     topbar tb-center tb-right chip par level level-switch level-menu open level-opt caret tick
 controls:    tlink off actions serve-row invisible stats-row
+choices:     optlist opt num otxt correct wrong gone wrong-flash
 tiles:       tilegrid tile wrong-flash hintglow
 result:      result rlabel stars rsub feedback good bad hint
 rules sheet: sheet-ov show sheet sheet-top sheet-x sheet-body sheet-foot rule cap rrow rarrow rsolo o fade

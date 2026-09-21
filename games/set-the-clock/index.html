@@ -149,7 +149,8 @@ function newTime(fromHome){
   // random start different from the target
   do { setH=1+rnd(12); setM = step>=60?0: rnd(60/step)*step; } while(setH===T.hour && setM===T.minute);
   startH=setH; startM=setM;
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   $("target-phrase").textContent=T.phrase;
   $("target").dataset.h=T.hour; $("target").dataset.m=T.minute;
@@ -240,7 +241,10 @@ function giveHint(){
     (T.minute%5===0 ? `the big hand points to ${T.minute/5===12?12:T.minute/5*1} (the ${T.minute} mark)` : `the big hand is on ${T.minute} minutes`);
   flash(`💡 The little hand is near ${T.hour}, and ${mtxt}.`, 'hint'); setOwl('think');
 }
-function goHome(){ stopConfetti(); T=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  T=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -258,7 +262,7 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
-function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Set the Clock");
 setLevel("EASY");

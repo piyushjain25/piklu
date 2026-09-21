@@ -459,7 +459,7 @@ function sound(kind){
   if(kind === "good"){ beep(660, .1, "triangle"); beep(880, .13, "triangle", .07); }
   else if(kind === "bad") beep(240, .12, "sine", 0, .05);        /* soft — a miss is not a failure */
   else if(kind === "hint"){ beep(700, .08, "sine", 0, .06); beep(900, .09, "sine", .07, .05); }
-  else if(kind === "win") [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, "triangle", i * .08));
+  else if(kind === "win") beepWin();
 }
 
 /* ---- start screen: the theme picker ---- */
@@ -641,20 +641,16 @@ function newRound(){
 }
 function startGame(){
   if(!THEMES.length) return;
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   P = null;
   newRound();
 }
 function goHome(){
-  stopConfetti();
+  showHome();
   stopSpeech();
   clearHint();
   closeLevelMenu();
   P = null; anchor = null; drag = null;
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl("idle");
 }
 
 /* ---- pointer input: drag, or tap-tap, through one set of pointer events ----------------

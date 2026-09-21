@@ -143,7 +143,8 @@ function newOrder(fromHome){
   // fresh order, different from the one just shown (Skip/Next never repeat the current puzzle)
   let n; for(let a=0;a<40;a++){ n=genOrder(level); if(!prevSig || sig(n)!==prevSig) break; }
   O=n; prevSig=sig(O); selected=new Set(); phase='serve';
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   $("q-level-label").textContent=LEVELS[level].label;
   $("o-num").textContent=O.num; $("o-den").textContent=O.den;
   const od=$("order"); od.dataset.num=O.num; od.dataset.den=O.den; od.dataset.slices=O.slices; od.dataset.target=O.target;
@@ -199,7 +200,10 @@ function giveHint(){
     : `💡 ${O.num}/${O.den} means ${O.num} out of ${O.den} slices. Pick ${O.target}!`;
   flash(msg, 'hint'); setOwl('think');
 }
-function goHome(){ stopConfetti(); O=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  O=null;
+}
 
 document.addEventListener("keydown", e=>{
   if(e.key==='Escape'){ closeLevelMenu(); }
@@ -210,7 +214,7 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ===== confetti (shared stopConfetti/#confetti live in site.js) ===== */
-function sound(kind){ if(kind==="bad") beep(190,.16,"sawtooth",0,.10); else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.16,"triangle",i*.08)); }
+function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
 initBouncyTitle("Pizza Party");
 setLevel("EASY");

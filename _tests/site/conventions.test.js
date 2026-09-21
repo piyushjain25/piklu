@@ -19,6 +19,7 @@ ok(SHARED.length > 10, "should have found site.js's shared globals, got " + SHAR
    (CLAUDE.md allows one-off overrides like .app{max-width}), but re-declaring the LAYOUT is how
    the control scheme silently forks — so only structural properties are flagged. */
 const SHARED_CSS = [".topbar", ".tlink", ".actions", ".serve-row", ".invisible", ".level-switch",
+                    ".optlist",  /* the numbered multiple-choice list */
                     ".sheet-ov", ".sheet", ".sheet-body", ".rule", ".rrow", ".rarrow", ".rsolo",
                     /* the shared board: buildBoard() writes this markup, site.css lays it out.
                        .piece is NOT here — a game decides how big its piece is, but never how
@@ -123,6 +124,15 @@ for (const g of loadCatalog()) {
 
   /* --- the other shared pieces stay shared: each of these was once copy-pasted per game --- */
   ok(!/class=["']level-opt/.test(inline), at + "builds its own level-menu entries — use buildLevelMenu() from site.js");
+  /* the stock outcome sounds: the notes live once in site.js so "right" and "wrong" sound the
+     same site-wide, and a game's sound() dispatcher only decides when they play */
+  ok(!/\[523\s*,\s*659\s*,\s*784\s*,\s*1047\]/.test(inline),
+     at + "spells out the win arpeggio — call beepWin() from site.js");
+  ok(!/beep\(\s*190\s*,/.test(inline),
+     at + "spells out the wrong-answer buzz — call beepBad() from site.js");
+  /* the two screens are swapped in one place, so what .hide means never forks */
+  ok(!/\$\(["']screen-(home|game|quiz)["']\)\.classList\.(add|remove)\(["']hide["']\)/.test(inline),
+     at + "swaps the screens by hand — use showScreen('home'|'game') or showHome() from site.js");
   ok(!/getContext\(/.test(inline), at + "draws its own confetti — use throwConfetti() from site.js");
   ok(!/id="rules-ov"/.test(html), at + "carries the rules-sheet markup — wireRulesSheet() builds it");
   ok(!/@keyframes\s+\w+\{0%,100%\{transform:translateX\(0\)\}25%\{transform:translateX\(-7px\)\}75%\{transform:translateX\(7px\)\}\}/.test(style),

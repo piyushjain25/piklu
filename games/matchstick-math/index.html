@@ -622,8 +622,7 @@ $("board").addEventListener('click', onBoardClick);
 function startSession(){
   game = { usedHint:false, start:null };
   setLevel(level);
-  $("screen-home").classList.add("hide");
-  $("screen-game").classList.remove("hide");
+  showScreen("game");
   setOwl('idle');
   newPuzzle();
 }
@@ -657,10 +656,7 @@ function giveHint(){
 }
 
 function goHome(){
-  stopConfetti();
-  $("screen-game").classList.add("hide");
-  $("screen-home").classList.remove("hide");
-  setOwl('idle');
+  showHome();
 }
 
 // keyboard: Escape reset, H hint, Enter/Space -> next (when solved), Escape also closes the level menu
@@ -681,7 +677,7 @@ function sound(kind){
   if(kind==="tick"){ beep(520,.05,"square",0,.06); }
   else if(kind==="good"){ beep(660,.12,"triangle"); beep(880,.14,"triangle",.08); }
   else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
-  else if(kind==="win"){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
+  else if(kind==="win"){ beepWin(.18,.10); }
 }
 
 

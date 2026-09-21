@@ -213,7 +213,8 @@ function newPuzzle(fromHome){
   P=p; prevSig=puzzleSig(P);
   program=[]; robotPos=[P.start[0],P.start[1]]; running=false; solved=false; hintStep=0;
   trail=[[P.start[0],P.start[1]]];
-  if(fromHome){ $("screen-home").classList.add("hide"); $("screen-game").classList.remove("hide"); }
+  if(fromHome){ showScreen("game");
+  }
   setLevel(level);
   const parChip=$("par-chip");
   if(P.par){ parChip.classList.remove("hide"); parChip.textContent=`🎯 Best: ${P.optimal}`; } else parChip.classList.add("hide");
@@ -382,7 +383,10 @@ function giveHint(){
 }
 
 function bonk(){ const tok=$("robot"); tok.classList.remove('bonk'); void tok.offsetWidth; tok.classList.add('bonk'); sound('bad'); }
-function goHome(){ stopConfetti(); P=null; $("screen-game").classList.add("hide"); $("screen-home").classList.remove("hide"); setOwl('idle'); }
+function goHome(){
+  showHome();
+  P=null;
+}
 
 // keyboard: arrows move/add, Backspace undo (program), Enter run/next, Escape reset, H hint
 document.addEventListener("keydown", e=>{
@@ -403,7 +407,7 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="tick") beep(560,.05,"square",0,.05);
   else if(kind==="bad") beep(180,.16,"sawtooth",0,.10);
-  else if(kind==="win") [523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",i*.10)); }
+  else if(kind==="win") beepWin(.18,.10); }
 
 initBouncyTitle("Robot Instructions");
 setLevel("EASY");
