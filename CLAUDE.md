@@ -642,8 +642,12 @@ _tests/games/<slug>/*.test.js   per-game engine stress tests and jsdom play-thro
 ```
 
 **When you add a game,** the `site/*` tests cover it automatically — run them, they catch
-most convention slips on their own. Add `_tests/games/<slug>/` when the game has real logic
-worth proving. Keep the generator/solver as a pure, DOM-free function and end the engine
+most convention slips on their own. **Every game in the catalog also has its own
+`_tests/games/<slug>/`** — add one for yours too. The pattern that pays off is to find the
+game's central promise (every maze is solvable, the fewest coins really is the fewest, the
+question text names the answer it scores) and prove it in bulk against something derived
+INDEPENDENTLY of the game's own code — a flood fill next to the game's BFS, an exact DP next
+to its greedy, the question parsed back from the words a child reads. Keep the generator/solver as a pure, DOM-free function and end the engine
 block with:
 
 ```js
