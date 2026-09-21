@@ -191,13 +191,6 @@ function shuffle(arr){
 // fallback word list, by design: see CLAUDE.md.
 let BANK = {MY:[],EASY:[],MEDIUM:[],HARD:[],EXPERT:[]};
 
-loadGameData("words.json").then(data => {
-  if(!data) return;
-  BANK = data;
-  if(BANK.MY && BANK.MY.length) $("diff-my").classList.remove("hide");
-  refreshLevelMenu();
-});
-
 // ---------- state ----------
 let level = "EASY";
 let state = null;
@@ -217,6 +210,19 @@ function pickWord(lvl){
   while(recent.length>guardCount) recent.shift();
   return w;
 }
+
+if(typeof module !== "undefined") module.exports = { LEVELS, RECENT_MAX, shuffle, poolFor,
+  pickWord, recent, setBank: b => { BANK = b; recent.length = 0; } };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
+loadGameData("words.json").then(data => {
+  if(!data) return;
+  BANK = data;
+  if(BANK.MY && BANK.MY.length) $("diff-my").classList.remove("hide");
+  refreshLevelMenu();
+});
 
 // ---------- level select (home) ----------
 function setLevel(l){
@@ -469,6 +475,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

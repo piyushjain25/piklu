@@ -204,12 +204,6 @@ const MAX_WORD_WRONG = 3;
 // fallback word list, by design: see CLAUDE.md.
 let WORDS = [];
 
-loadGameData("words.json").then(data => {
-  if(Array.isArray(data) && data.length){
-    WORDS = data.filter(w => /^[A-Za-z]+$/.test(w)).map(w => w.toUpperCase());
-  }
-});
-
 // ---------- state ----------
 let state = null;
 let lastWord = "";
@@ -228,6 +222,33 @@ function setMode(m){
   $("custom-setup").classList.toggle("hide", m!=="custom");
   $("start-error").classList.add("hide");
 }
+function bandForLength(n){
+  for(const k in LEVELS){ if(n>=LEVELS[k].min && n<=LEVELS[k].max) return k; }
+  return null;
+}
+
+function pickRandomWord(diff){
+  const {min,max} = LEVELS[diff];
+  const pool = WORDS.filter(w => w.length>=min && w.length<=max);
+  if(!pool.length) return null;
+  let w = pool[rnd(pool.length)];
+  if(pool.length>1){ let guard=0; while(w===lastWord && guard++<8){ w = pool[rnd(pool.length)]; } }
+  return w;
+}
+
+if(typeof module !== "undefined") module.exports = { LEVELS, MAX_LETTER_WRONG, MAX_WORD_WRONG,
+  bandForLength, pickRandomWord,
+  setWords: w => { WORDS = w; lastWord = ""; } };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
+loadGameData("words.json").then(data => {
+  if(Array.isArray(data) && data.length){
+    WORDS = data.filter(w => /^[A-Za-z]+$/.test(w)).map(w => w.toUpperCase());
+  }
+});
+
 $("mode-random").onclick = ()=>setMode("random");
 $("mode-custom").onclick = ()=>setMode("custom");
 
@@ -250,11 +271,6 @@ $("custom-word").addEventListener("input", e=>{
   e.target.value = e.target.value.replace(/[^a-zA-Z]/g,"").toUpperCase();
 });
 
-function bandForLength(n){
-  for(const k in LEVELS){ if(n>=LEVELS[k].min && n<=LEVELS[k].max) return k; }
-  return null;
-}
-
 // level switcher (tap the chip at the top to change difficulty mid-game) — random mode only
 buildLevelMenu(LEVELS, pickLevel);
 function pickLevel(l){ closeLevelMenu(); if(l===level) return; setLevel(l); startNext(); }
@@ -269,15 +285,6 @@ function updateLevelChip(){
 }
 
 // ---------- start / pick word ----------
-function pickRandomWord(diff){
-  const {min,max} = LEVELS[diff];
-  const pool = WORDS.filter(w => w.length>=min && w.length<=max);
-  if(!pool.length) return null;
-  let w = pool[rnd(pool.length)];
-  if(pool.length>1){ let guard=0; while(w===lastWord && guard++<8){ w = pool[rnd(pool.length)]; } }
-  return w;
-}
-
 $("start-btn").onclick = ()=>{
   $("start-error").classList.add("hide");
   if(mode==="custom"){
@@ -537,6 +544,7 @@ function sound(kind){
 
 initBouncyTitle();
 setMode("random");
+}
 </script>
 </body>
 </html>
