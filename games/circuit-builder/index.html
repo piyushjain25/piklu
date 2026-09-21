@@ -68,7 +68,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">⚡ Wire up a circuit and make the bulb light!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">close the loop</div></button>
@@ -131,6 +131,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -1138,7 +1139,7 @@ wireRulesSheet(function(){
     + 'or one or two hints. <b>★</b> otherwise. A hint tells you what <b>kind</b> of problem there is, never which part.</p></div>';
 });
 
-initBouncyTitle("Circuit Builder");
+initBouncyTitle();
 setLevel("EASY");
 }
 </script>

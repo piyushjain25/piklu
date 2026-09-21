@@ -79,7 +79,7 @@
         </svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🐝 Listen closely and spell the word, letter by letter!</p>
+      <p class="subtitle"></p>
 
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
@@ -91,7 +91,7 @@
       </div>
 
       <div class="howto">
-        🐝 <b>How to play:</b> Tap <b>🔊 Hear the Word</b> to listen (say it again anytime!). If there's a
+        <i class="gemoji"></i> <b>How to play:</b> Tap <b>🔊 Hear the Word</b> to listen (say it again anytime!). If there's a
         picture, that's a clue too. Then tap the letter tiles in order to spell the word into the blanks —
         tap a filled blank to take that tile back. Once every blank is full, hit <b>Check</b>! Stuck?
         <b>💡 Hint</b> fills in the next letter for you.
@@ -170,6 +170,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -466,7 +467,7 @@ function sound(kind){
 }
 
 
-initBouncyTitle("Spell-a-Bee");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

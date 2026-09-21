@@ -116,7 +116,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">❌ Four ways to play noughts and crosses — can you beat the owl?</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">three wins</div></button>
@@ -125,7 +125,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">nine boards</div></button>
       </div>
       <div class="howto">
-        ❌ <b>How to play:</b> You are <b>✕</b> and the owl is <b>◯</b>. Every level changes the
+        <i class="gemoji"></i> <b>How to play:</b> You are <b>✕</b> and the owl is <b>◯</b>. Every level changes the
         rules:
         <ul class="lvls">
           <li>🌱 <b>Easy</b> — get <b>three in a row</b> to win.</li>
@@ -180,6 +180,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -1166,7 +1167,7 @@ function sound(kind){
   else if(kind==="win") beepWin();
 }
 
-initBouncyTitle("Tic Tac Toe");
+initBouncyTitle();
 setLevel("EASY");
 
 }

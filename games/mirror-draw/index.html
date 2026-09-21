@@ -60,7 +60,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🦋 Finish the picture so both halves match!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">side to side</div></button>
@@ -124,6 +124,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -605,7 +606,7 @@ wireRulesSheet(function(){
 
 /* ---- confetti (shared stopConfetti/#confetti live in site.js) ---- */
 
-initBouncyTitle("Mirror Draw");
+initBouncyTitle();
 setLevel("EASY");
 }
 </script>

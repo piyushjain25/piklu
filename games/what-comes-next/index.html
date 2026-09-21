@@ -39,7 +39,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🔢 Spot the pattern and pick what comes next!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">colour patterns</div></button>
@@ -48,7 +48,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">tricky rules</div></button>
       </div>
       <div class="howto">
-        🧩 <b>How to play:</b> Look at the row and figure out the rule — the colours might repeat, or the numbers might grow. Then tap the
+        <i class="gemoji"></i> <b>How to play:</b> Look at the row and figure out the rule — the colours might repeat, or the numbers might grow. Then tap the
         tile that <b>comes next</b> in the blank!
       </div>
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
@@ -94,6 +94,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -206,7 +207,7 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
-initBouncyTitle("What Comes Next");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

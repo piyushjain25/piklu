@@ -41,14 +41,17 @@ Read this instead of opening a reference game. The rules behind the markup are i
 ## 1. Page skeleton
 
 The \`<head>\` (\`site.css\` — which brings the fonts with it — then the game's own \`<style>\`), \`<body class="game">\`,
-and the end of the page: \`#confetti\`, then \`site.js\`, then the game's own inline \`<script>\`.
+and the end of the page: \`#confetti\`, then \`games.js\`, then \`site.js\`, then the game's own inline
+\`<script>\`. The game links \`games.js\` because its own catalog entry is where its title, card emoji
+and subtitle come from — \`site.js\` reads them back from there (see section 10's \`GAME\`), which is why
+\`<p class="subtitle">\` is empty in the markup and \`initBouncyTitle()\` takes no argument.
 
 `,
   block(P, "<!DOCTYPE html>", 0, 8, "html"),
   "\n",
   block(P, '<body class="game">', -2, 5, "html"),
   "\n",
-  block(P, '<canvas id="confetti">', -3, 8, "html"),
+  block(P, '<canvas id="confetti">', -3, 9, "html"),
   "\n",
   block(P, "initBouncyTitle(", 0, 5, "js"),
   `
@@ -62,9 +65,12 @@ filled by \`buildLevelMenu()\`; never write \`.level-opt\` buttons by hand.
   `
 ## 3. Start screen
 
-\`← All games\` (start screen only), the owl + bouncy title (\`initBouncyTitle("Name")\` fills
-\`#title\`, see section 1), the four \`.diff\` cards — \`EMOJI Name\` on one line, a 2–3 word \`d-range\`
-— the \`.howto\` block and Start.
+\`← All games\` (start screen only), the owl + bouncy title (\`initBouncyTitle()\` fills \`#title\` with
+the catalog's name, see section 1), the EMPTY \`<p class="subtitle">\` that \`applyGameText()\` fills
+with the card emoji + the catalog's \`subtitle\`, the four \`.diff\` cards — \`EMOJI Name\` on one line,
+a 2–3 word \`d-range\` — the \`.howto\` block and Start. A \`.howto\` that wants to lead with the card
+emoji writes \`<i class="gemoji"></i>\`, never the glyph itself; any OTHER glyph there is the game's
+own and stays literal (pizza-party's 🧀 below).
 
 `,
   block(P, '<section id="screen-home">', 0, 20, "html"),
@@ -186,6 +192,8 @@ redeclare any of them** (that throws a \`SyntaxError\` at load) — including th
 \`\`\`text
 $(id)                                   document.getElementById(id)
 reduceMotion                            true when the player prefers reduced motion; guard all animation and sound
+GAME                                    this page's own entry in /games.js, found by its folder name (null off-catalog)
+applyGameText()                         fills <i class="gemoji"> and <p class="subtitle"> from GAME (runs by itself)
 loadGameData(path)                      async; fetch a relative JSON file, resolve to the parsed data or null
 flash(msg, kind)                        write into #feedback; kind is '' | 'good' | 'bad' | 'hint'
 MASCOT_SVG                              the one copy of the owl drawing
@@ -220,7 +228,7 @@ throwConfetti(options)                  the celebration; call as if(!reduceMotio
 stopConfetti()                          clear and hide #confetti; call when leaving a round
 showScreen(which)                       swap #screen-home / #screen-game ('home' | 'game')
 showHome()                              stopConfetti + showScreen('home') + setOwl('idle')
-initBouncyTitle(word)                   build the animated per-letter #title
+initBouncyTitle(word)                   build the animated per-letter #title; no argument = the catalog's GAME.title
 boardCell(cols, o)                      a cell size that keeps a board of cols columns inside the card
 buildBoard(mount, o)                    build the shared board into mount; returns { stage, rig, board, pieces, fx, line }
 boardSlot(id, row, col)                 one square, parked at its place (id null for a loose one, e.g. a piece leaving)
@@ -235,7 +243,7 @@ Every class \`assets/site.css\` defines for game pages. If a name is here, it al
 it, don't redeclare it in a game's \`<style>\`. Names only; the rules are in \`site.css\`.
 
 \`\`\`text
-page:        game app card brand title c1 c2 c3 c4 subtitle home-top hub-link center mt row-btns hide
+page:        game app card brand title c1 c2 c3 c4 subtitle gemoji home-top hub-link center mt row-btns hide
 mascot:      owl pupil brow brow-l brow-r beak happy worried win think
 monster:     monster monster-name stagewrap mini mini-slot belly-fill sad chomp
 buttons:     btn btn-primary btn-go btn-warn btn-sun btn-ghost btn-lg btn-sm ready

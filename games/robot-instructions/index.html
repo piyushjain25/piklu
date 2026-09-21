@@ -53,7 +53,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🤖 Guide the robot to the treasure 💎</p>
+      <p class="subtitle"></p>
 
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
@@ -133,6 +133,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -409,7 +410,7 @@ function sound(kind){ if(kind==="tick") beep(560,.05,"square",0,.05);
   else if(kind==="bad") beep(180,.16,"sawtooth",0,.10);
   else if(kind==="win") beepWin(.18,.10); }
 
-initBouncyTitle("Robot Instructions");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

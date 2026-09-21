@@ -64,7 +64,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🔴 Jump the owl's pieces before it jumps yours!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid three" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">casual owl</div></button>
@@ -72,7 +72,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">flying kings</div></button>
       </div>
       <div class="howto">
-        👑 <b>How to play:</b> Move your <b>red</b> pieces one square diagonally forward. If you can hop over an owl
+        <i class="gemoji"></i> <b>How to play:</b> Move your <b>red</b> pieces one square diagonally forward. If you can hop over an owl
         piece into an empty space behind it, you <b>must</b> — and if that piece can keep jumping, keep going!
         Reach the far row and your piece becomes a <b>king</b>, free to move any diagonal way. Capture every owl
         piece — or leave the owl with no moves at all — to win.
@@ -125,6 +125,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 /* ===== ENGINE ============================================================================
@@ -766,7 +767,7 @@ document.addEventListener("keydown", e => {
 buildLevelMenu(LEVELS, pickLevel);
 wireLevelMenu();
 wireRulesSheet(buildRulesBody);
-initBouncyTitle("Checkers");
+initBouncyTitle();
 setLevel("EASY");
 
 }

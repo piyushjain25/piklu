@@ -113,6 +113,9 @@ body::before{width:90px;height:34px;top:6%;left:6%;} body::after{width:70px;heig
   font-size:clamp(24px,8cqi,42px);}  /* scales with the CARD, so a wide game gets a bigger title */
 .title .c1{color:var(--grape);} .title .c2{color:var(--coral);} .title .c3{color:var(--leaf);} .title .c4{color:var(--sun-dark);}
 .subtitle{text-align:center; color:var(--ink-soft); font-weight:700; margin:2px 0 18px; font-size:15px;}
+/* the game's card emoji, filled in from /games.js by site.js's applyGameText() — a page never
+   writes the glyph itself, so the hub card and the game can't drift apart */
+.gemoji{font-style:normal;}
 
 .home-top{display:flex; margin-bottom:4px;}
 .hub-link{font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--grape); text-decoration:none; opacity:.8;}

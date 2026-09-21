@@ -113,9 +113,9 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🃏 Match the suit or the number — and be first to empty your hand!</p>
+      <p class="subtitle"></p>
       <div class="howto">
-        🃏 <b>How to play:</b> You and the owl each get <b>seven cards</b>. Play a card that matches the
+        <i class="gemoji"></i> <b>How to play:</b> You and the owl each get <b>seven cards</b>. Play a card that matches the
         pile's <b>suit</b> (♠ ♥ ♦ ♣) or its <b>number</b>. An <b>8 is wild</b> — play it any time and
         choose the next suit! Can't go? Take a card from the pack. First to run out of cards wins.
         <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
@@ -181,6 +181,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -635,7 +636,7 @@ wireRulesSheet(function () {
     + 'least one). A tie earns <b>★</b>.</p></div>';
 });
 
-initBouncyTitle("Crazy Eights");
+initBouncyTitle();
 }
 </script>
 </body>

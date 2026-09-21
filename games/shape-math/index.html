@@ -50,7 +50,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🔷 Add and subtract shapes to find the answer!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">simple joins</div></button>
@@ -59,7 +59,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">look-alikes</div></button>
       </div>
       <div class="howto">
-        🔷 <b>How to play:</b> A shape equation shows two shapes joined by <b>+</b> or <b>−</b>. Adding overlays their outlines
+        <i class="gemoji"></i> <b>How to play:</b> A shape equation shows two shapes joined by <b>+</b> or <b>−</b>. Adding overlays their outlines
         together; subtracting removes the second shape's lines from the first. Work out what's left, then <b>tap the matching
         shape</b> below!
       </div>
@@ -116,13 +116,14 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
 const rnd = n => Math.floor(Math.random()*n);
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-/* ===== shape-math engine (verified offline — see games/shape-math tests) =====
+/* ===== shape-math engine (verified offline — see _tests/games/shape-math/) =====
    Shapes are sets of named strokes on a 4x4 grid. A+B = union of stroke sets,
    A-B = set difference. A computed result is only a valid puzzle if its stroke
    set exactly equals another named SHAPES entry (or a documented alias). */
@@ -281,10 +282,6 @@ function generateOptions(a, b, answer) {
   return shuffle(opts);
 }
 
-if (typeof module !== "undefined") module.exports = {
-  STROKES, ARCS, SHAPES, LEVELS, computeResult, canonicalShapeFor, genPuzzle, generateOptions, sig,
-};
-
 /* ===== rendering ===== */
 function strokeMarkup(id, cls) {
   if (STROKES[id]) { const [x1,y1,x2,y2] = STROKES[id]; return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; }
@@ -312,6 +309,14 @@ function renderTeachInto(container, a, b, op, answer) {
   requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.add('run')));
   setTimeout(() => { if (container.querySelector('.teach-svg') === svg) container.innerHTML = shapeSVG(answer); }, 780);
 }
+
+if (typeof module !== "undefined") module.exports = {
+  STROKES, ARCS, SHAPES, HUMAN_NAME, LEVELS, computeResult, canonicalShapeFor, buildRecipes,
+  isSubsetOf, genPuzzle, generateOptions, distance, sig, shapeInner,
+};
+
+/* ===== DOM ===== */
+if (typeof document !== "undefined") {
 
 /* ===== state ===== */
 let level="EASY", P=null, phase='play', prevSig=null;
@@ -398,8 +403,9 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
-initBouncyTitle("Shape Math");
+initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

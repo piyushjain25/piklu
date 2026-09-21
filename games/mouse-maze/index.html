@@ -38,7 +38,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🐭 Help the mouse find the cheese!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">5×5 maze</div></button>
@@ -47,7 +47,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">11×11 maze</div></button>
       </div>
       <div class="howto">
-        🐭 <b>How to play:</b> Tap a glowing spot next to the mouse (or use the arrow keys) to move through the maze.
+        <i class="gemoji"></i> <b>How to play:</b> Tap a glowing spot next to the mouse (or use the arrow keys) to move through the maze.
         Hit a dead end? Just step back and try a different way! Reach the 🧀 cheese to win. Stuck? Tap <b>Hint</b> for a nudge.
       </div>
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
@@ -92,6 +92,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -343,7 +344,7 @@ function sound(kind){ if(kind==="step") beep(520,.05,"square",0,.05);
   else if(kind==="bad") beep(180,.16,"sawtooth",0,.10);
   else if(kind==="win") beepWin(); }
 
-initBouncyTitle("Mouse Maze");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

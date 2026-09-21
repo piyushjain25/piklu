@@ -42,9 +42,12 @@ const NO_LEVEL_CHIP = ["guess-the-capital", "crazy-eights"];
 for (const g of loadCatalog()) {
   const slug = g.slug, html = gameHTML(slug), at = slug + ": ";
 
-  /* --- the two shared assets, linked not copied (the fonts come with site.css) --- */
+  /* --- the three shared files, linked not copied (the fonts come with site.css) --- */
   ok(html.includes('href="../../assets/site.css"'), at + "should link ../../assets/site.css");
+  ok(html.includes('<script src="../../games.js"></script>'), at + "should link ../../games.js — its catalog entry is where its words live");
   ok(html.includes('<script src="../../assets/site.js"></script>'), at + "should link ../../assets/site.js");
+  ok(html.indexOf('src="../../games.js"') < html.indexOf('src="../../assets/site.js"'),
+     at + "games.js must load before site.js — site.js reads GAMES as it loads");
   ok(/<body[^>]*class="[^"]*\bgame\b/.test(html), at + 'body needs class="game" to pull in the design system');
   ok(html.indexOf('src="../../assets/site.js"') < html.lastIndexOf("<script>"),
      at + "site.js must load before the game's own inline script");
@@ -122,6 +125,23 @@ for (const g of loadCatalog()) {
        + " holds inline owl drawing — leave it empty, site.js draws it");
   ok(!html.includes('M14 10 L22 20 L10 20 Z'), at + "has an inline copy of the owl drawing — use an empty <svg class=\"owl\"> placeholder");
 
+  /* --- a game's WORDS live in games.js, never in the page ---
+     The title, the card emoji and the start-screen subtitle are all read back from the catalog
+     by site.js's applyGameText()/initBouncyTitle(), so the hub card and the game itself cannot
+     drift apart. <title> is the single exception: <head> is parsed long before any script runs,
+     so that one has to be a literal — which is exactly why it is checked against the catalog. */
+  ok(new RegExp("<title>" + g.title.replace(/&/g, "&amp;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "</title>").test(html),
+     at + "<title> must be the catalog's title, " + JSON.stringify(g.title));
+  ok(/<p class="subtitle"><\/p>/.test(html),
+     at + 'the subtitle must be an empty <p class="subtitle"></p> — site.js fills it from the catalog');
+  ok(/initBouncyTitle\(\s*\)/.test(inline),
+     at + "initBouncyTitle() takes no argument — the game's name comes from its catalog entry");
+  /* the card emoji is a <i class="gemoji"> placeholder wherever the page wants it. A literal
+     copy on the start screen is the drift this whole arrangement exists to prevent. */
+  for (const m of html.matchAll(/<div class="howto">\s*(\S+)/g))
+    ok(!m[1].startsWith(g.emoji), at + 'the .howto leads with a literal ' + g.emoji
+       + ' — use <i class="gemoji"></i> so it follows the catalog');
+
   /* --- the other shared pieces stay shared: each of these was once copy-pasted per game --- */
   ok(!/class=["']level-opt/.test(inline), at + "builds its own level-menu entries — use buildLevelMenu() from site.js");
   /* the stock outcome sounds: the notes live once in site.js so "right" and "wrong" sound the
@@ -190,9 +210,23 @@ ok(!hubHTML.includes('M14 10 L22 20 L10 20 Z'), "hub has an inline copy of the o
 ok(hubHTML.includes('<script src="../assets/site.js"></script>'), "hub must link ../assets/site.js to draw its mascot");
 ok(!hubHTML.includes("fonts.googleapis.com"), "hub should get the fonts from site.css, not link them itself");
 
+/* The <h1> is built letter by letter by initBouncyTitle(), which joins words with a NO-BREAK
+   space on purpose so a game's name never wraps mid-title — so read it back with that undone. */
+const $h = (d, id) => ((d.getElementById(id) || {}).textContent || "").replace(/\u00a0/g, " ");
+
 /* and site.js really draws it: boot each game and look at the live placeholders */
 for (const g of loadCatalog()) {
   const { w, d } = bootGame(g.slug, { onError: () => {} });   /* page errors are the play-throughs' job */
+  /* site.js really fills the catalog's words in */
+  ok(d.title === g.title, g.slug + ": document title should be " + JSON.stringify(g.title) + ", got " + JSON.stringify(d.title));
+  ok($h(d, "title") === g.title, g.slug + ": the bouncy <h1> should read " + JSON.stringify(g.title) + ", got " + JSON.stringify($h(d, "title")));
+  const sub = (d.querySelector("p.subtitle") || {}).textContent || "";
+  ok(sub.startsWith(g.emoji + " "), g.slug + ": the subtitle should lead with the card emoji " + g.emoji + ", got " + JSON.stringify(sub.slice(0, 12)));
+  ok(sub.slice(g.emoji.length + 1) === (g.subtitle || g.tagline),
+     g.slug + ": the subtitle should be the catalog's, got " + JSON.stringify(sub));
+  for (const el of d.querySelectorAll("i.gemoji"))
+    ok(el.textContent === g.emoji, g.slug + ": a .gemoji placeholder was not filled with " + g.emoji);
+
   const owls = [...d.querySelectorAll("svg.owl")];
   ok(owls.length >= 2, g.slug + ": expected the start-screen and top-bar mascots, got " + owls.length);
   for (const o of owls) {

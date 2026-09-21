@@ -75,7 +75,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🪙 Tap coins and notes to make the exact amount!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">coins to ₹20</div></button>
@@ -147,6 +147,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -384,7 +385,7 @@ function sound(kind){ if(kind==="tick") beep(520,.05,"square",0,.05); else if(ki
   else if(kind==="kaching"){ beep(1568,.06,"square",0,.05); beep(2093,.22,"triangle",.06,.07); }
   else if(kind==="win") [523,659,784,1047,1319].forEach((f,i)=>beep(f,.2,"triangle",i*.09)); }
 
-initBouncyTitle("Coin Counter");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

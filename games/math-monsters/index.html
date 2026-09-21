@@ -34,7 +34,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">👾 Feed the hungry monster the right answer!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><span class="mini-slot"></span><div class="d-name">🌱 Easy</div><div class="d-range">addition to 20</div></button>
@@ -43,7 +43,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><span class="mini-slot"></span><div class="d-name">🏆 Expert</div><div class="d-range">÷ tables 2–9</div></button>
       </div>
       <div class="howto">
-        👾 <b>How to play:</b> A hungry monster shows up with a problem! Tap the answer you think is right.
+        <i class="gemoji"></i> <b>How to play:</b> A hungry monster shows up with a problem! Tap the answer you think is right.
         Get it right and the monster gobbles it up happily. Pick a wrong one and it'll pull a sad face —
         just try one of the others!
       </div>
@@ -93,6 +93,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -280,7 +281,7 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
-initBouncyTitle("Math Monsters");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

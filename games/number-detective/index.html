@@ -57,7 +57,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🔎 Read the clues. Which secret number am I?</p>
+      <p class="subtitle"></p>
 
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
@@ -68,7 +68,7 @@
       </div>
 
       <div class="howto">
-        🕵️ <b>How to play:</b> Read every clue in the notebook, then tap the one number that fits them <b>all</b>.
+        <i class="gemoji"></i> <b>How to play:</b> Read every clue in the notebook, then tap the one number that fits them <b>all</b>.
         Wrong picks show which clue they break — keep sleuthing! Tap <b>💡 Hint</b> to rule a suspect out.
       </div>
 
@@ -116,6 +116,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -366,7 +367,7 @@ function sound(kind){
   else if(kind==="win"){ beepWin(.18,.10); }
 }
 
-initBouncyTitle("Number Detective");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

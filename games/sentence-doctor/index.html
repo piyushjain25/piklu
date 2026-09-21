@@ -73,7 +73,7 @@
         </svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🩺 Help Doc Owl's helper heal the sick sentence!</p>
+      <p class="subtitle"></p>
 
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
@@ -84,7 +84,7 @@
       </div>
 
       <div class="howto">
-        🩺 <b>How to play:</b> A Word Critter has caught a sentence sickness! On <b>Easy</b>,
+        <i class="gemoji"></i> <b>How to play:</b> A Word Critter has caught a sentence sickness! On <b>Easy</b>,
         <b>Medium</b> and <b>Hard</b>, pick the fix from 4 choices — Easy covers capital letters,
         punctuation and simple tense; Medium adds articles, nouns, contractions and prepositions;
         Hard adds pronouns, gender &amp; number, adjectives, adverbs and conjunctions. On
@@ -153,6 +153,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -1010,7 +1011,7 @@ function sound(kind){
   else if(kind==="win") beepWin();
 }
 
-initBouncyTitle("Sentence Doctor");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

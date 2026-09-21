@@ -105,7 +105,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">⚖️ Make both sides level — then find the mystery box!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">match the crate</div></button>
@@ -114,7 +114,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">two scales</div></button>
       </div>
       <div class="howto">
-        ⚖️ <b>How to play:</b> The beam <b>tips down</b> on the heavier side. Tap weights to put them
+        <i class="gemoji"></i> <b>How to play:</b> The beam <b>tips down</b> on the heavier side. Tap weights to put them
         on the pan, and tap them again to take them off — make both sides <b>level</b>! On
         <b>Hard</b> and <b>Expert</b> the scale is already level: work out what the <b>🎁 mystery box</b> weighs.
         <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
@@ -172,6 +172,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -629,7 +630,7 @@ wireRulesSheet(function(){
 
 /* ---- confetti (shared stopConfetti/#confetti live in site.js) ---- */
 
-initBouncyTitle("Balance Scales");
+initBouncyTitle();
 setLevel("EASY");
 }
 </script>

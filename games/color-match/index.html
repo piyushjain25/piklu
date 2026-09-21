@@ -30,7 +30,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🎨 Tap the colours that match!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><span class="mini-slot"></span><div class="d-name">🌱 Easy</div><div class="d-range">4 colours</div></button>
@@ -39,7 +39,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><span class="mini-slot"></span><div class="d-name">🏆 Expert</div><div class="d-range">subtle shades</div></button>
       </div>
       <div class="howto">
-        🎨 <b>How to play:</b> A colour name appears, written in that colour — tap the swatch that matches!
+        <i class="gemoji"></i> <b>How to play:</b> A colour name appears, written in that colour — tap the swatch that matches!
         On <b>Hard</b> and <b>Expert</b>, tap <b>all</b> the matching swatches to finish the round.
         Look closely — some colours are tricky look-alikes!
       </div>
@@ -90,6 +90,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -321,7 +322,7 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="good") beep(660,.08,"triangle",0,.08); else if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
-initBouncyTitle("Color Match");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

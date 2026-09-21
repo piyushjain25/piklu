@@ -76,7 +76,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🎲 Roll, then choose + − × or ÷ to land exactly on the target.</p>
+      <p class="subtitle"></p>
 
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
@@ -87,7 +87,7 @@
       </div>
 
       <div class="howto">
-        🏁 <b>How to play:</b> You start at 0. Each turn, tap the die to roll, then choose to <b>add</b>, <b>subtract</b>,
+        <i class="gemoji"></i> <b>How to play:</b> You start at 0. Each turn, tap the die to roll, then choose to <b>add</b>, <b>subtract</b>,
         <b>multiply</b>, or <b>divide</b> by it — you work out the answer in your head! (Divide rounds down.) Land on <b>exactly the target number</b> to win.
         Multiply to leap ahead, then add or subtract to land just right. Went over? Subtract or divide back down.
       </div>
@@ -141,6 +141,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -372,7 +373,7 @@ function sound(kind){
   else if(kind==="win") beepWin(.18,.10);
 }
 
-initBouncyTitle("Race to 100");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>

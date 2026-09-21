@@ -52,7 +52,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🔴 Drop your discs and get four in a row before the owl does!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid three" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">sleepy owl</div></button>
@@ -110,6 +110,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -614,7 +615,7 @@ document.addEventListener("keydown", e => {
   }
 });
 
-initBouncyTitle("Connect Four");
+initBouncyTitle();
 setLevel("EASY");
 }
 </script>

@@ -47,7 +47,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">Pick the right capital city — can you get them all?</p>
+      <p class="subtitle"></p>
 
       <div class="block-label">Choose a game</div>
       <div class="modes" role="group" aria-label="Game mode">
@@ -62,7 +62,7 @@
       </div>
 
       <div class="howto">
-        📌 <b>How to play:</b> Read the state or country, then tap the matching capital city. A wrong
+        <i class="gemoji"></i> <b>How to play:</b> Read the state or country, then tap the matching capital city. A wrong
         pick gets crossed out so you can try again — tap <b>💡 Hint</b> if you'd like one ruled out for you.
       </div>
       <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
@@ -107,6 +107,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 // This game only works when served (fetch() is blocked under file://) — no embedded
@@ -253,7 +254,7 @@ function sound(kind){
   else if(kind==="bad"){ beep(200,.22,"sawtooth",0,.12); }
 }
 
-initBouncyTitle("Guess the Capital");
+initBouncyTitle();
 setMode("india");
 </script>
 </body>

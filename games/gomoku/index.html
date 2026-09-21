@@ -57,7 +57,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">5️⃣ Line up five in a row before the owl does!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid three" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">9×9, sleepy owl</div></button>
@@ -123,6 +123,7 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
@@ -767,7 +768,7 @@ document.addEventListener("keydown", e => {
   if (inBoard(r, c, n)) $("c" + (r * n + c)).focus();
 });
 
-initBouncyTitle("Gomoku");
+initBouncyTitle();
 setLevel("EASY");
 }
 </script>

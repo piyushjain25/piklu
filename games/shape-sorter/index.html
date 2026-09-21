@@ -29,7 +29,7 @@
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🔷 Find and tap the matching shapes!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">3 shapes</div></button>
@@ -38,7 +38,7 @@
         <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">look-alikes</div></button>
       </div>
       <div class="howto">
-        🔷 <b>How to play:</b> A shape appears at the top — tap the tile that matches it! On <b>Hard</b> and
+        <i class="gemoji"></i> <b>How to play:</b> A shape appears at the top — tap the tile that matches it! On <b>Hard</b> and
         <b>Expert</b>, tap <b>all</b> the matching tiles to finish the round. Shapes come in all sorts of colors
         and sizes, so look at the outline, not the color!
       </div>
@@ -84,13 +84,14 @@
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
 const rnd = n => Math.floor(Math.random()*n);
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-/* ===== engine (verified offline — see test-shape-sorter.js) ===== */
+/* ===== engine (verified offline — see _tests/games/shape-sorter/) ===== */
 const NAMES={circle:"Circle",square:"Square",triangle:"Triangle",star:"Star",heart:"Heart",
   rectangle:"Rectangle",oval:"Oval",diamond:"Diamond",pentagon:"Pentagon"};
 const CONFUSABLE={circle:"oval", oval:"circle", square:"rectangle", rectangle:"square"};
@@ -119,8 +120,6 @@ function genRound(level){
   tiles.forEach((t,i)=>{ t.id=i; t.color=COLORS[rnd(COLORS.length)]; t.scale=0.82+Math.random()*0.32; t.found=false; });
   return { level, target, targetCount, tiles };
 }
-if(typeof module!=="undefined") module.exports={ genRound, LEVELS, NAMES, CONFUSABLE };
-
 /* ===== shape rendering ===== */
 function polygonPoints(sides,cx,cy,r,rotateDeg){
   const pts=[]; for(let i=0;i<sides;i++){ const a=(rotateDeg+i*360/sides)*Math.PI/180;
@@ -149,6 +148,11 @@ function shapeMarkup(kind,color){
     default: return "";
   }
 }
+
+if(typeof module !== "undefined") module.exports = { genRound, LEVELS, NAMES, CONFUSABLE, COLORS, shapeMarkup };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
 
 /* ===== state ===== */
 let level="EASY", R=null, found=0, phase='play', prevSig=null;
@@ -248,8 +252,9 @@ document.addEventListener("keydown", e=>{
 /* ===== sound / confetti / title (beep/stopConfetti/initBouncyTitle are shared in site.js) ===== */
 function sound(kind){ if(kind==="good") beep(660,.08,"triangle",0,.08); else if(kind==="bad") beepBad(); else if(kind==="win") beepWin(); }
 
-initBouncyTitle("Shape Sorter");
+initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

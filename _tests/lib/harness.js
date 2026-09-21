@@ -33,13 +33,16 @@ function loadEngine(slug) {
   return mod.exports;
 }
 
-/* Boot a game page in jsdom the way a browser would: site.js inlined (jsdom won't fetch the
-   relative <script src>) and the browser bits jsdom lacks stubbed in BEFORE parse, because the
-   page reads matchMedia and paints to canvas as it loads. Nothing strips the fonts: a page no
-   longer links them (site.css @imports them instead) and jsdom doesn't fetch stylesheets. */
+/* Boot a game page in jsdom the way a browser would: games.js and site.js inlined (jsdom won't
+   fetch a relative <script src>) and the browser bits jsdom lacks stubbed in BEFORE parse,
+   because the page reads matchMedia and paints to canvas as it loads. Nothing strips the fonts:
+   a page no longer links them (site.css @imports them instead) and jsdom doesn't fetch
+   stylesheets. The `url` matters: site.js works out which catalog entry the page is from its
+   folder name, and that is where the game's title, emoji and subtitle come from. */
 function bootGame(slug, opts = {}) {
   const { reducedMotion = false, seed = null, url = "http://localhost/games/" + slug + "/", onError, data = null } = opts;
   const html = gameHTML(slug)
+    .replace('<script src="../../games.js"></script>', "<script>" + read("games.js") + "</script>")
     .replace('<script src="../../assets/site.js"></script>', "<script>" + read("assets/site.js") + "</script>");
 
   const vc = new VirtualConsole();

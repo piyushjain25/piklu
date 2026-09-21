@@ -12,7 +12,10 @@ Read this instead of opening a reference game. The rules behind the markup are i
 ## 1. Page skeleton
 
 The `<head>` (`site.css` — which brings the fonts with it — then the game's own `<style>`), `<body class="game">`,
-and the end of the page: `#confetti`, then `site.js`, then the game's own inline `<script>`.
+and the end of the page: `#confetti`, then `games.js`, then `site.js`, then the game's own inline
+`<script>`. The game links `games.js` because its own catalog entry is where its title, card emoji
+and subtitle come from — `site.js` reads them back from there (see section 10's `GAME`), which is why
+`<p class="subtitle">` is empty in the markup and `initBouncyTitle()` takes no argument.
 
 Source: `games/pizza-party/index.html` lines 1-8
 ```html
@@ -35,21 +38,22 @@ Source: `games/pizza-party/index.html` lines 28-32
   <div class="card">
 ```
 
-Source: `games/pizza-party/index.html` lines 96-103
+Source: `games/pizza-party/index.html` lines 96-104
 ```html
     </section>
   </div>
 </div>
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 "use strict";
 ```
 
-Source: `games/pizza-party/index.html` lines 219-223
+Source: `games/pizza-party/index.html` lines 220-224
 ```js
-initBouncyTitle("Pizza Party");
+initBouncyTitle();
 setLevel("EASY");
 </script>
 </body>
@@ -82,9 +86,12 @@ Source: `games/pizza-party/index.html` lines 56-70
 
 ## 3. Start screen
 
-`← All games` (start screen only), the owl + bouncy title (`initBouncyTitle("Name")` fills
-`#title`, see section 1), the four `.diff` cards — `EMOJI Name` on one line, a 2–3 word `d-range`
-— the `.howto` block and Start.
+`← All games` (start screen only), the owl + bouncy title (`initBouncyTitle()` fills `#title` with
+the catalog's name, see section 1), the EMPTY `<p class="subtitle">` that `applyGameText()` fills
+with the card emoji + the catalog's `subtitle`, the four `.diff` cards — `EMOJI Name` on one line,
+a 2–3 word `d-range` — the `.howto` block and Start. A `.howto` that wants to lead with the card
+emoji writes `<i class="gemoji"></i>`, never the glyph itself; any OTHER glyph there is the game's
+own and stays literal (pizza-party's 🧀 below).
 
 Source: `games/pizza-party/index.html` lines 34-53
 ```html
@@ -94,7 +101,7 @@ Source: `games/pizza-party/index.html` lines 34-53
         <svg class="owl" id="owl-home"></svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">🍕 Read the order and serve the right fraction of pizza!</p>
+      <p class="subtitle"></p>
       <div class="block-label">Choose a level</div>
       <div class="diff-grid" role="group" aria-label="Level">
         <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">½ and ¼</div></button>
@@ -170,7 +177,7 @@ Source: `games/pizza-party/index.html` lines 92-95
       </div>
 ```
 
-Source: `games/pizza-party/index.html` lines 189-190
+Source: `games/pizza-party/index.html` lines 190-191
 ```js
     $("serve-btn").classList.add("hide"); $("skip-btn").classList.add("invisible");   // Next takes Serve's place; Skip keeps its slot so nothing shifts
     $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
@@ -193,7 +200,7 @@ Source: `games/lights-out/index.html` lines 124-133
       </div>
 ```
 
-Source: `games/lights-out/index.html` lines 446-447
+Source: `games/lights-out/index.html` lines 447-448
 ```js
   $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
   $("next-btn").classList.remove("invisible");
@@ -205,7 +212,7 @@ A game carries **no** sheet markup: `wireRulesSheet()` builds the `.sheet-ov#rul
 itself (a site test fails if a game contains `id="rules-ov"`). This is what it builds, for
 reference only:
 
-Source: `assets/site.js` lines 241-245
+Source: `assets/site.js` lines 273-277
 ```js
   o.innerHTML =
     '<div class="sheet"><div class="sheet-top"><h2 id="rules-h"></h2>' +
@@ -218,7 +225,7 @@ The game supplies the two links (sections 3 and 4) and the body. The body is a s
 sections, each an `<h3>` with an emoji, short `<p>`s, and optional `.rrow` diagrams with a
 `.cap` caption:
 
-Source: `games/lights-out/index.html` lines 530-537
+Source: `games/lights-out/index.html` lines 531-538
 ```js
 wireRulesSheet(function(){
   $("rules-body").innerHTML =
@@ -232,7 +239,7 @@ wireRulesSheet(function(){
 
 Its own keydown handler must start by standing aside while the sheet is open:
 
-Source: `games/lights-out/index.html` lines 504-506
+Source: `games/lights-out/index.html` lines 505-507
 ```js
 document.addEventListener("keydown", e => {
   if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
@@ -244,7 +251,7 @@ document.addEventListener("keydown", e => {
 Only for a game with an extensible content list (CLAUDE.md rule 4). Load once with the shared
 helper, into the game's own `let`, and validate the shape before use. No inline fallback copy.
 
-Source: `games/spot-the-words/index.html` lines 434-444
+Source: `games/spot-the-words/index.html` lines 435-445
 ```js
 /* This game only works when served (fetch() is blocked under file://) — no embedded
    fallback data, by design: see CLAUDE.md. */
@@ -261,7 +268,7 @@ loadGameData("words.json").then(d => {
 
 The validation keeps well-formed entries and drops the rest rather than crashing the page:
 
-Source: `games/spot-the-words/index.html` lines 195-210
+Source: `games/spot-the-words/index.html` lines 196-211
 ```js
 /* Keep only well-formed themes; a malformed entry is dropped rather than crashing the page. */
 function validateThemes(data){
@@ -287,7 +294,7 @@ The pure engine ends with this guard; the DOM half follows inside `if(typeof doc
 "undefined")`. Export everything a test needs to reach — the level table, the generator, the
 solver/checker, the star rule — so `loadEngine()` can prove it without a DOM.
 
-Source: `games/lights-out/index.html` lines 302-306
+Source: `games/lights-out/index.html` lines 303-307
 ```js
 if(typeof module !== "undefined") module.exports = { LEVELS, HINT_MAX, DELTAS, flipList, flipMask,
   applyClick, isSolved, popcount, solveMask, solveMin, genBoard, starsFor };
@@ -310,7 +317,7 @@ Source: `games/gomoku/index.html` lines 95-96
         <!-- buildBoard() puts the shared board here; the spots to tap go on top of it -->
 ```
 
-Source: `games/gomoku/index.html` lines 500-517
+Source: `games/gomoku/index.html` lines 501-518
 ```js
 function setupBoard() {
   const n = game.n;
@@ -336,7 +343,7 @@ Connect Four's board is the same one with different knobs — room above it for 
 holding, holes smaller than the discs (so a falling disc is clipped by the frame and looks like
 it is behind it), and its own row numbering, because row 0 is the bottom of that board:
 
-Source: `games/connect-four/index.html` lines 371-375
+Source: `games/connect-four/index.html` lines 372-376
 ```js
   const b = buildBoard("stage", {
     cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58 }),
@@ -348,7 +355,7 @@ Source: `games/connect-four/index.html` lines 371-375
 The line through a winning row is drawn by `drawWinLine(runs, xy)` — a list of runs of square
 indexes, and where a square's centre sits in cell units — and cleared by `clearWinLine()`:
 
-Source: `games/gomoku/index.html` lines 534-535
+Source: `games/gomoku/index.html` lines 535-536
 ```js
   if (game.winner && game.line.length) drawWinLine(runsOf(b, game.winner, n), i => [(i % n) + .5, ((i / n) | 0) + .5]);
   else clearWinLine();
@@ -362,6 +369,8 @@ redeclare any of them** (that throws a `SyntaxError` at load) — including the 
 ```text
 $(id)                                   document.getElementById(id)
 reduceMotion                            true when the player prefers reduced motion; guard all animation and sound
+GAME                                    this page's own entry in /games.js, found by its folder name (null off-catalog)
+applyGameText()                         fills <i class="gemoji"> and <p class="subtitle"> from GAME (runs by itself)
 loadGameData(path)                      async; fetch a relative JSON file, resolve to the parsed data or null
 flash(msg, kind)                        write into #feedback; kind is '' | 'good' | 'bad' | 'hint'
 MASCOT_SVG                              the one copy of the owl drawing
@@ -396,7 +405,7 @@ throwConfetti(options)                  the celebration; call as if(!reduceMotio
 stopConfetti()                          clear and hide #confetti; call when leaving a round
 showScreen(which)                       swap #screen-home / #screen-game ('home' | 'game')
 showHome()                              stopConfetti + showScreen('home') + setOwl('idle')
-initBouncyTitle(word)                   build the animated per-letter #title
+initBouncyTitle(word)                   build the animated per-letter #title; no argument = the catalog's GAME.title
 boardCell(cols, o)                      a cell size that keeps a board of cols columns inside the card
 buildBoard(mount, o)                    build the shared board into mount; returns { stage, rig, board, pieces, fx, line }
 boardSlot(id, row, col)                 one square, parked at its place (id null for a loose one, e.g. a piece leaving)
@@ -411,7 +420,7 @@ Every class `assets/site.css` defines for game pages. If a name is here, it alre
 it, don't redeclare it in a game's `<style>`. Names only; the rules are in `site.css`.
 
 ```text
-page:        game app card brand title c1 c2 c3 c4 subtitle home-top hub-link center mt row-btns hide
+page:        game app card brand title c1 c2 c3 c4 subtitle gemoji home-top hub-link center mt row-btns hide
 mascot:      owl pupil brow brow-l brow-r beak happy worried win think
 monster:     monster monster-name stagewrap mini mini-slot belly-fill sad chomp
 buttons:     btn btn-primary btn-go btn-warn btn-sun btn-ghost btn-lg btn-sm ready

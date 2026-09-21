@@ -23,12 +23,13 @@ online toy store later. Read the rules below before changing anything.
    two places and lets it silently drift out of sync. If the fetch fails, the game is
    simply not playable (`word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`,
    `mystery-word`, `what-am-i`, `circuit-builder`); that's expected, not a bug.
-4. **Each game is one file plus two shared assets.** The game's own CSS and JS are
+4. **Each game is one file plus three shared files.** The game's own CSS and JS are
    **inline** in a single `games/<slug>/index.html` — don't split *game-specific* code
-   into extra files. Every game also links two things from `/assets/` that must never be
+   into extra files. Every game also links three things that must never be
    copy-pasted into a game's own `<style>`/`<script>`: `assets/site.css` (the shared design
-   system — see "Standard layout & controls") and `assets/site.js` (the shared JS helpers —
-   see "Shared JS helpers"). **The fonts come with `site.css`**, which `@import`s the Google
+   system — see "Standard layout & controls"), `assets/site.js` (the shared JS helpers —
+   see "Shared JS helpers"), and `/games.js` (the catalog — see "A game's words live in
+   `games.js`"; link it **before** `site.js`, which reads it as it loads). **The fonts come with `site.css`**, which `@import`s the Google
    Fonts stylesheet on its first line — a page never links Google Fonts itself, so the site's
    two fonts are changed in exactly one place. A game **may** keep
    **data** in a sibling file in the same folder (e.g. `words.json`, `capitals.json`).
@@ -69,7 +70,9 @@ online toy store later. Read the rules below before changing anything.
 
 ```
 /                       root — redirects to /games/ (future store home)
-/games.js               THE CATALOG — single source of truth for the game list
+/games.js               THE CATALOG — single source of truth for the game list AND for every
+                        game's title, card emoji and start-screen subtitle; linked by the hub
+                        and by every game page (before site.js)
 /assets/site.css        shared styles — the Google Fonts @import, hub layout AND the shared
                         game-page design system (colours, owl moods, buttons,
                         topbar/tlink/level-switch, the board games' board and piece, etc.)
@@ -79,7 +82,8 @@ online toy store later. Read the rules below before changing anything.
                         loadGameData for JSON data files, wireRulesSheet, speak/stopSpeech,
                         buildBoard + pieceHTML for the board games)
 /games/index.html       the hub — auto-builds the grid from /games.js
-/games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css
+/games/<slug>/index.html   one game per folder; game-specific CSS/JS inline, links site.css,
+                        games.js and site.js
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
 /_tests/                the offline test suite — Node + jsdom, NEVER deployed (see "Tests")
 /_ref/snippets.md       copy-paste markup for every shared pattern — NEVER deployed (see below)
@@ -107,6 +111,32 @@ skips `_`-prefixed paths, and the explicit `exclude` keeps them private even if 
 convention ever stops applying. Never put developer-only files at a plain path: GitHub Pages
 serves the repo, so `/whatever.js` is a public URL the moment it is pushed.
 
+## A game's words live in `games.js`
+
+A game's **title**, **card emoji** and **start-screen subtitle** are written once, in its
+`games.js` entry, and the page reads them back — so the hub card and the game itself can never
+drift apart. Every game links `<script src="../../games.js"></script>` immediately before
+`site.js`; `site.js` finds the page's entry by its **folder name** (`GAME`) and fills the page in
+(`applyGameText()`, which runs by itself). That works hosted *and* under `file://` — `games.js`
+is a plain script, not a `fetch()`, so rule 3 is untouched.
+
+What that means when writing a game:
+
+- **The name.** `initBouncyTitle()` takes **no argument** — it uses `GAME.title`. Never
+  `initBouncyTitle("Shape Sorter")`.
+- **The subtitle.** The markup is an **empty** `<p class="subtitle"></p>`. `site.js` fills it with
+  the card emoji followed by the entry's `subtitle` (or its `tagline` if it has none). Never write
+  the sentence, or the leading emoji, into the page.
+- **The card emoji anywhere else.** Write `<i class="gemoji"></i>` and `site.js` fills in the
+  glyph — that is how a `.howto` block leads with the game's own icon. A **different** glyph there
+  is the game's own decoration and stays literal (pizza-party's 🧀, lights-out's 🌙); so does a
+  glyph that means something in play (`flash("🔴 Your turn!")` — that 🔴 is the player's colour,
+  not the card icon).
+- **`<title>` is the one exception.** `<head>` is parsed long before any script runs, so it has to
+  be a literal — write the catalog's `title` there exactly.
+  `_tests/site/conventions.test.js` checks all five of these, and boots every game to confirm the
+  catalog's words really land on the page.
+
 ## Adding a new game (the ONLY supported way)
 
 Two steps — never edit the hub's HTML or CSS to add a game:
@@ -114,10 +144,12 @@ Two steps — never edit the hub's HTML or CSS to add a game:
 1. Create the game at `games/<slug>/index.html` (code inline, following the
    conventions below). `<slug>` is lowercase words joined by hyphens, e.g. `shape-sorter`.
    In `<head>`, link `<link rel="stylesheet" href="../../assets/site.css" />` (that one
-   link brings the fonts too — never add a Google Fonts `<link>`), and give `<body>` the class `game`
+   link brings the fonts too — never add a Google Fonts `<link>`) and give `<title>` the same
+   text as the catalog entry's `title`, and give `<body>` the class `game`
    (`<body class="game">`) — that's what pulls in the shared design system and control
    scheme. Right before the game's own `<script>` (after the `<canvas id="confetti">`),
-   add `<script src="../../assets/site.js"></script>` — it defines globals
+   add `<script src="../../games.js"></script>` and then
+   `<script src="../../assets/site.js"></script>` — it defines globals
    (`$`, `reduceMotion`, `flash`, `setOwl`, `wireLevelMenu`, `beep`, `stopConfetti`,
    `initBouncyTitle`, …; see "Shared JS helpers") that the game's inline script calls
    directly, unqualified. Never redeclare any of those names in the game's own script.
@@ -132,12 +164,20 @@ Two steps — never edit the hub's HTML or CSS to add a game:
 
    ```js
    { slug: "shape-sorter", title: "Shape Sorter", emoji: "🔷", accent: "sky", ageGroup: "6+",
-     tagline: "Sort the shapes into the right bins.", skills: ["Shapes"], badge: "New" },
+     tagline: "Sort the shapes into the right bins.", skills: ["Shapes"], badge: "New",
+     subtitle: "Sort every shape into the bin where it belongs!" },
    ```
 
    Field reference:
    - `slug` (required) — folder name; becomes the URL `/games/<slug>/`. Must be unique.
-   - `title`, `tagline`, `emoji` (required) — shown on the card.
+   - `title`, `tagline`, `emoji` (required) — shown on the card. `title` and `emoji` are also
+     what the **game page** shows (see "A game's words live in `games.js`"), so `title` is the
+     game's name everywhere and `<title>` must match it.
+   - `subtitle` (optional) — the livelier line the **game's own start screen** shows under its
+     title, e.g. `tagline: "Put the whole town to sleep."` on the card and
+     `subtitle: "Tap the windows and put the whole town to sleep!"` in the game. Falls back to
+     `tagline` when omitted. `site.css`/`site.js` render it as the card emoji + this text, so
+     don't repeat the emoji here.
    - `accent` (required) — one of `grape | coral | leaf | sun | sky`. Pick one that doesn't
      match the entry 1, 2 or 3 places above it in this array: the hub grid is
      `repeat(auto-fill,minmax(240px,1fr))` inside a 1080px wrap, so it renders as 1–4
@@ -172,6 +212,8 @@ The card, its link, and the search filter appear automatically.
   `<svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>` in the top bar
   (`#owl-quiz` in `guess-the-capital`; `<svg class="hub-owl"></svg>` on the hub). Never paste
   the owl's paths into a page — `_tests/site/conventions.test.js` fails on an inline copy.
+  The same idea covers a game's **words**: its title, card emoji and subtitle live once in
+  `games.js`, and the page holds empty placeholders (see "A game's words live in `games.js`").
   A game may put its **own extras** inside a placeholder (sentence-doctor's stethoscope,
   drawn on top of the owl); an extra marked `data-under` (word-guess's shadow) is drawn
   beneath it.
@@ -414,6 +456,11 @@ globals the game calls directly:
 
 - `$(id)` — `document.getElementById(id)`.
 - `reduceMotion` — `matchMedia("(prefers-reduced-motion: reduce)").matches`, computed once.
+- `GAME` / `applyGameText()` — the page's own entry in `games.js`, found from its folder name,
+  and the helper that writes the catalog's words into the page: every `<i class="gemoji">` gets
+  `GAME.emoji`, and an empty `<p class="subtitle">` gets the emoji plus `GAME.subtitle` (or
+  `GAME.tagline`). It runs by itself as `site.js` loads — a game never calls it — and is a no-op
+  on the hub and on any page with no catalog entry. See "A game's words live in `games.js`".
 - `flash(msg, kind)` — writes into `#feedback` (`kind` is `''`/`'good'`/`'bad'`/`'hint'`).
 - `MASCOT_SVG` / `drawMascots()` — the one copy of the owl drawing, and the helper that
   draws it into every empty `svg.owl` (and the hub's `svg.hub-owl`) placeholder. It runs by
@@ -464,7 +511,9 @@ globals the game calls directly:
 - `stopConfetti()` — clears and hides `#confetti` and cancels the shared `confettiRAF`
   handle; call it when leaving a round.
 - `initBouncyTitle(text)` — builds the animated per-letter `<h1 id="title">` and injects
-  its keyframes (a no-op past text into the bouncing title, respecting `reduceMotion`).
+  its keyframes (respecting `reduceMotion`). **A game calls it with no argument** — the name
+  then comes from `GAME.title`, so it is written only in `games.js`. Words are joined with a
+  no-break space so a name never wraps mid-title.
 - `loadGameData(path)` — `async`; `fetch`es a relative **JSON** path (`cache: "no-store"`)
   and returns the parsed data, or `null` on any failure (offline, or opened via `file://`,
   which blocks `fetch()` — see rule 4). Every data-driven game calls this once at the top
@@ -579,8 +628,10 @@ _tests/lib/harness.js           loadEngine(), bootGame(), loadCatalog(), tally()
                                 fails by name instead of hanging run.sh
 _tests/site/catalog.test.js     games.js + the hub — every game: real folder, valid accent,
                                 on-scale age band, renders as a card, findable by search
-_tests/site/conventions.test.js the structural rules of this file — every game: the two
-                                shared assets linked, the fonts left to site.css, no redeclared site.js global, no
+_tests/site/conventions.test.js the structural rules of this file — every game: the three
+                                shared files linked in order, the fonts left to site.css, its
+                                title/emoji/subtitle taken from games.js rather than written
+                                into the page, no redeclared site.js global, no
                                 re-styled shared class, no stray host, no storage, JSON parses,
                                 empty mascot placeholders that site.js really draws into,
                                 and no game-local copy of the level menu, confetti loop,

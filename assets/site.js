@@ -32,6 +32,38 @@ function flash(msg, kind) {
   f.className = "feedback " + (kind || "");
 }
 
+/* ---------- the page's own catalog entry ----------
+   A game's name, card emoji and start-screen subtitle are written ONCE, in /games.js, and the
+   page reads them back from there — so the hub card and the game itself can never drift apart.
+   A game page links ../../games.js just before this file (the hub already did); the slug is the
+   game's own folder name, which works when hosted AND under file://.
+   GAME is null on the hub, and on any page that is not in the catalog — everything below is a
+   no-op there rather than an error. */
+const GAME = (() => {
+  const parts = location.pathname.split("/").filter(Boolean);
+  if (/\.x?html?$/i.test(parts[parts.length - 1] || "")) parts.pop();
+  const slug = decodeURIComponent(parts[parts.length - 1] || "");
+  const list = typeof GAMES !== "undefined" ? GAMES : (window.GAMES || []);
+  return list.find(g => g.slug === slug) || null;
+})();
+
+/* Fills the catalog's own words into the page: every <i class="gemoji"> gets the card emoji,
+   and <p class="subtitle"> gets the emoji followed by the game's subtitle (its `subtitle`
+   field, or its card `tagline` when it has none). A game writes neither string itself.
+   The <title> in <head> stays a literal — it is parsed long before any script runs, so it is
+   the one copy that cannot come from here; _tests/site/conventions.test.js keeps it honest. */
+function applyGameText() {
+  if (!GAME) return;
+  document.querySelectorAll("i.gemoji").forEach(el => { el.textContent = GAME.emoji; });
+  const sub = GAME.subtitle || GAME.tagline;
+  document.querySelectorAll("p.subtitle").forEach(el => {
+    if (el.textContent.trim()) return;         /* a game that wrote its own is left alone */
+    el.textContent = GAME.emoji + " " + sub;
+  });
+}
+applyGameText();   // like drawMascots(): site.js loads after the markup, so this lands before first paint
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyGameText);
+
 /* ---------- mascot drawing ----------
    The mascot is drawn ONCE, here — swap the site's mascot by changing MASCOT_SVG.
    A page holds only an empty placeholder, e.g.
@@ -456,10 +488,14 @@ function showHome() {
 }
 
 /* ---------- bouncy animated <title> ---------- */
+/* Builds the animated per-letter <h1 id="title">. Called with no argument, it uses the game's
+   name from the catalog (GAME.title) — that is the normal form, so the name lives only in
+   /games.js. A word may still be passed for a page that is not a catalogued game. */
 function initBouncyTitle(word) {
   const cls = ["c1", "c2", "c3", "c4"];
   const el = $("title");
-  if (!el) return;
+  if (word === undefined) word = GAME ? GAME.title : "";
+  if (!el || !word) return;
   let ci = 0;
   for (const ch of word) {
     if (ch === " ") { el.appendChild(document.createTextNode(" ")); continue; }

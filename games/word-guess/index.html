@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Word Guess Challenge</title>
+<title>Guess the Word</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
   :root{ --tile:#FFF6DC; --tile-line:#E8C976; --key:#FFFFFF; }
@@ -92,7 +92,7 @@
         </svg>
         <h1 class="title" id="title"></h1>
       </div>
-      <p class="subtitle">Guess the hidden word, one letter at a time!</p>
+      <p class="subtitle"></p>
 
       <div class="block-label">Pick a game</div>
       <div class="segment" role="group" aria-label="Game mode">
@@ -188,6 +188,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="../../games.js"></script>
 <script src="../../assets/site.js"></script>
 <script>
 const LEVELS = {
@@ -534,7 +535,7 @@ function sound(kind){
 
 // ---------- confetti (stopConfetti is shared in site.js) ----------
 
-initBouncyTitle("Word Guess Challenge");
+initBouncyTitle();
 setMode("random");
 </script>
 </body>
