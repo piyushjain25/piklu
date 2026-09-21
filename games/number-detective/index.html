@@ -211,6 +211,14 @@ function buildPuzzle(levelKey){
   return fallback;
 }
 
+if(typeof module !== "undefined") module.exports = { LEVELS, buildPuzzle, candidateProps,
+  boundBelow, boundAbove, failedClues,
+  clueGreater, clueLess, clueEven, clueOdd, clueDigitSum, clueMultiple, clueOnesDigit,
+  clueTensGtOnes, clueOnesGtTens, clueRoundTen };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ============================================================
    GAME STATE + FLOW  (endless play, no scoring)
    ============================================================ */
@@ -369,6 +377,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

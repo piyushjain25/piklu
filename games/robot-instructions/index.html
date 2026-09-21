@@ -138,7 +138,9 @@
 <script>
 "use strict";
 const rnd = n => Math.floor(Math.random()*n);
-if(typeof window.STEP_DELAY==="undefined") window.STEP_DELAY = 340;
+/* how long the robot pauses between steps; a play-through can turn it down. Guarded so the
+   engine still loads in plain Node, where there is no window. */
+if(typeof window !== "undefined" && typeof window.STEP_DELAY==="undefined") window.STEP_DELAY = 340;
 
 /* ===== engine (verified offline) ===== */
 const DIRS={ up:[-1,0], down:[1,0], left:[0,-1], right:[0,1] };
@@ -182,6 +184,12 @@ function genPuzzle(levelKey){
   }
   return null;
 }
+
+if(typeof module !== "undefined") module.exports = { DIRS, ARROW, LEVELS, inB, isWall, bfs,
+  reconstruct, simulateTrace, genPuzzle };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
 
 /* ===== state ===== */
 let level="EASY", P=null, program=[], robotPos=[0,0], running=false, solved=false, hintStep=0, trail=[], prevSig=null;
@@ -412,6 +420,7 @@ function sound(kind){ if(kind==="tick") beep(560,.05,"square",0,.05);
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
