@@ -6,10 +6,9 @@
 <title>Mouse Maze</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:520px;}
-  .title{font-size:clamp(24px,5vw,38px);}
+  .app{--app-w:var(--app-narrow);}
   .topbar{margin-bottom:14px;}
-  .mazewrap{--wrapw:min(400px,90vw); --N:5; position:relative; width:var(--wrapw); aspect-ratio:1; margin:0 auto;}
+  .mazewrap{--wrapw:min(400px,100cqw); --N:5; position:relative; width:var(--wrapw); aspect-ratio:1; margin:0 auto;}
   svg.maze{position:absolute; inset:0; width:100%; height:100%; display:block; border-radius:14px;}
   .hitgrid{position:absolute; inset:0; z-index:2; display:grid;}
   .hitgrid .cell{position:relative; background:none; border:none; padding:0; margin:0; cursor:default;

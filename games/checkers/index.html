@@ -6,7 +6,7 @@
 <title>Checkers</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-.app{max-width:460px; margin:0 auto;}
+.app{--app-w:var(--app);}
 /* the turn line sits above the board, as in connect-four */
 #feedback{margin:12px 0 4px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
 
@@ -17,7 +17,7 @@
 .board-wrap{display:flex; justify-content:center; margin:10px 0 14px;}
 .board{
   /* the squares and the rim are the shared board's colours (site.css's GAME BOARD section) */
-  --bw:min(88vw,384px); --sq-dark:var(--board-frame-lo); --sq-light:var(--board-back);
+  --bw:min(384px,100cqw); --sq-dark:var(--board-frame-lo); --sq-light:var(--board-back);
   /* rows are pinned to 1fr as well as columns: left implicit they size to their contents, and
      one crowned piece would make its row taller than the other seven */
   display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr);

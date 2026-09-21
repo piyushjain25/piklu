@@ -7,14 +7,9 @@
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
   :root{ --panel:#EFE9FB; --outline:#D2C7EE; --mirror:var(--coral-dark); }
-  .app{max-width:520px;}
-  .title{font-size:clamp(28px,5.6vw,42px);}
+  .app{--app-w:var(--app-narrow);}
   .topbar{margin-bottom:12px;}
   /* an 8x8 board needs the room on a phone: slimmer page + card gutters on narrow screens */
-  @media (max-width:430px){
-    body.game{padding-left:6px; padding-right:6px;}
-    .card{padding:18px 12px;}
-  }
 
   /* ---- the drawing: panel + grid + mirror line + fold layer, all stacked in one square ---- */
   .mwrap{position:relative; width:100%; max-width:400px; aspect-ratio:1; margin:6px auto 0;}

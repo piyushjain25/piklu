@@ -6,21 +6,20 @@
 <title>Times Table Pop</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:620px;}
-  .title{font-size:clamp(25px,5vw,40px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:22px;}
   .factbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:14px 16px; margin-bottom:12px; text-align:center;}
-  .fact{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,8vw,42px); color:var(--grape-dark); line-height:1;}
+  .fact{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,9.4cqw,42px); color:var(--grape-dark); line-height:1;}
   .fact .q{color:var(--coral-dark);}
   .fact .ans{color:var(--leaf-dark);}
   .array{display:inline-grid; gap:4px; margin-top:10px; padding:8px; background:#fff; border-radius:12px; border:2px solid var(--paper-line);}
-  .dot{width:clamp(7px,2.4vw,12px); height:clamp(7px,2.4vw,12px); border-radius:50%; background:var(--grape); opacity:.85;}
+  .dot{width:clamp(7px,2.8cqw,12px); height:clamp(7px,2.8cqw,12px); border-radius:50%; background:var(--grape); opacity:.85;}
   .arrayhint{font-weight:700; color:var(--ink-soft); font-size:12.5px; margin-top:6px;}
   .prompt{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:15px; margin-bottom:8px;}
   .play{background:linear-gradient(180deg,#EAF7FF 0%,#F8FCFF 100%); border:3px solid #D6EEFB; border-radius:18px;
     display:flex; flex-wrap:wrap; gap:12px 14px; justify-content:center; align-items:center; min-height:180px; padding:16px 12px;}
-  .balloon{position:relative; width:clamp(58px,17vw,74px); height:clamp(66px,19vw,84px); border:none; cursor:pointer; color:#fff;
-    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5.5vw,26px); border-radius:50% 50% 48% 48%/54% 54% 46% 46%;
+  .balloon{position:relative; width:clamp(58px,20cqw,74px); height:clamp(66px,22.3cqw,84px); border:none; cursor:pointer; color:#fff;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,6.5cqw,26px); border-radius:50% 50% 48% 48%/54% 54% 46% 46%;
     display:flex; align-items:center; justify-content:center; box-shadow:inset -6px -6px 0 rgba(0,0,0,.08); animation:bob 3s ease-in-out infinite;}
   .balloon::after{content:""; position:absolute; bottom:-9px; left:50%; width:2px; height:10px; background:rgba(0,0,0,.25); transform:translateX(-50%);}
   .balloon:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}

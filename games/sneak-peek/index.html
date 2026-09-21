@@ -6,24 +6,23 @@
 <title>Sneak Peek</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:620px;}
-  .title{font-size:clamp(23px,4.7vw,36px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:16px;}
-  .caption{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:clamp(14px,3.4vw,16px); margin-bottom:8px;}
+  .caption{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:clamp(14px,4cqw,16px); margin-bottom:8px;}
   .timerbar{height:10px; border-radius:6px; background:var(--key-line); overflow:hidden; margin:0 auto 14px; max-width:320px;}
   .timerbar .fill{height:100%; width:100%; background:var(--leaf); border-radius:6px;}
   .mgrid{display:grid; gap:10px; margin:0 auto 10px; max-width:420px;}
   .mtile{position:relative; aspect-ratio:1/1; border-radius:16px; background:#fff; border:3px solid var(--key-line);
-    display:flex; align-items:center; justify-content:center; font-size:clamp(26px,7vw,38px); transition:transform .15s ease;}
-  .mtile.hidden{border-style:dashed; border-color:var(--grape); background:#F4F0FE; color:var(--grape); font-size:clamp(20px,5.5vw,28px);}
+    display:flex; align-items:center; justify-content:center; font-size:clamp(26px,8.2cqw,38px); transition:transform .15s ease;}
+  .mtile.hidden{border-style:dashed; border-color:var(--grape); background:#F4F0FE; color:var(--grape); font-size:clamp(20px,6.5cqw,28px);}
   .mtile.reveal{border-color:var(--leaf-dark); box-shadow:0 0 0 4px rgba(47,179,125,.28) inset;}
   .mtile .badge{position:absolute; top:3px; left:5px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:10.5px;
     color:var(--ink-soft); background:var(--paper); border-radius:8px; padding:1px 5px; line-height:1.4;}
-  .prompt{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape-dark); font-size:clamp(16px,4vw,20px); margin:14px 0 12px;}
+  .prompt{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--grape-dark); font-size:clamp(16px,4.7cqw,20px); margin:14px 0 12px;}
   .optlabel{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:13px; text-transform:uppercase; letter-spacing:1px; margin:4px 0 8px;}
   .options{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
-  .opt{min-width:clamp(58px,16vw,74px); height:clamp(58px,16vw,72px); border-radius:16px; border:3px solid var(--key-line); background:#fff; cursor:pointer;
-    font-size:clamp(24px,6.5vw,30px); box-shadow:0 5px 0 #e7dff7; transition:transform .06s; display:flex; align-items:center; justify-content:center; padding:0 6px;}
+  .opt{min-width:clamp(58px,18.8cqw,74px); height:clamp(58px,18.8cqw,72px); border-radius:16px; border:3px solid var(--key-line); background:#fff; cursor:pointer;
+    font-size:clamp(24px,7.6cqw,30px); box-shadow:0 5px 0 #e7dff7; transition:transform .06s; display:flex; align-items:center; justify-content:center; padding:0 6px;}
   .opt:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 #e7dff7;}
   .opt:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
   .opt:hover:not(:disabled){border-color:var(--grape);}

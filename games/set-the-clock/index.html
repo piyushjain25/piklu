@@ -6,16 +6,15 @@
 <title>Set the Clock</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:580px;}
-  .title{font-size:clamp(26px,5.2vw,40px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:14px;}
   .target{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:12px 16px; margin-bottom:14px; text-align:center;}
   .target .lbl{font-weight:700; color:var(--ink-soft); font-size:14px;}
-  .target .big{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); color:var(--grape-dark); line-height:1.1;}
-  .target .phrase{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--coral-dark); font-size:clamp(15px,4vw,19px); margin-top:2px;}
-  .target .big-phrase{font-weight:700; color:var(--grape-dark); font-size:clamp(24px,6.6vw,34px); margin-top:4px;}
+  .target .big{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px,8.2cqw,36px); color:var(--grape-dark); line-height:1.1;}
+  .target .phrase{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--coral-dark); font-size:clamp(15px,4.7cqw,19px); margin-top:2px;}
+  .target .big-phrase{font-weight:700; color:var(--grape-dark); font-size:clamp(24px,7.8cqw,34px); margin-top:4px;}
   .clockwrap{display:flex; justify-content:center; margin-bottom:6px;}
-  svg.clock{width:min(280px,72vw); height:min(280px,72vw); touch-action:none; cursor:grab; user-select:none;}
+  svg.clock{width:min(280px,100cqw); height:min(280px,100cqw); touch-action:none; cursor:grab; user-select:none;}
   svg.clock.grabbing{cursor:grabbing;}
   .cface{fill:#fff; stroke:var(--grape); stroke-width:4;}
   .cnum{font-family:'Fredoka',sans-serif; font-weight:700; font-size:15px; fill:var(--ink);}

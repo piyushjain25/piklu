@@ -4,6 +4,7 @@
    redeclaring a shared helper throws a SyntaxError on load, re-styling a shared class silently
    forks the design system, and a stray network call breaks the ad-free/offline promise. */
 const fs = require("fs"), path = require("path");
+const { JSDOM, VirtualConsole } = require("jsdom");
 const { ROOT, read, gameHTML, inlineScript, loadCatalog, bootGame, tally } = require("../lib/harness.js");
 const { ok, report } = tally();
 
@@ -72,6 +73,43 @@ for (const g of loadCatalog()) {
       ok(!new RegExp("(^|[,\\s>+~])" + cls.replace(".", "\\.") + "\\s*(?=$|[,\\s>+~:])").test(sel.trim()),
          at + "must not re-lay-out " + cls + " (" + sel.trim() + ") — it belongs to site.css");
   }
+
+  /* --- the game's own CSS actually parses ---
+     A stylesheet with a stray brace is dropped WHOLE by the browser, so one bad character
+     silently unstyles the entire game; nothing else here would notice. Most games have no
+     dom.test.js to catch it, so it is checked for every game, not just the tested ones. */
+  {
+    const vc = new VirtualConsole(); let cssErr = null;
+    vc.on("jsdomError", e => cssErr = e.message);
+    new JSDOM("<style>" + style + "</style>", { virtualConsole: vc });
+    ok(!cssErr, at + "its inline CSS does not parse (" + cssErr + ") — the browser would drop the whole stylesheet");
+  }
+
+  /* --- mobile-first: a game sizes against the CARD, never the viewport ---
+     vw/vh include page and card padding the content never gets, so a board sized in vw
+     overflowed its card on a phone (and every game guessed the gutter differently: the
+     same "full width" board was written 70vw, 74vw, 84vw, 88vw and 90vw). The card is a
+     container (site.css), so cqw/cqi measure exactly the room that exists. Breakpoints
+     must ask the card too, or a narrow game and a wide one lay out differently at the
+     same card width. */
+  ok(!/\d\s*v(w|min|max)\b/.test(style),
+     at + "sizes in viewport units — use cqw/cqi, which measure the card (site.css makes it a container)");
+  ok(!/@media[^{]*width/.test(style),
+     at + "has a viewport @media breakpoint — use @container card (min-width:380|460|560px)");
+  for (const m of style.matchAll(/@container\s+card\s*\(min-width:\s*(\d+)px/g))
+    ok(["380", "460", "560"].includes(m[1]),
+       at + "uses a one-off container breakpoint (" + m[1] + "px) — the site's are 380/460/560");
+
+  /* --- one page width per tier, not 36 hand-picked pixel values ---
+     .app used to carry a bare max-width in every game, which is how the site ended up with
+     ten different card widths; the tier tokens live on :root in site.css. */
+  for (const rule of style.matchAll(/\.app\s*\{([^}]*)\}/g))
+    ok(!/max-width\s*:/.test(rule[1]),
+       at + ".app must not set its own max-width — pick a tier: .app{--app-w:var(--app-narrow|--app|--app-wide)}");
+  ok(!/\.card\s*\{[^}]*padding\s*:/.test(style),
+     at + "overrides .card padding — site.css makes it responsive (16px on a phone, 26px above)");
+  ok(!/\.title\s*\{[^}]*font-size\s*:/.test(style),
+     at + "sets its own .title font-size — site.css's clamp(24px,8cqi,42px) scales it from the card");
 
   /* --- the mascot is drawn once by site.js's drawMascots(); a game holds only empty
      placeholders (plus, at most, its own extras such as sentence-doctor's stethoscope) --- */

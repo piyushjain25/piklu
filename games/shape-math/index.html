@@ -6,18 +6,17 @@
 <title>Shape Math</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:640px;}
-  .title{font-size:clamp(24px,4.9vw,38px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:18px;}
   .eqrow{display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;}
-  .eqcell{width:clamp(62px,17vw,86px); height:clamp(62px,17vw,86px); border-radius:16px; background:#fff;
+  .eqcell{width:clamp(62px,20cqw,86px); height:clamp(62px,20cqw,86px); border-radius:16px; background:#fff;
     border:3px solid var(--key-line); padding:9px; flex:0 0 auto;}
   .eqcell.eqblank{border-style:dashed; border-color:var(--grape); background:#F4F0FE;}
   .eqblank .qmark{display:flex; align-items:center; justify-content:center; height:100%;
-    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(24px,6.5vw,32px); color:var(--grape);
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(24px,7.6cqw,32px); color:var(--grape);
     animation:eqpulse 1.2s ease-in-out infinite;}
   @keyframes eqpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  .eqsym{font-family:'Fredoka',sans-serif; font-weight:800; font-size:clamp(22px,5.5vw,30px); color:var(--ink-soft);}
+  .eqsym{font-family:'Fredoka',sans-serif; font-weight:800; font-size:clamp(22px,6.5cqw,30px); color:var(--ink-soft);}
   .shapeicon{width:100%; height:100%; display:block;}
   .shapeicon .strokes line,.shapeicon .strokes path{fill:none; stroke:var(--grape-dark); stroke-width:.42;
     stroke-linecap:round; stroke-linejoin:round;}

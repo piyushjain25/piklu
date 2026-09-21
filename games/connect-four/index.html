@@ -6,10 +6,10 @@
 <title>Connect Four</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:560px;}
+  .app{--app-w:var(--app);}
   /* Home and the Skip side share the row equally, so the owl + level chip sit dead centre
      (phones keep the shared layout: there isn't room for equal sides there) */
-  @media (min-width:440px){
+  @container card (min-width:380px){
     #home-btn{flex:1 1 0; text-align:left;}
     .tb-right{flex:1 1 0; justify-content:flex-end;}
   }
@@ -369,7 +369,7 @@ let handCol = 3;             /* the column your disc hovers over */
    sliding down behind it. */
 function setupBoard() {
   const b = buildBoard("stage", {
-    cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58, gutter: 110 }),
+    cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58 }),
     head: "calc(var(--cell) + 4px)", hole: "calc(var(--cell) * .34)", inset: "7%",
     label: "Connect Four board", index: (r, c) => at(ROWS - 1 - r, c),
   });

@@ -6,11 +6,10 @@
 <title>Number Builder</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:720px;}
-  .title{font-size:clamp(27px,5.3vw,42px);}
+  .app{--app-w:var(--app-wide);}
   .topbar{margin-bottom:22px;}
   .goalbar{background:var(--grape); color:#fff; border-radius:16px; padding:13px 18px; text-align:center;
-    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(16px,3.4vw,20px); line-height:1.25;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(16px,4cqw,20px); line-height:1.25;
     box-shadow:0 6px 0 var(--grape-dark); display:flex; align-items:center; justify-content:center; gap:9px;}
   .goalbar .bull{font-size:22px;}
   .build{background:var(--paper); border:3px solid var(--paper-line); border-radius:20px;
@@ -19,22 +18,22 @@
   .slot-col{display:flex; flex-direction:column; align-items:center; gap:6px;}
   .place-lbl{font-family:'Fredoka',sans-serif; font-weight:600; font-size:12.5px; color:var(--grape-dark); text-transform:uppercase; letter-spacing:.5px;}
   .place-mult{font-size:11px; font-weight:800; color:var(--ink-soft);}
-  .slot{width:clamp(58px,17vw,74px); height:clamp(72px,21vw,92px); border-radius:16px; background:#fff;
+  .slot{width:clamp(58px,20cqw,74px); height:clamp(72px,24.7cqw,92px); border-radius:16px; background:#fff;
     border:3px dashed var(--paper-line); display:flex; align-items:center; justify-content:center;
-    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(34px,9vw,44px); color:var(--grape);
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(34px,10.6cqw,44px); color:var(--grape);
     cursor:pointer; transition:all .15s ease;}
   .slot.lead{border-color:var(--grape);}
   .slot.filled{border-style:solid; border-color:var(--grape); background:#fff;}
   .slot.hintslot{border-color:var(--sun-dark); background:#FFF6DC; animation:hpulse 1s ease-in-out infinite;}
   @keyframes hpulse{0%,100%{box-shadow:0 0 0 0 rgba(230,168,0,.5)}50%{box-shadow:0 0 0 7px rgba(230,168,0,0)}}
   .readout{text-align:center; margin-top:14px;}
-  .readout .big{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); color:var(--ink);}
+  .readout .big{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px,8.2cqw,36px); color:var(--ink);}
   .readout .expand{font-weight:800; color:var(--ink-soft); font-size:15px; margin-top:2px; min-height:20px;}
   .tray-lbl{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink-soft); font-size:13px;
     text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
   .tray{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; min-height:74px;}
-  .tile{width:clamp(56px,16vw,70px); height:clamp(64px,18vw,78px); border-radius:16px; cursor:pointer;
-    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(30px,8vw,40px); color:#5a3a12;
+  .tile{width:clamp(56px,18.8cqw,70px); height:clamp(64px,21.2cqw,78px); border-radius:16px; cursor:pointer;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(30px,9.4cqw,40px); color:#5a3a12;
     display:flex; align-items:center; justify-content:center; user-select:none;
     background:linear-gradient(180deg,#F0C07E 0%,#E0A64E 55%,#C7852B 100%);
     border:none; box-shadow:0 5px 0 #a86f1e, inset 0 2px 3px rgba(255,255,255,.45);

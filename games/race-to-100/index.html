@@ -6,8 +6,7 @@
 <title>Race to 100</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:640px;}
-  .title{font-size:clamp(27px,5.3vw,42px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:22px;}
   .chip.goal{background:var(--leaf);}
   .goal-row{text-align:center; margin-bottom:14px;}
@@ -54,7 +53,7 @@
   .op.hintop{outline:3px solid var(--sun-dark); outline-offset:3px; animation:hp 1s ease-in-out infinite;}
   @keyframes hp{0%,100%{box-shadow:0 5px 0 var(--sh),0 0 0 0 rgba(230,168,0,.5)}50%{box-shadow:0 5px 0 var(--sh),0 0 0 7px rgba(230,168,0,0)}}
   .calcflash{height:52px; display:flex; align-items:center; justify-content:center; margin:6px 0 0;}
-  .calcflash .bubble{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5vw,26px);
+  .calcflash .bubble{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5.9cqw,26px);
     color:var(--ink); background:#FFF6DC; border:3px solid var(--sun); border-radius:14px; padding:6px 16px;
     opacity:0; transform:translateY(4px) scale(.96);}
   .calcflash.show .bubble{animation:calcpop 2.4s ease forwards;}

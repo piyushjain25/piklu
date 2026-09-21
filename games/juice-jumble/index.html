@@ -8,18 +8,16 @@
 <style>
   /* juice-bar theme — local vars only, the design system itself lives in site.css */
   :root{ --glass-line:#CFC4EC; --glass-in:#F7F4FD; }
-  .app{max-width:540px;}
-  .title{font-size:clamp(28px,5.6vw,42px);}
+  .app{--app-w:var(--app-narrow);}
   .topbar{margin-bottom:10px;}
   /* four links under the glasses need to share one phone-width row */
-  @media(max-width:430px){ .actions{gap:8px;} .card{padding:20px 14px;} }
 
   /* ---- the bar: glass beakers, sized from the container, never fixed px ---- */
   /* padding-top is set from the glass size in JS (layoutBar) so a tilted beaker has room
      to swing up and pour into the top row */
   .barwrap{position:relative; padding-top:90px;}
-  .bar{display:grid; grid-template-columns:repeat(var(--cols,4),1fr); column-gap:clamp(8px,3.2vw,20px);
-       row-gap:clamp(30px,6vw,42px); width:100%; max-width:calc(var(--cols,4) * 84px); margin:0 auto;}
+  .bar{display:grid; grid-template-columns:repeat(var(--cols,4),1fr); column-gap:clamp(8px,3.8cqw,20px);
+       row-gap:clamp(30px,7.1cqw,42px); width:100%; max-width:calc(var(--cols,4) * 84px); margin:0 auto;}
   .glass{position:relative; display:block; background:none; border:none; padding:0; cursor:pointer;
          touch-action:manipulation; transition:transform .2s ease; -webkit-tap-highlight-color:transparent;}
   .glass svg.tube{display:block; width:100%; height:auto; overflow:visible;}

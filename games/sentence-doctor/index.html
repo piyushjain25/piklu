@@ -6,8 +6,7 @@
 <title>Sentence Doctor</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:640px;}
-  .title{font-size:clamp(24px,4.9vw,38px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:14px;}
 
   .dx-box{background:#F4F0FE; border-radius:14px; padding:9px 16px; margin:2px 0 12px; text-align:center;
@@ -19,12 +18,12 @@
     transition:border-color .15s ease;}
   .sentence-wrap:focus-within{border-color:var(--grape);}
   .sentence{display:flex; flex-wrap:wrap; gap:9px 5px; justify-content:center; align-items:center;
-    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(17px,4.4vw,24px); line-height:1.3;}
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(17px,5.2cqw,24px); line-height:1.3;}
   .tok-anchor{padding:4px 1px; color:var(--ink);}
   .blank-slot{display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:32px; padding:0 10px;
     border:3px dashed var(--grape); border-radius:9px; background:#F4F0FE; color:var(--grape-dark); font-weight:700;}
   .edit-field{width:100%; display:block; background:transparent; border:none; outline:none; resize:none;
-    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(17px,4.4vw,21px); color:var(--ink); line-height:1.45;}
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(17px,5.2cqw,21px); color:var(--ink); line-height:1.45;}
   .opt-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0 0;}
   .opt-chip{font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px; color:var(--grape-dark); background:#fff;
     border:3px solid var(--key-line); border-radius:12px; padding:8px 18px; cursor:pointer;
@@ -36,7 +35,7 @@
 
   .stagewrap{margin-top:2px;}
   .critter-host{position:relative; display:flex; justify-content:center; min-height:150px;}
-  svg.critter{width:min(180px,50vw); height:auto; display:block;
+  svg.critter{width:min(180px,58.8cqw); height:auto; display:block;
     --c-body:#B7D19C; --c-belly:#DCEBC9; --c-line:#6E8F55;}
   .critter .c-body{fill:var(--c-body); transition:fill .35s ease;}
   .critter .c-belly{fill:var(--c-belly); transition:fill .35s ease;}

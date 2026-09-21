@@ -6,16 +6,15 @@
 <title>Math Monsters</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:600px;}
-  .title{font-size:clamp(25px,5.2vw,40px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:18px;}
-  svg.monster{width:min(200px,48vw); height:auto; display:block;}
+  svg.monster{width:min(200px,56.4cqw); height:auto; display:block;}
   .diff .mini-slot{width:58px; height:58px;}
   .probbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:14px 16px; margin:6px 0 14px; text-align:center;}
-  .prob{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,8vw,42px); color:var(--grape-dark); line-height:1;}
+  .prob{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,9.4cqw,42px); color:var(--grape-dark); line-height:1;}
   .prob .op{color:var(--coral-dark);} .prob .q{color:var(--leaf-dark);}
   .options{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; max-width:360px; margin:0 auto 6px;}
-  .opt{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(22px,6vw,28px); color:var(--ink);
+  .opt{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(22px,7.1cqw,28px); color:var(--ink);
     background:#fff; border:3px solid var(--key-line); border-radius:18px; padding:16px 8px; cursor:pointer;
     transition:border-color .15s ease, background .15s ease, transform .06s ease;}
   .opt:hover{border-color:var(--grape);}

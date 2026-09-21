@@ -6,15 +6,14 @@
 <title>Calendar Quest</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:640px;}
-  .title{font-size:clamp(26px,5.2vw,40px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:22px;}
   .qbox{background:var(--paper); border:3px solid var(--paper-line); border-radius:18px; padding:18px 18px; margin-bottom:16px; text-align:center;}
   .qcat{font-family:'Fredoka',sans-serif; font-weight:700; color:var(--grape); font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;}
-  .qline{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink); font-size:clamp(16px,4vw,19px); line-height:1.55;}
-  .qline:last-child{color:var(--grape-dark); font-weight:700; font-size:clamp(17px,4.4vw,21px); margin-top:2px;}
+  .qline{font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink); font-size:clamp(16px,4.7cqw,19px); line-height:1.55;}
+  .qline:last-child{color:var(--grape-dark); font-weight:700; font-size:clamp(17px,5.2cqw,21px); margin-top:2px;}
   .options{display:grid; grid-template-columns:1fr; gap:12px; margin:0 0 6px;}
-  @media(min-width:520px){.options{grid-template-columns:1fr 1fr;}}
+  @container card (min-width:460px){.options{grid-template-columns:1fr 1fr;}}
   .opt{border:3px solid var(--key-line); background:#fff; border-radius:16px; cursor:pointer; padding:14px 14px;
     font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:var(--ink);
     text-align:left; display:flex; align-items:center; gap:12px; transition:all .12s ease;}

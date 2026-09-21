@@ -6,10 +6,9 @@
 <title>Robot Instructions</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:640px;}
-  .title{font-size:clamp(24px,4.9vw,38px);}
+  .app{--app-w:var(--app);}
   .topbar{margin-bottom:14px;}
-  .gridwrap{--wrapw:min(360px,84vw); position:relative; width:var(--wrapw); aspect-ratio:1; margin:0 auto;}
+  .gridwrap{--wrapw:min(360px,100cqw); position:relative; width:var(--wrapw); aspect-ratio:1; margin:0 auto;}
   .grid{position:absolute; inset:0; z-index:1; display:grid; gap:5px;}
   .cell{background:#EEF6FF; border-radius:9px; display:flex; align-items:center; justify-content:center;
     font-size:clamp(16px, calc(var(--wrapw)/var(--C) * 0.58), 32px); border:2px solid #DCE9F6;}

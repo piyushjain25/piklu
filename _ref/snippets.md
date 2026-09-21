@@ -26,7 +26,7 @@ Source: `games/pizza-party/index.html` lines 1-8
 <style>
 ```
 
-Source: `games/pizza-party/index.html` lines 29-33
+Source: `games/pizza-party/index.html` lines 28-32
 ```html
 </style>
 </head>
@@ -35,7 +35,7 @@ Source: `games/pizza-party/index.html` lines 29-33
   <div class="card">
 ```
 
-Source: `games/pizza-party/index.html` lines 97-104
+Source: `games/pizza-party/index.html` lines 96-103
 ```html
     </section>
   </div>
@@ -47,7 +47,7 @@ Source: `games/pizza-party/index.html` lines 97-104
 "use strict";
 ```
 
-Source: `games/pizza-party/index.html` lines 216-220
+Source: `games/pizza-party/index.html` lines 215-219
 ```js
 initBouncyTitle("Pizza Party");
 setLevel("EASY");
@@ -61,7 +61,7 @@ setLevel("EASY");
 Home (left), owl + level chip with its `#level-menu` dropdown (centre), Skip (right). The menu is
 filled by `buildLevelMenu()`; never write `.level-opt` buttons by hand.
 
-Source: `games/pizza-party/index.html` lines 57-71
+Source: `games/pizza-party/index.html` lines 56-70
 ```html
       <div class="topbar">
         <button id="home-btn" class="tlink">🏠 Home</button>
@@ -86,7 +86,7 @@ Source: `games/pizza-party/index.html` lines 57-71
 `#title`, see section 1), the four `.diff` cards — `EMOJI Name` on one line, a 2–3 word `d-range`
 — the `.howto` block and Start.
 
-Source: `games/pizza-party/index.html` lines 35-54
+Source: `games/pizza-party/index.html` lines 34-53
 ```html
     <section id="screen-home">
       <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
@@ -112,7 +112,7 @@ Source: `games/pizza-party/index.html` lines 35-54
 
 With a rules sheet, the `.howto` block ends with the `📖 Read the full rules` link:
 
-Source: `games/lights-out/index.html` lines 83-88
+Source: `games/lights-out/index.html` lines 82-87
 ```html
       <div class="howto">
         🌙 <b>How to play:</b> Every window is a house light. Tap one and it switches —
@@ -126,7 +126,7 @@ Source: `games/lights-out/index.html` lines 83-88
 
 Under the game component. Plain Reset + Hint:
 
-Source: `games/pizza-party/index.html` lines 88-91
+Source: `games/pizza-party/index.html` lines 87-90
 ```html
         <div class="actions">
           <button id="reset-btn" class="tlink">🔄 Reset</button>
@@ -136,7 +136,7 @@ Source: `games/pizza-party/index.html` lines 88-91
 
 Undo before Reset, Rules last (`juice-jumble`):
 
-Source: `games/juice-jumble/index.html` lines 124-129
+Source: `games/juice-jumble/index.html` lines 122-127
 ```html
       <div class="actions">
         <button id="undo-btn" class="tlink">↩️ Undo</button>
@@ -148,7 +148,7 @@ Source: `games/juice-jumble/index.html` lines 124-129
 
 Hint + `📖 Rules` as the last item (`lights-out`, where Undo replaces Reset):
 
-Source: `games/lights-out/index.html` lines 120-124
+Source: `games/lights-out/index.html` lines 119-123
 ```html
       <div class="actions">
         <button id="undo-btn" class="tlink">↩️ Undo</button>
@@ -162,7 +162,7 @@ Source: `games/lights-out/index.html` lines 120-124
 **With a submit action** — the primary `.btn`, replaced in place by `Next ▶` on a win, with Skip
 hidden by `.invisible` (never `display:none`) so the top bar doesn't shift:
 
-Source: `games/pizza-party/index.html` lines 93-96
+Source: `games/pizza-party/index.html` lines 92-95
 ```html
       <div class="serve-row">
         <button id="serve-btn" class="btn btn-go" disabled>🍽 Serve</button>
@@ -170,7 +170,7 @@ Source: `games/pizza-party/index.html` lines 93-96
       </div>
 ```
 
-Source: `games/pizza-party/index.html` lines 189-190
+Source: `games/pizza-party/index.html` lines 188-189
 ```js
     $("serve-btn").classList.add("hide"); $("skip-btn").classList.add("invisible");   // Next takes Serve's place; Skip keeps its slot so nothing shifts
     $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');
@@ -179,7 +179,7 @@ Source: `games/pizza-party/index.html` lines 189-190
 **No submit action** (the move is the check) — `Next ▶` holds the slot with `.invisible` and is
 revealed on the win. The result block sits just above it:
 
-Source: `games/lights-out/index.html` lines 125-134
+Source: `games/lights-out/index.html` lines 124-133
 ```html
       <div id="result-view" class="hide">
         <div class="result">
@@ -193,7 +193,7 @@ Source: `games/lights-out/index.html` lines 125-134
       </div>
 ```
 
-Source: `games/lights-out/index.html` lines 447-448
+Source: `games/lights-out/index.html` lines 446-447
 ```js
   $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
   $("next-btn").classList.remove("invisible");
@@ -218,7 +218,7 @@ The game supplies the two links (sections 3 and 4) and the body. The body is a s
 sections, each an `<h3>` with an emoji, short `<p>`s, and optional `.rrow` diagrams with a
 `.cap` caption:
 
-Source: `games/lights-out/index.html` lines 535-542
+Source: `games/lights-out/index.html` lines 534-541
 ```js
 wireRulesSheet(function(){
   $("rules-body").innerHTML =
@@ -232,7 +232,7 @@ wireRulesSheet(function(){
 
 Its own keydown handler must start by standing aside while the sheet is open:
 
-Source: `games/lights-out/index.html` lines 509-511
+Source: `games/lights-out/index.html` lines 508-510
 ```js
 document.addEventListener("keydown", e => {
   if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
@@ -244,7 +244,7 @@ document.addEventListener("keydown", e => {
 Only for a game with an extensible content list (CLAUDE.md rule 4). Load once with the shared
 helper, into the game's own `let`, and validate the shape before use. No inline fallback copy.
 
-Source: `games/spot-the-words/index.html` lines 435-445
+Source: `games/spot-the-words/index.html` lines 434-444
 ```js
 /* This game only works when served (fetch() is blocked under file://) — no embedded
    fallback data, by design: see CLAUDE.md. */
@@ -261,7 +261,7 @@ loadGameData("words.json").then(d => {
 
 The validation keeps well-formed entries and drops the rest rather than crashing the page:
 
-Source: `games/spot-the-words/index.html` lines 196-211
+Source: `games/spot-the-words/index.html` lines 195-210
 ```js
 /* Keep only well-formed themes; a malformed entry is dropped rather than crashing the page. */
 function validateThemes(data){
@@ -287,7 +287,7 @@ The pure engine ends with this guard; the DOM half follows inside `if(typeof doc
 "undefined")`. Export everything a test needs to reach — the level table, the generator, the
 solver/checker, the star rule — so `loadEngine()` can prove it without a DOM.
 
-Source: `games/lights-out/index.html` lines 303-307
+Source: `games/lights-out/index.html` lines 302-306
 ```js
 if(typeof module !== "undefined") module.exports = { LEVELS, HINT_MAX, DELTAS, flipList, flipMask,
   applyClick, isSolved, popcount, solveMask, solveMin, genBoard, starsFor };
@@ -339,7 +339,7 @@ it is behind it), and its own row numbering, because row 0 is the bottom of that
 Source: `games/connect-four/index.html` lines 371-375
 ```js
   const b = buildBoard("stage", {
-    cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58, gutter: 110 }),
+    cols: COLS, rows: ROWS, cell: boardCell(COLS, { min: 36, max: 58 }),
     head: "calc(var(--cell) + 4px)", hole: "calc(var(--cell) * .34)", inset: "7%",
     label: "Connect Four board", index: (r, c) => at(ROWS - 1 - r, c),
   });

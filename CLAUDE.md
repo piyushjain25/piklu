@@ -122,7 +122,7 @@ Two steps — never edit the hub's HTML or CSS to add a game:
    `initBouncyTitle`, …; see "Shared JS helpers") that the game's inline script calls
    directly, unqualified. Never redeclare any of those names in the game's own script.
    Only put a rule in the game's own `<style>` if it's genuinely unique to that
-   game (colors, a `.app{max-width}` / `.title{font-size}` override, one-off components);
+   game (colors, a page-width tier `.app{--app-w:var(--app-wide)}`, one-off components);
    never re-declare something `site.css` already defines. A game played on a grid of holes
    calls `buildBoard()` for the board and adds only its own layer on top — see "The board". If the game has a content list
    — apply rule 4's test: *would adding a new entry ever need a code change?* — put it as
@@ -320,6 +320,45 @@ don't redefine these classes in a game's own `<style>`.
   `circuit-builder`, `connect-four`, `checkers`, `gomoku`, `crazy-eights`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
+## Responsive: mobile-first, and sized from the card
+
+The site is **mobile-first**: the phone layout is the base rule and wider screens are the
+enhancement. Three things follow, and `_tests/site/conventions.test.js` enforces all of them.
+
+- **Never size against the viewport.** `vw` counts page and card padding the content never
+  gets, so a board written `min(400px,90vw)` overflowed its card on a phone — and every game
+  guessed that gutter differently (the same "full width" board was written `70vw`, `74vw`,
+  `84vw`, `88vw` and `90vw`, four of them overflowing). `site.css` makes `.card` a **container**
+  (`container:card / inline-size`), so **`cqw`/`cqi` measure exactly the room that exists**.
+  "As wide as there is, capped" is `min(400px,100cqw)`. A game's `<style>` may not contain `vw`.
+- **One page width per tier.** `:root` carries `--app-narrow:520px`, `--app:600px` and
+  `--app-wide:720px`; a game picks one — `.app{--app-w:var(--app-wide);}` — and never writes a
+  `max-width` of its own. **Pick the tier from what the game is, not from a number that looks
+  right**, and match the games it sits beside: all four **owl board games** (`tic-tac-toe`,
+  `connect-four`, `checkers`, `gomoku`) are `--app`, so their start screens and level pickers
+  are identical; `--app-narrow` is the compact single-board puzzles whose board caps around
+  330–440px (`lights-out`, `mouse-maze`, `mirror-draw`, `dino-dig`, `juice-jumble`,
+  `mystery-word`); `--app-wide` is the text-heavy ones (`word-guess`, `matchstick-math`,
+  `number-builder`, `number-detective`, `guess-the-capital`). A game whose board caps well below
+  its tier loses nothing by sitting in the wider one — the board keeps its own cap and only the
+  card chrome grows. (Thirty-six games each picking a pixel is how the site ended up with
+  ten different card widths, so a level picker looked different in every game.) On a phone none
+  of them bind: `.app` is `width:100%` and the card fills the screen.
+- **Breakpoints ask the card, not the screen.** A viewport `@media` query made a narrow game and
+  a wide one lay out differently at the same card width. Use
+  `@container card (min-width:380px | 460px | 560px)` — those three, measured on the card's
+  content box, are the site's only breakpoints. An element is never its **own** query container,
+  so the two things that cannot be sized this way are the page gutter (`.game`) and the card's
+  own padding: those stay on the viewport, and both interpolate with `clamp()` so the content
+  width never jumps as the screen grows.
+
+**Touch.** `.game` sets `touch-action:manipulation`: pinch-zoom still works (an accessibility
+need — never `user-scalable=no`, which fails WCAG 1.4.4 and iOS has ignored since iOS 10), but
+**double-tap zoom is off**, so a fast or mistimed tap is a tap and not a zoom, and the browser
+no longer waits ~300ms on every tap to find out. Controls are ≥44px: `.tlink` carries
+`min-height:44px`. Keep new tap targets to that floor — small targets are what made double-tap
+misfire in the first place.
+
 ## The board (`.gb-*` + `.piece`) — every board game shares one
 
 A game that plays on a grid of round holes — Connect Four, Gomoku, whatever comes next —
@@ -423,7 +462,9 @@ globals the game calls directly:
   copy it into a game; a game adds only diagram CSS unique to itself.
   `rulesSheetOpen()` / `closeRulesSheet()` / `openRulesSheet(opener)` are available too.
 - `boardCell(cols, {min, max, gutter})` — a `clamp()` cell size that keeps a board of `cols`
-  columns inside the card at any screen width.
+  columns inside the card at any screen width. It measures the **card** (`100cqw`), so `gutter`
+  is only extra room the board's own chrome needs beside it and is normally left at `0` — it
+  used to be each game's guess at the page padding, which is what made boards overflow on a phone.
 - `buildBoard(mount, opts)` — builds (or rebuilds, for a game whose board changes size with the
   level) the shared board inside `mount`, leaving anything else in there alone, and returns
   `{ stage, rig, board, pieces, fx, line }` — append the game's own layer to `board`. `opts` is

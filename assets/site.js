@@ -279,11 +279,15 @@ function wireRulesSheet(buildBody, gameName) {
    row 0 at the TOP; a game that counts its own squares the other way round (Connect Four
    counts rows up from the bottom) passes its own index(row, col). */
 
-/* A cell size that keeps the whole board inside the card at any width: a share of the screen,
-   never below min or above max. gutter is the space around the board (card + body padding). */
+/* A cell size that keeps the whole board inside the card at any width: a share of THE CARD
+   (100cqw is the card's content box, so page and card padding are already taken off), never
+   below min or above max. gutter is extra room the board's own chrome needs beside it, and is
+   normally 0 — it used to be a per-game guess at the page padding, which is what made a board
+   sized in vw overflow its card on a phone. */
 function boardCell(cols, o = {}) {
-  const { min = 19, max = 40, gutter = 96 } = o;
-  return "clamp(" + min + "px, calc((100vw - " + gutter + "px) / " + (cols + 0.3) + "), " + max + "px)";
+  const { min = 19, max = 40, gutter = 0 } = o;
+  const w = gutter ? "(100cqw - " + gutter + "px)" : "100cqw";
+  return "clamp(" + min + "px, calc(" + w + " / " + (cols + 0.3) + "), " + max + "px)";
 }
 
 /* Builds (or rebuilds — a game whose board changes size just calls it again) the board inside

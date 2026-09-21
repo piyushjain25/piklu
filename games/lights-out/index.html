@@ -12,20 +12,19 @@
     --win-off:#2e2560; --win-off-line:#463a86; --win-off-ink:#8f85c4;
     --win-on:#FFCF43;  --win-on-line:#e6a800;  --win-on-ink:#6b4a00;
   }
-  .app{max-width:520px;}
-  .title{font-size:clamp(28px,5.6vw,42px);}
+  .app{--app-w:var(--app-narrow);}
   .topbar{margin-bottom:10px;}
 
   /* ---- the town ---- */
   .townwrap{display:flex; flex-direction:column; align-items:center; gap:10px;}
   /* no panel behind the board — the tiles themselves carry the whole picture */
-  .town{display:grid; gap:clamp(7px,2vw,10px); width:min(330px,84vw);}
+  .town{display:grid; gap:clamp(7px,2.4cqw,10px); width:min(330px,100cqw);}
   .win{
     aspect-ratio:1; border-radius:12px; border:3px solid var(--win-off-line);
     background:var(--win-off); color:var(--win-off-ink);
     font-family:'Fredoka',sans-serif; font-weight:700; cursor:pointer; padding:0;
     display:flex; align-items:center; justify-content:center;
-    font-size:clamp(17px,5.2vw,25px); line-height:1;
+    font-size:clamp(17px,6.1cqw,25px); line-height:1;
     transition:background .16s, color .16s, border-color .16s, transform .1s, box-shadow .16s;
     touch-action:manipulation;
   }

@@ -6,10 +6,10 @@
 <title>Gomoku</title>
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
-  .app{max-width:600px;}
+  .app{--app-w:var(--app);}
   /* Home and the Skip side share the row equally, so the owl + level chip sit dead centre
      (phones keep the shared layout: there isn't room for equal sides there) */
-  @media (min-width:440px){
+  @container card (min-width:380px){
     #home-btn{flex:1 1 0; text-align:left;}
     .tb-right{flex:1 1 0; justify-content:flex-end;}
   }

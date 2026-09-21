@@ -7,17 +7,16 @@
 <link rel="stylesheet" href="../../assets/site.css" />
 <style>
   :root{ --absent:#7d6f64; --absent-line:#5b4d42; }
-  .app{max-width:520px;}
-  .title{font-size:clamp(26px,5.2vw,40px);}
+  .app{--app-w:var(--app-narrow);}
   .topbar{margin-bottom:10px;}
 
   .board{display:flex; flex-direction:column; gap:8px; align-items:center; margin:10px 0 16px;}
   .row{display:flex; gap:8px;}
   .row.shake{animation:shaketile .35s ease;}
   .tile{
-    width:clamp(38px,10vw,56px); height:clamp(38px,10vw,56px);
+    width:clamp(38px,11.8cqw,56px); height:clamp(38px,11.8cqw,56px);
     border-radius:10px; display:flex; align-items:center; justify-content:center;
-    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,5.5vw,28px);
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(20px,6.5cqw,28px);
     background:#fff; border:3px solid var(--key-line); color:var(--ink);
     transition:background .15s ease, border-color .15s ease, transform .1s ease;
   }
@@ -41,16 +40,16 @@
   .keyboard{display:flex; flex-direction:column; gap:7px; align-items:center; margin:6px 0 14px;}
   .krow{display:flex; gap:6px; justify-content:center;}
   .key{
-    width:clamp(26px,7.2vw,40px); height:clamp(38px,9vw,48px);
+    width:clamp(26px,8.5cqw,40px); height:clamp(38px,10.6cqw,48px);
     border:none; border-radius:10px; background:var(--key,#fff); color:var(--ink);
-    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(14px,3.4vw,18px);
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:clamp(14px,4cqw,18px);
     cursor:pointer; box-shadow:0 4px 0 var(--key-line); transition:transform .05s ease;
   }
   .key:active{transform:translateY(3px); box-shadow:0 1px 0 var(--key-line);}
   .key:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
   .key.correct{background:var(--leaf); color:#fff; box-shadow:0 4px 0 var(--leaf-dark);}
   .key.present{background:var(--sun); color:var(--ink); box-shadow:0 4px 0 var(--sun-dark);}
-  .key.wide{flex:0 0 auto; width:clamp(50px,13vw,70px); font-size:clamp(11px,2.6vw,14px); padding:0 4px;}
+  .key.wide{flex:0 0 auto; width:clamp(50px,15.3cqw,70px); font-size:clamp(11px,3.1cqw,14px); padding:0 4px;}
   .key.hintglow{animation:pulseglow 1.1s ease;}
 
   .result .rlabel.reveal{font-size:14px; color:var(--ink-soft); margin-top:4px;}
