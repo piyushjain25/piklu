@@ -183,6 +183,9 @@ function genMaze(level){
 }
 if(typeof module!=="undefined") module.exports={ carveMaze, braid, bfs, farthest, nextStep, genMaze, LEVELS, DIRS };
 
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", M=null, path=[], phase='play', prevSig=null;
 
@@ -346,6 +349,7 @@ function sound(kind){ if(kind==="step") beep(520,.05,"square",0,.05);
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

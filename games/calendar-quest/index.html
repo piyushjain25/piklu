@@ -269,6 +269,9 @@ if(typeof module!=="undefined") module.exports={ DOW, MONTHS, MONTH_DAYS, dowAdd
   genDowNext, genDowBefore, genMonthNext, genDowCountForward, genMonthHasDays, genWeekFact,
   genBirthdayCountdown, genSameWeekdayOffset, genMonthOrder, genMonthRiddle, genBirthdayCountdownCrossMonth };
 
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", Q=null, phase='play', hintUsed=false, prevSig=null;
 function setLevel(l){
@@ -370,6 +373,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

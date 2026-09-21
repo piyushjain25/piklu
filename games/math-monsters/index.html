@@ -100,7 +100,7 @@
 const rnd = n => Math.floor(Math.random()*n);
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-/* ===== engine (verified offline — see math-monsters.test.js) ===== */
+/* ===== engine (verified offline — see _tests/games/math-monsters/) ===== */
 const LEVELS={
   EASY:  { op:'+', label:"🌱 Easy" },
   MEDIUM:{ op:'-', label:"⭐ Medium" },
@@ -122,7 +122,7 @@ function genProblem(level){
   else { b=2+rnd(8); const q=2+rnd(8); a=b*q; answer=q; }
   return { level, op, a, b, answer, options:genOptions(answer) };
 }
-if(typeof module!=="undefined") module.exports={ genOptions, genProblem };
+if(typeof module!=="undefined") module.exports={ LEVELS, genOptions, genProblem };
 
 /* ===== monster art (one character per level) ===== */
 const MONSTERS={
@@ -179,6 +179,9 @@ function renderMonster(){
   $("monster-host").innerHTML = monsterSVG(MONSTERS[level], true);
   $("monster-name").textContent = MONSTERS[level].name;
 }
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
 
 /* ===== state ===== */
 let level="EASY", P=null, phase='play', hintUsed=false, sadTimer=null, prevSig=null;
@@ -283,6 +286,7 @@ function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

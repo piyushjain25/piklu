@@ -162,7 +162,7 @@ const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[
 const pickRandom = arr => arr[rnd(arr.length)];
 function lowerFirst(w){ return w.charAt(0).toLowerCase()+w.slice(1); }
 
-/* ===== engine (verified offline — see scratch node check) =====
+/* ===== engine (verified offline — see _tests/games/sentence-doctor/) =====
    Fully generative for capitalisation/punctuation/tense (a small hand-written vocabulary of
    verbs/objects/subjects/time words combines with sentence templates into thousands of distinct
    sentences); bank-based (a hand-authored, still-shuffled set of sentence frames — same spirit as
@@ -825,6 +825,9 @@ function spawnFloatIcon(emoji){
   host.appendChild(el); setTimeout(()=>el.remove(), 1000);
 }
 
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", ITEM=null, solved=false, pickedValue=null, pickOptions=null, lastRemaining=0;
 const recentTracker = makeRecentTracker(8);
@@ -1013,6 +1016,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

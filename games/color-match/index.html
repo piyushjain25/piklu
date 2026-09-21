@@ -97,7 +97,7 @@
 const rnd = n => Math.floor(Math.random()*n);
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-/* ===== engine (verified offline — see test-color-match.js) ===== */
+/* ===== engine (verified offline — see _tests/games/color-match/) ===== */
 const NAMES={red:"Red",blue:"Blue",yellow:"Yellow",green:"Green",orange:"Orange",purple:"Purple",pink:"Pink",brown:"Brown",black:"Black",white:"White"};
 const BASE={red:"#E5484D",blue:"#3B82F6",yellow:"#FFD43B",green:"#22C55E",orange:"#FF8C42",purple:"#8B5CF6",pink:"#FF6B9D",brown:"#8B5E3C",black:"#1F2430",white:"#FFFFFF"};
 const FAMILIES={
@@ -201,6 +201,9 @@ function monsterSVG(cfg, withBelly){
     <ellipse class="tongue" cx="120" cy="150" rx="15" ry="9" fill="#ff8fa3" style="opacity:0"/>
   </svg>`;
 }
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
 
 /* ===== state ===== */
 let level="EASY", R=null, found=0, phase='play', sadTimer=null, chompTimer=null, prevSig=null;
@@ -324,6 +327,7 @@ function sound(kind){ if(kind==="good") beep(660,.08,"triangle",0,.08); else if(
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
