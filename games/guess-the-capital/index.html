@@ -114,10 +114,6 @@
 // fallback data, by design: see CLAUDE.md.
 let DATA = {india:[],world:[]};
 
-loadGameData("capitals.json").then(d => {
-  if(d && d.india && d.world) DATA = d;
-});
-
 const rnd = n => Math.floor(Math.random()*n);
 
 // ---- helpers ----
@@ -135,6 +131,16 @@ function genQuestion(mode){
   const options = shuffle([item.capital, ...distractors]);
   return { mode, item, options, correctIdx: options.indexOf(item.capital) };
 }
+
+if(typeof module !== "undefined") module.exports = { shuffle, flagEmoji, uniqueCapitals,
+  genQuestion, setData: d => { DATA = d; } };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
+loadGameData("capitals.json").then(d => {
+  if(d && d.india && d.world) DATA = d;
+});
 
 /* ===== state ===== */
 let mode = "india", Q = null, phase = "play", prevSig = null;
@@ -256,6 +262,7 @@ function sound(kind){
 
 initBouncyTitle();
 setMode("india");
+}
 </script>
 </body>
 </html>

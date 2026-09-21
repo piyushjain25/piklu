@@ -112,19 +112,6 @@ function validRiddles(d){
     && Array.isArray(r.options) && r.options.length===4
     && new Set(r.options).size===4 && r.options.includes(r.answer)) : [];
 }
-Object.keys(LEVELS).forEach(k => {
-  loadGameData(LEVELS[k].file).then(d => { POOLS[k] = validRiddles(d); });
-});
-loadGameData("my.json").then(d => {
-  const my = validRiddles(d);
-  if(my.length){
-    POOLS.MY = my;
-    LEVELS.MY = { file:"my.json", label:"📝 My Riddles" };
-    $("diff-my").classList.remove("hide");
-    buildLevelMenu(LEVELS, pickLevel); markLevel(level);
-  }
-});
-
 /* ===== state ===== */
 let level="EASY", Q=null, phase='play', hintUsed=false, prevSig=null;
 const recent = {}; // level -> recently-served riddle texts, so we don't repeat too soon
@@ -140,6 +127,26 @@ function pickRiddle(lvl){
   if(seen.length > cap) seen.shift();
   return choice;
 }
+
+if(typeof module !== "undefined") module.exports = { LEVELS, POOLS, shuffle, validRiddles,
+  pickRiddle, recent, setPools: p => { for(const k in POOLS) POOLS[k] = p[k] || [];
+    for(const k in recent) delete recent[k]; } };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
+Object.keys(LEVELS).forEach(k => {
+  loadGameData(LEVELS[k].file).then(d => { POOLS[k] = validRiddles(d); });
+});
+loadGameData("my.json").then(d => {
+  const my = validRiddles(d);
+  if(my.length){
+    POOLS.MY = my;
+    LEVELS.MY = { file:"my.json", label:"📝 My Riddles" };
+    $("diff-my").classList.remove("hide");
+    buildLevelMenu(LEVELS, pickLevel); markLevel(level);
+  }
+});
 
 function setLevel(l){
   level=l;
@@ -251,6 +258,7 @@ function sound(kind){
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
