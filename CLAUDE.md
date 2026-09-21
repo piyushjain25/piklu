@@ -64,7 +64,18 @@ online toy store later. Read the rules below before changing anything.
    `_tests/site/conventions.test.js` enforces this list — add a host there, with a reason, or
    not at all.
 5. **Keep it kid-safe and ad-free.** Age-appropriate content and friendly tone only.
-   No ads, no analytics/tracking, no third-party trackers, no data collection.
+   **No ads, no third-party trackers, no data collection**, and a game never measures
+   anything of its own. The one exception is the site's **own** analytics tag (Google
+   Analytics 4), which lives in **exactly one place** — the `site analytics` block in
+   `assets/site.js` — so the hub and every game are measured without a single page
+   carrying a copy of it. Because this is a site for children it
+   is configured with `allow_google_signals:false` and
+   `allow_ad_personalization_signals:false`, so the traffic data is never used for ads
+   personalisation, and it skips `file://` and `localhost` so local previews stay out of the
+   real numbers. Root `index.html` links no shared JS, so it carries the only inline copy.
+   **A game must never contain a tag, a `gtag(` call, or any other measurement code** —
+   `_tests/site/conventions.test.js` fails on one, and it is also why
+   `www.googletagmanager.com` is *not* in that test's `ALLOWED_HOSTS`: no game may reach it.
 
 ## How the site is organised
 

@@ -487,6 +487,31 @@ function showHome() {
   setOwl("idle");
 }
 
+/* ---------- site analytics ----------
+   The site's ONE analytics tag (Google Analytics 4), loaded here so that no page carries a
+   copy of it — the same single-source rule the mascot drawing and the catalog follow. Every
+   page that links site.js is measured: the hub and all the games. CLAUDE.md rule 5 allows
+   this first-party tag and nothing else — still no ads, no third-party trackers, and the
+   games collect nothing of their own.
+   This is a site for children, so Google's ad signals are switched OFF: the traffic data is
+   never used for ads personalisation or remarketing.
+   Local copies are skipped so a preview never lands in the real numbers — file:// because
+   there is nothing to measure there (and see rule 3: games run that way on purpose), and
+   localhost because that is someone testing, not a visitor. */
+(function () {
+  const ID = "G-8HQR9KCQY4";
+  const local = location.protocol === "file:" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  if (local) return;
+  const tag = document.createElement("script");
+  tag.async = true;
+  tag.src = "https://www.googletagmanager.com/gtag/js?id=" + ID;
+  document.head.appendChild(tag);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag("js", new Date());
+  window.gtag("config", ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+})();
+
 /* ---------- bouncy animated <title> ---------- */
 /* Builds the animated per-letter <h1 id="title">. Called with no argument, it uses the game's
    name from the catalog (GAME.title) — that is the normal form, so the name lives only in

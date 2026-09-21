@@ -10,6 +10,19 @@
   store home page. Do NOT move /games/ or /games/<slug>/ — those game URLs
   stay exactly the same, so any links or bookmarks keep working.
 -->
+<!--
+  The site's analytics tag. Every other page gets it from assets/site.js, which this
+  redirect page does not link — so this is the one page that carries its own copy.
+  Ad signals are off, exactly as in site.js: this is a site for children.
+  Note this page forwards immediately, so most visits are counted on /games/, not here.
+-->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8HQR9KCQY4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-8HQR9KCQY4', { allow_google_signals: false, allow_ad_personalization_signals: false });
+</script>
 <meta http-equiv="refresh" content="0; url=games/" />
 <link rel="canonical" href="games/" />
 <style>

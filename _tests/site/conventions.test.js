@@ -170,7 +170,10 @@ for (const g of loadCatalog()) {
   /* strip comments first: several games mention fetch()/storage in prose explaining the rules */
   const code = inline.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   ok(!/\b(localStorage|sessionStorage)\b/.test(code), at + "should not use localStorage/sessionStorage");
-  ok(!/gtag|googletagmanager|analytics|doubleclick/i.test(html), at + "no analytics or ad code");
+  /* The site's one analytics tag lives in site.js (rule 5). A game carrying its own — or any
+     ad code at all — is exactly what that single-source rule exists to stop. */
+  ok(!/gtag|googletagmanager|analytics|doubleclick/i.test(html),
+     at + "no ad code, and no analytics tag of its own — site.js carries the site's only one");
 
   /* --- the standard control scheme --- */
   ok(/class="[^"]*\btopbar\b/.test(html), at + "needs the standard .topbar row");
@@ -209,6 +212,15 @@ ok(/<svg class="hub-owl"><\/svg>/.test(hubHTML), 'hub needs the empty <svg class
 ok(!hubHTML.includes('M14 10 L22 20 L10 20 Z'), "hub has an inline copy of the owl drawing");
 ok(hubHTML.includes('<script src="../assets/site.js"></script>'), "hub must link ../assets/site.js to draw its mascot");
 ok(!hubHTML.includes("fonts.googleapis.com"), "hub should get the fonts from site.css, not link them itself");
+ok(!/gtag|googletagmanager/i.test(hubHTML), "hub gets the analytics tag from site.js, not its own copy");
+
+/* the site's own analytics tag (CLAUDE.md rule 5): one copy, in site.js, with ad signals off.
+   It is a site for children, so the two "off" flags are part of the tag, not a preference. */
+ok(/googletagmanager\.com\/gtag\/js/.test(siteJS), "site.js must carry the site's analytics tag");
+ok(/allow_google_signals:\s*false/.test(siteJS) && /allow_ad_personalization_signals:\s*false/.test(siteJS),
+   "analytics must switch Google's ad signals off — this is a site for children");
+ok(/location\.protocol === "file:"/.test(siteJS) && /localhost/.test(siteJS),
+   "analytics must skip file:// and localhost so local previews stay out of the real numbers");
 
 /* The <h1> is built letter by letter by initBouncyTitle(), which joins words with a NO-BREAK
    space on purpose so a game's name never wraps mid-title — so read it back with that undone. */
