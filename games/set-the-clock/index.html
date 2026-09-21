@@ -123,6 +123,11 @@ const digital=(h,m)=>`${h}:${String(m).padStart(2,'0')}`;
 function genTime(level){ const cfg=LEVELS[level]; const h=1+rnd(12); const m=cfg.step>=60?0:rnd(60/cfg.step)*cfg.step;
   return { level, hour:h, minute:m, step:cfg.step, digital:digital(h,m), phrase:phraseFor(h,m) }; }
 
+if(typeof module !== "undefined") module.exports = { LEVELS, MW, nextHour, phraseFor, digital, genTime };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", T=null, setH=12, setM=0, startH=12, startM=0, phase='set', step=60, prevSig=null;
 function setLevel(l){
@@ -267,6 +272,7 @@ function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>

@@ -51,13 +51,13 @@ Source: `games/pizza-party/index.html` lines 96-104
 "use strict";
 ```
 
-Source: `games/pizza-party/index.html` lines 220-224
+Source: `games/pizza-party/index.html` lines 225-229
 ```js
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
-</html>
 ```
 
 ## 2. Top bar
@@ -177,7 +177,7 @@ Source: `games/pizza-party/index.html` lines 92-95
       </div>
 ```
 
-Source: `games/pizza-party/index.html` lines 190-191
+Source: `games/pizza-party/index.html` lines 195-196
 ```js
     $("serve-btn").classList.add("hide"); $("skip-btn").classList.add("invisible");   // Next takes Serve's place; Skip keeps its slot so nothing shifts
     $("next-btn").classList.remove("hide"); $("next-btn").focus(); flash('', ''); setOwl('win');

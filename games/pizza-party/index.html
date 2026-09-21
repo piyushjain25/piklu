@@ -121,6 +121,11 @@ function genOrder(level){ const cfg=LEVELS[level];
   return null;
 }
 
+if(typeof module !== "undefined") module.exports = { LEVELS, gcd, reducedNumerators, genOrder };
+
+/* ===== DOM ===== */
+if(typeof document !== "undefined"){
+
 /* ===== state ===== */
 let level="EASY", O=null, selected=new Set(), phase='serve', prevSig=null;
 function setLevel(l){
@@ -219,6 +224,7 @@ function sound(kind){ if(kind==="bad") beepBad(); else if(kind==="win") beepWin(
 
 initBouncyTitle();
 setLevel("EASY");
+}
 </script>
 </body>
 </html>
