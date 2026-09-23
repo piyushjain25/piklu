@@ -174,4 +174,8 @@ window.GAMES = [
   { slug: "crazy-eights",        title: "Crazy Eights",        emoji: "🃏", accent: "coral",  ageGroup: "6+",
     tagline: "Match the suit or the number — and save your wild eights!", skills: ["Strategy", "Planning"], badge: "New",
     subtitle: "Match the suit or the number — and be first to empty your hand!" },
+
+  { slug: "battleship",          title: "Battleship",          emoji: "🚢", accent: "sun",    ageGroup: "6+",
+    tagline: "Hide your fleet, call the squares, and sink the owl's boats!", skills: ["Strategy", "Logic"], badge: "New",
+    subtitle: "Hide your fleet and sink the owl's before it sinks yours!" },
 ];

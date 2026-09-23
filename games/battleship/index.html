@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Battleship</title>
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+  .app{--app-w:var(--app);}
+  /* Home and the Skip side share the row equally, so the owl + level chip sit dead centre
+     (the same tuning the other owl board games use) */
+  @container card (min-width:380px){
+    #home-btn{flex:1 1 0; text-align:left;}
+    .tb-right{flex:1 1 0; justify-content:flex-end;}
+  }
+  #feedback{margin:10px 0 12px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;
+       min-height:22px;}
+
+  /* ---- the two seas ------------------------------------------------------------------------
+     Not the shared holed board (site.css's GAME BOARD): this is a chart of water squares with
+     letters down the side and numbers across the top, the way the real game is played. Like
+     checkers' chequered board it is the game's own.
+     EVERY child of .sea is placed explicitly (buildSea writes a grid-area on each label and
+     square, paintSea on each boat and marker). That is not a style choice: labels and squares
+     used to be auto-placed while the boats and markers were not, and CSS Grid places explicit
+     items FIRST and then flows the auto ones into whatever cells are left — so the moment a
+     boat was drawn, every square after it shuffled along, leaving holes in the grid and
+     landing a tap on the wrong square. Nothing in a .sea may be auto-placed. */
+  .sea-wrap{position:relative; width:max-content; max-width:100%; margin:0 auto;
+       border-radius:16px; padding:7px 8px 8px;}
+  .sea-wrap.enemy{background:linear-gradient(180deg,#101D42,#0A1129);
+       box-shadow:0 0 0 3px #1B2F59, 0 10px 24px rgba(6,14,36,.45);}
+  .sea-wrap.own{background:linear-gradient(180deg,#DCF0FF,#BCE1F9);
+       box-shadow:0 0 0 3px #A5D4F1, 0 6px 16px rgba(30,90,140,.2);}
+  /* the track list is written out by buildSea(): the letter column, then one per square */
+  .sea{position:relative; z-index:1; display:grid; gap:2px;}
+
+  /* the sonar sweep behind the enemy squares — decorative, and site.css's global
+     prefers-reduced-motion rule stops it for anyone who asks */
+  .radar{position:absolute; inset:7px 8px 8px; border-radius:11px; overflow:hidden;
+       pointer-events:none; z-index:0;}
+  .radar::before{content:""; position:absolute; inset:0;
+       background:
+         radial-gradient(circle at 50% 50%, transparent 0 15%, rgba(72,226,166,.14) 15% 15.6%,
+           transparent 15.6% 31%, rgba(72,226,166,.14) 31% 31.6%,
+           transparent 31.6% 47%, rgba(72,226,166,.14) 47% 47.6%, transparent 47.6%),
+         linear-gradient(90deg, transparent calc(50% - 1px), rgba(72,226,166,.11) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+         linear-gradient(180deg, transparent calc(50% - 1px), rgba(72,226,166,.11) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));}
+  .radar::after{content:""; position:absolute; inset:-30%; border-radius:50%;
+       background:conic-gradient(from 0deg, rgba(72,226,166,.34) 0deg, rgba(72,226,166,.07) 22deg, transparent 52deg);
+       animation:radarSweep 4.5s linear infinite;}
+  @keyframes radarSweep{to{transform:rotate(360deg);}}
+
+  .lab{display:flex; align-items:center; justify-content:center; font-family:'Fredoka',sans-serif;
+       font-weight:600; font-size:calc(var(--sq) * .44); line-height:1;}
+  .sea-wrap.enemy .lab{color:#79E0BA;}
+  .sea-wrap.own .lab{color:var(--ink-soft);}
+
+  .sq{aspect-ratio:1/1; width:var(--sq); padding:0; border:none; cursor:default;
+      border-radius:calc(var(--sq) * .18); -webkit-tap-highlight-color:transparent;
+      transition:background .12s ease;}
+  .sea-wrap.enemy .sq{background:rgba(80,220,170,.05); box-shadow:inset 0 0 0 1px rgba(80,220,170,.22);}
+  .sea-wrap.enemy .sq.live:hover{background:rgba(80,220,170,.2); box-shadow:inset 0 0 0 1px rgba(90,235,180,.6);}
+  .sea-wrap.own .sq{background:linear-gradient(180deg,#F2FAFF,#DAEEFB); box-shadow:inset 0 0 0 1px rgba(63,167,224,.22);}
+  .sea-wrap.own .sq.live:hover{background:#FFF6DC;}
+  .sq.live{cursor:pointer;}
+  .sq:focus-visible{outline:3px solid var(--sun); outline-offset:-3px;}
+  .sq.hinted{animation:seaHint 1.1s ease-in-out 2;}
+  @keyframes seaHint{50%{background:rgba(255,207,67,.6); box-shadow:inset 0 0 0 2px var(--sun);}}
+
+  /* a boat, spanning its squares — one box, the way the real game's boats read */
+  .ship{z-index:2; pointer-events:none; display:flex; align-items:center; justify-content:center;
+        border-radius:calc(var(--sq) * .3); font-size:calc(var(--sq) * .5); line-height:1;
+        background:linear-gradient(180deg,#90A0C6,#5E6E96);
+        box-shadow:inset 0 -3px 0 rgba(0,0,0,.18), 0 2px 6px rgba(10,20,45,.3);}
+  .ship.sunk{background:linear-gradient(180deg,#FF9A63,#DD4226);
+        box-shadow:inset 0 -3px 0 rgba(120,20,0,.3), 0 0 16px rgba(255,95,40,.55);}
+  .sea.editing .ship{pointer-events:auto; cursor:grab;}
+  .sea.editing .ship:hover{filter:brightness(1.12);}
+  .ship.picked{box-shadow:inset 0 -3px 0 rgba(0,0,0,.18), 0 0 0 3px var(--sun);}
+
+  /* Hit and miss, drawn OVER the boats so a hit on your own boat still shows. They differ by
+     SHAPE, never by colour alone: a hit is a burst blown through the square, a miss a pale
+     ring of ripples. */
+  .mk{z-index:3; pointer-events:none; display:flex; align-items:center; justify-content:center;}
+  .mk.miss::after{content:""; width:44%; height:44%; border-radius:50%;
+       background:radial-gradient(circle,#F6FBFF 0 36%, rgba(188,224,250,.3) 36% 100%);
+       box-shadow:0 0 0 2px rgba(255,255,255,.6), 0 0 0 4px rgba(120,190,240,.3);}
+  .sea-wrap.enemy .mk.miss::after{background:radial-gradient(circle,#CFE6F5 0 36%, rgba(120,170,205,.25) 36% 100%);
+       box-shadow:0 0 0 2px rgba(200,230,250,.4), 0 0 0 4px rgba(90,150,195,.22);}
+  .mk.hit{filter:drop-shadow(0 0 7px rgba(255,120,40,.8));}
+  .burst{position:relative; width:80%; height:80%; border-radius:50%;
+       background:radial-gradient(circle,#FFF3C8 0 20%,#FFC53D 20% 41%,#FF6A2A 41% 63%, rgba(255,80,30,0) 71%);}
+  .burst::before,.burst::after{content:""; position:absolute; top:43%; left:4%; right:4%; height:13%;
+       border-radius:3px; background:linear-gradient(90deg,#FFF8DD,#FF8636,#FFF8DD);}
+  .burst::before{transform:rotate(45deg);}
+  .burst::after{transform:rotate(-45deg);}
+  .mk.fresh{animation:seaPop .34s cubic-bezier(.2,1.5,.5,1);}
+  @keyframes seaPop{0%{transform:scale(.2); opacity:.3} 60%{transform:scale(1.22)} 100%{transform:scale(1)}}
+
+  /* ---- the panels around the seas ----------------------------------------------------------- */
+  .tally{display:flex; align-items:center; justify-content:center; gap:10px; margin:0 0 14px;}
+  .tside{flex:1 1 0; max-width:215px; text-align:center; border-radius:14px; padding:8px 10px;
+       border:2px solid var(--key-line); background:#F9F7FE;}
+  .tside .who{font-family:'Fredoka',sans-serif; font-weight:600; font-size:11px; letter-spacing:1.2px;
+       text-transform:uppercase; color:var(--ink-soft);}
+  .tside .num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:17px; color:var(--ink); margin-top:1px;}
+  .tside .num b{color:var(--sun-dark);}
+  .tvs{font-family:'Fredoka',sans-serif; font-weight:600; font-size:12px; color:var(--ink-soft); letter-spacing:1px;}
+
+  .seatitle{font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px; text-align:center;
+       margin:0 0 9px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);}
+  .seatitle.enemy{color:var(--coral);}
+  #owl-side{margin-bottom:20px;}
+
+  /* the fleet rosters — what each side still has afloat */
+  .rosters{display:grid; grid-template-columns:1fr; gap:10px; margin-top:18px;}
+  @container card (min-width:460px){.rosters{grid-template-columns:1fr 1fr;}}
+  .roster{border:2px solid var(--key-line); border-radius:16px; padding:11px 13px; background:#FBFAFF;}
+  .roster h4{margin:0 0 8px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:11px;
+       letter-spacing:1.2px; text-transform:uppercase; color:var(--ink-soft);}
+  .rline{display:flex; align-items:center; gap:9px; margin:6px 0; font-weight:700; font-size:13.5px; color:var(--ink);}
+  .pips{display:flex; gap:3px; flex:0 0 auto;}
+  .pips i{width:11px; height:11px; border-radius:3px; background:#C7D2E8;}
+  .pips i.gone{background:linear-gradient(180deg,#FF9A63,#DD4226);}
+  .rline.sunk{color:#a79ec4; text-decoration:line-through;}
+
+  /* the boats waiting to go in the water */
+  .tray{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px;}
+  .tchip{font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px; color:var(--ink);
+       background:#fff; border:3px solid var(--key-line); border-radius:14px; padding:7px 13px;
+       cursor:pointer; display:inline-flex; align-items:center; gap:6px; min-height:44px;}
+  .tchip:hover{border-color:var(--grape);}
+  .tchip:focus-visible{outline:3px solid var(--grape); outline-offset:2px;}
+  .tchip[aria-pressed="true"]{border-color:var(--sun-dark); background:#FFF6DC;}
+  .tchip .turn{color:var(--grape); font-size:15px;}
+  .tchip.bump{animation:wrongShake .35s ease;}
+
+  /* rules-sheet diagrams: a little stretch of sea */
+  .bmini{display:inline-grid; gap:2px; padding:4px; background:#E9F4FD;
+       border:2px solid var(--key-line); border-radius:8px;}
+  .bmini i{width:16px; height:16px; border-radius:4px; background:#F2FAFF; box-shadow:inset 0 0 0 1px rgba(63,167,224,.25);}
+  .bmini i.s{background:linear-gradient(180deg,#90A0C6,#5E6E96); box-shadow:none;}
+  .bmini i.h{background:linear-gradient(180deg,#FFC53D,#FF6A2A); box-shadow:none;}
+  .bmini i.m{background:#fff; box-shadow:inset 0 0 0 4px #DCEBF7;}
+  .bmini i.x{background:#FFEAED; box-shadow:inset 0 0 0 2px var(--coral);}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home"></svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle"></p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid two" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">boats keep apart</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">boats can touch</div></button>
+      </div>
+      <div class="howto">
+        <i class="gemoji"></i> <b>How to play:</b> You and the owl each hide five boats in your own sea.
+        Take turns calling a square — <b>💥 hit</b> or <b>💧 splash</b>! A hit means you go
+        <b>again</b>. Hit every part of a boat and it <b>sinks</b>. Sink the owl's whole fleet
+        before it sinks yours. You always fire first.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+
+      <div class="tally hide" id="tally">
+        <div class="tside"><div class="who">You</div><div class="num" id="tally-you"></div></div>
+        <div class="tvs">VS</div>
+        <div class="tside"><div class="who">The owl</div><div class="num" id="tally-owl"></div></div>
+      </div>
+
+      <div id="owl-side" class="hide">
+        <div class="seatitle enemy">🎯 Enemy waters · radar</div>
+        <div class="sea-wrap enemy">
+          <div class="radar" aria-hidden="true"></div>
+          <div class="sea" id="sea-owl"></div>
+        </div>
+      </div>
+
+      <div id="you-side">
+        <div class="seatitle" id="you-title">🚢 Your fleet</div>
+        <div class="sea-wrap own"><div class="sea" id="sea-you"></div></div>
+        <div class="tray" id="tray"></div>
+      </div>
+
+      <div class="rosters hide" id="rosters">
+        <div class="roster"><h4>Your fleet</h4><div id="roster-you"></div></div>
+        <div class="roster"><h4>Enemy fleet</h4><div id="roster-owl"></div></div>
+      </div>
+
+      <div class="actions">
+        <button id="auto-btn" class="tlink">🎲 Auto</button>
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="hint-link" class="tlink">💡 Hint</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="ready-btn" class="btn btn-go">Ready ▶</button>
+        <button id="next-btn" class="btn btn-primary invisible hide">Play again ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../games.js"></script>
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+/* ===== ENGINE ============================================================================
+   Battleship against the owl on a 10×10 sea: square index = row*N + col, row 0 at the TOP.
+   Each side hides the same five boats in its own sea and they take turns calling one square;
+   you always fire first. A square is UNKNOWN until it is fired at, then MISS or HIT.
+
+   A HIT MEANS YOU GO AGAIN — the rule the real game is played by, and the reason a lucky
+   first shot can turn into a whole boat. The turn only passes on a miss, which is why fire()
+   hands the turn back to the same player whenever the shot found something.
+
+   Hit every square of a boat and it sinks; sink the whole fleet and you win. Nobody can draw
+   — the player who sinks the last boat has already won by the time the other would reply.
+
+   TWO levels, because there is one sea and one fleet and the real choice is how much the game
+   helps you:
+     EASY    boats may not touch, so the water around a wreck is free — and a sleepy owl that
+             fires more or less anywhere and often forgets to follow up a hit.
+     EXPERT  boats MAY touch, so a wreck reveals nothing, against an owl that works out every
+             turn which square the most possible boats could still be sitting on.
+
+   The "boats never touch" rule is what makes a sunk boat worth something at EASY: no boat can
+   be next to it, not even diagonally, so every square around the wreck IS water and the engine
+   marks it for both sides. That is a deduction, not a gift — the test re-proves it against the
+   real fleet on every sinking. */
+const YOU = 1, OWL = 2;
+const UNKNOWN = 0, MISS = 1, HIT = 2;
+const other = p => 3 - p;
+
+/* the boats, biggest first — a fleet is laid out in this order, which is what keeps the big
+   ones placeable on a crowded sea */
+const FLEET = [{ len: 5, name: "Carrier", emoji: "🛳" },
+               { len: 4, name: "Battleship", emoji: "🚢" },
+               { len: 3, name: "Cruiser", emoji: "⛴" },
+               { len: 3, name: "Submarine", emoji: "🚤" },
+               { len: 2, name: "Destroyer", emoji: "⛵" }];
+
+const LEVELS = {
+  EASY:   { label: "🌱 Easy",   n: 10, touch: false, owl: "gentle" },
+  /* the ace owl slips to the plain hunter now and then on purpose — a perfect hunt is a wall
+     a child never gets over, and these few wasted shots are what keep EXPERT winnable */
+  EXPERT: { label: "🏆 Expert", n: 10, touch: true,  owl: "ace", slip: 0.15 },
+};
+/* EASY's owl: the chance it bothers to follow up a hit at all */
+const GENTLE = { follow: 0.55 };
+
+const rowOf = (i, n) => (i / n) | 0;
+const colOf = (i, n) => i % n;
+const inSea = (r, c, n) => r >= 0 && r < n && c >= 0 && c < n;
+/* A1-style name for a square: letters down the side, numbers across the top */
+const squareName = (i, n) => String.fromCharCode(65 + rowOf(i, n)) + (colOf(i, n) + 1);
+const pick = (list, rng) => list[Math.floor(rng() * list.length)];
+
+/* dir 0 lies across (the column grows), dir 1 lies down (the row grows) */
+const fits = (len, r, c, dir, n) => dir ? (r + len <= n && c < n) : (c + len <= n && r < n);
+function shipCells(len, r, c, dir, n) {
+  const out = [];
+  for (let k = 0; k < len; k++) out.push(dir ? (r + k) * n + c : r * n + (c + k));
+  return out;
+}
+const makeShip = (spec, r, c, dir, n) =>
+  ({ len: spec.len, name: spec.name, emoji: spec.emoji, r, c, dir,
+     cells: shipCells(spec.len, r, c, dir, n), hits: 0, sunk: false });
+
+/* the squares a boat rules out for its neighbours: itself, plus the ring around it when
+   boats may not touch (that ring is also what a sinking reveals) */
+function blocked(cells, n, touch) {
+  const out = new Set(cells);
+  if (touch) return out;
+  for (const i of cells) {
+    const r = rowOf(i, n), c = colOf(i, n);
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++)
+      if (inSea(r + dr, c + dc, n)) out.add((r + dr) * n + (c + dc));
+  }
+  return out;
+}
+/* may a boat of `len` lie at (r, c, dir) among `ships`? `skip` is a ship of that list to
+   ignore — the one being picked up and put down again. */
+function canPlace(ships, len, r, c, dir, n, touch, skip) {
+  if (!fits(len, r, c, dir, n)) return false;
+  const want = shipCells(len, r, c, dir, n);
+  for (const sh of ships) {
+    if (sh === skip) continue;
+    const no = blocked(sh.cells, n, touch);
+    for (const i of want) if (no.has(i)) return false;
+  }
+  return true;
+}
+/* every square a boat of `len` could legally take, given what is already down */
+function spotsFor(ships, len, n, touch, skip) {
+  const out = [];
+  for (let dir = 0; dir < 2; dir++)
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+      if (canPlace(ships, len, r, c, dir, n, touch, skip)) out.push([r, c, dir]);
+  return out;
+}
+/* A whole fleet hidden at random. Each boat is dropped uniformly among the places that are
+   still legal, so a crowded sea never biases towards the corners; if a later boat runs out of
+   room the whole layout is thrown away and tried again. */
+function randomLayout(fleet, n, touch, rng = Math.random) {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const ships = [];
+    let stuck = false;
+    for (const spec of fleet) {
+      const spots = spotsFor(ships, spec.len, n, touch, null);
+      if (!spots.length) { stuck = true; break; }
+      const [r, c, dir] = pick(spots, rng);
+      ships.push(makeShip(spec, r, c, dir, n));
+    }
+    if (!stuck) return ships;
+  }
+  return null;
+}
+
+/* one side's sea: the boats in it, and what the OTHER side has learned about it.
+   sunkMask marks the squares of boats that have already gone down — public knowledge, since
+   a sinking is announced, and what stops a hunter re-hunting a wreck. */
+const newSea = (ships, n) => ({ ships, marks: new Array(n * n).fill(UNKNOWN), sunkMask: new Array(n * n).fill(0) });
+const cloneSea = s => ({ ships: s.ships.map(sh => Object.assign({}, sh, { cells: sh.cells.slice() })),
+                         marks: s.marks.slice(), sunkMask: s.sunkMask.slice() });
+
+function newGame(level, rng = Math.random, yourShips = null) {
+  const L = LEVELS[level], n = L.n;
+  return { level, n, touch: L.touch, fleet: FLEET,
+           you: newSea(yourShips || randomLayout(FLEET, n, L.touch, rng), n),
+           owl: newSea(randomLayout(FLEET, n, L.touch, rng), n),
+           turn: YOU, winner: 0, moves: 0, last: null };
+}
+const isOver = s => !!s.winner;
+/* the sea the player to move is firing INTO */
+const targetOf = (s, p) => (p === YOU ? s.owl : s.you);
+
+/* Every square around a wreck is water — no boat may touch another, so this is a deduction
+   any player is entitled to make, and the engine makes it for both sides so neither has to
+   count. Returns the squares it turned over. */
+function splash(sea, ship, n) {
+  const out = [];
+  for (const i of blocked(ship.cells, n, false))
+    if (sea.marks[i] === UNKNOWN) { sea.marks[i] = MISS; out.push(i); }
+  return out;
+}
+
+/* The state after the player to move fires at square i, or null if that is not a shot they
+   may take (the game is over, i is off the sea, or it has been fired at already).
+   A hit keeps the turn; only a miss hands it over. */
+function fire(s, i) {
+  if (isOver(s) || !Number.isInteger(i) || i < 0 || i >= s.n * s.n) return null;
+  const p = s.turn;
+  if (targetOf(s, p).marks[i] !== UNKNOWN) return null;
+  const you = cloneSea(s.you), owl = cloneSea(s.owl);
+  const sea = p === YOU ? owl : you, n = s.n;
+  const boat = sea.ships.find(sh => sh.cells.indexOf(i) >= 0) || null;
+  let sunk = null, ring = [];
+  if (boat) {
+    sea.marks[i] = HIT;
+    boat.hits++;
+    if (boat.hits === boat.len) {
+      boat.sunk = true;
+      sunk = boat;
+      for (const c of boat.cells) sea.sunkMask[c] = 1;
+      if (!s.touch) ring = splash(sea, boat, n);
+    }
+  } else sea.marks[i] = MISS;
+  const cleared = sea.ships.every(sh => sh.sunk);
+  return { level: s.level, n, touch: s.touch, fleet: s.fleet, you, owl,
+           turn: cleared || boat ? p : other(p), winner: cleared ? p : 0, moves: s.moves + 1,
+           last: { by: p, i, hit: !!boat, sunk: sunk && { name: sunk.name, emoji: sunk.emoji, cells: sunk.cells.slice() }, ring } };
+}
+
+/* ---- what a side is allowed to know about the other's sea ------------------------------
+   Everything an owl decides with comes through here, and nothing in it depends on where the
+   other side's boats actually are: the marks it has made, the wrecks it has already sunk, and
+   the lengths still afloat (the fleet is public and a sinking is announced). */
+function seaView(s, p) {
+  const sea = targetOf(s, p);
+  return { n: s.n, touch: s.touch, marks: sea.marks, sunkMask: sea.sunkMask,
+           remaining: sea.ships.filter(sh => !sh.sunk).map(sh => sh.len) };
+}
+function unknowns(v) {
+  const out = [];
+  for (let i = 0; i < v.marks.length; i++) if (v.marks[i] === UNKNOWN) out.push(i);
+  return out;
+}
+/* hits that belong to a boat still afloat — the trail to follow */
+function liveHits(v) {
+  const out = [];
+  for (let i = 0; i < v.marks.length; i++) if (v.marks[i] === HIT && !v.sunkMask[i]) out.push(i);
+  return out;
+}
+const ORTH = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+function orthUnknown(v, i) {
+  const out = [], r = rowOf(i, v.n), c = colOf(i, v.n);
+  for (const [dr, dc] of ORTH)
+    if (inSea(r + dr, c + dc, v.n) && v.marks[(r + dr) * v.n + (c + dc)] === UNKNOWN) out.push((r + dr) * v.n + (c + dc));
+  return out;
+}
+/* Two live hits in a line say which way the boat lies, so the only squares worth trying are
+   the two ends of that line. This is what separates a hunter from a poker. */
+function lineEnds(v) {
+  const n = v.n, live = new Set(liveHits(v)), out = [];
+  for (const i of live) {
+    const r = rowOf(i, n), c = colOf(i, n);
+    for (const [dr, dc] of [[0, 1], [1, 0]]) {
+      if (!inSea(r + dr, c + dc, n) || !live.has((r + dr) * n + (c + dc))) continue;
+      for (const s of [1, -1]) {                    /* walk off both ends of the run */
+        let rr = r, cc = c;
+        while (inSea(rr + dr * s, cc + dc * s, n) && live.has((rr + dr * s) * n + (cc + dc * s))) { rr += dr * s; cc += dc * s; }
+        const er = rr + dr * s, ec = cc + dc * s;
+        if (inSea(er, ec, n) && v.marks[er * n + ec] === UNKNOWN) out.push(er * n + ec);
+      }
+    }
+  }
+  return [...new Set(out)];
+}
+
+/* EASY: fires more or less anywhere, and only sometimes bothers to follow up a hit */
+function gentleShot(v, rng = Math.random) {
+  const live = liveHits(v);
+  if (live.length && rng() < GENTLE.follow) {
+    const opts = [];
+    for (const h of live) for (const j of orthUnknown(v, h)) opts.push(j);
+    if (opts.length) return pick([...new Set(opts)], rng);
+  }
+  return pick(unknowns(v), rng);
+}
+
+/* The hunter: finish whatever is already wounded — along the line if the line is known —
+   otherwise sweep the sea in a checkerboard whose step is the SHORTEST boat still afloat,
+   because no boat that long can slip between those squares. */
+function hunterShot(v, rng = Math.random) {
+  const live = liveHits(v);
+  if (live.length) {
+    const ends = lineEnds(v);
+    if (ends.length) return pick(ends, rng);
+    const opts = [];
+    for (const h of live) for (const j of orthUnknown(v, h)) opts.push(j);
+    if (opts.length) return pick([...new Set(opts)], rng);
+  }
+  const free = unknowns(v);
+  const step = Math.min.apply(null, v.remaining.length ? v.remaining : [2]);
+  const sweep = free.filter(i => (rowOf(i, v.n) + colOf(i, v.n)) % step === 0);
+  return pick(sweep.length ? sweep : free, rng);
+}
+
+/* EXPERT: count, for every square, how many ways the boats still afloat could be lying on it.
+   A square that a lot of boats could cover is the one worth firing at. Once something is
+   wounded only the placements that cover a live hit are counted, and covering several at once
+   counts for far more — which is how it finishes a boat without ever guessing the direction. */
+function densityMap(v) {
+  const n = v.n, W = new Array(n * n).fill(0);
+  const live = liveHits(v), hunting = live.length === 0;
+  const lens = [...new Set(v.remaining)];
+  for (const len of lens) {
+    const copies = v.remaining.filter(x => x === len).length;
+    for (let dir = 0; dir < 2; dir++)
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+        if (!fits(len, r, c, dir, n)) continue;
+        const cells = shipCells(len, r, c, dir, n);
+        let hits = 0, possible = true;
+        for (const i of cells) {
+          if (v.marks[i] === MISS || v.sunkMask[i]) { possible = false; break; }
+          if (v.marks[i] === HIT) hits++;
+        }
+        if (!possible || (!hunting && !hits)) continue;
+        const w = copies * (hunting ? 1 : Math.pow(24, hits));
+        for (const i of cells) if (v.marks[i] === UNKNOWN) W[i] += w;
+      }
+  }
+  return W;
+}
+function aceShot(v, rng = Math.random) {
+  const W = densityMap(v);
+  let best = 0, top = [];
+  for (let i = 0; i < W.length; i++) {
+    if (v.marks[i] !== UNKNOWN || W[i] <= 0) continue;
+    if (W[i] > best) { best = W[i]; top = [i]; } else if (W[i] === best) top.push(i);
+  }
+  /* no placement fits anywhere (only possible if the fleet is already down) — fall back to
+     any square left, so the owl can never fail to produce a shot */
+  return top.length ? pick(top, rng) : pick(unknowns(v), rng);
+}
+
+/* the owl's shot in state s (s.turn must be the owl's) */
+function owlShot(s, rng = Math.random) {
+  const L = LEVELS[s.level], v = seaView(s, OWL);
+  if (L.owl === "gentle") return gentleShot(v, rng);
+  if (L.slip && rng() < L.slip) return hunterShot(v, rng);
+  return aceShot(v, rng);
+}
+/* the Hint: the same reckoning the best owl uses, run on the owl's sea for you */
+const hintShot = (s, rng = Math.random) => aceShot(seaView(s, YOU), rng);
+const starsFor = hints => Math.max(1, 3 - hints);
+
+if (typeof module !== "undefined") module.exports = { YOU, OWL, UNKNOWN, MISS, HIT, LEVELS, FLEET,
+  GENTLE, other, rowOf, colOf, inSea, squareName, fits, shipCells, makeShip, blocked, canPlace,
+  spotsFor, randomLayout, newSea, newGame, isOver, targetOf, splash, fire, seaView, unknowns,
+  liveHits, orthUnknown, lineEnds, gentleShot, hunterShot, densityMap, aceShot, owlShot,
+  hintShot, starsFor };
+
+/* ===== DOM =============================================================================== */
+if (typeof document !== "undefined") {
+
+let level = "EASY";
+let game = null;                 /* the battle; null while the fleet is still being placed */
+let phase = "place";             /* "place" | "battle" */
+let fleetPlan = [];              /* your boats while you are arranging them */
+let tray = [];                   /* the ones not in the water yet */
+let heldDir = 0;                 /* which way the boat in your hand lies */
+let held = -1;                   /* index into tray of the boat in your hand */
+let busy = false, owlTimer = null, hintsUsed = 0;
+
+function sound(kind) {
+  if (reduceMotion) return;
+  if (kind === "splash") beep(300, .12, "sine", 0, .07);
+  else if (kind === "hit") { beep(180, .09, "square", 0, .07); beep(430, .13, "triangle", .06); }
+  else if (kind === "owlhit") { beep(150, .1, "sawtooth", 0, .06); beep(300, .14, "triangle", .07); }
+  else if (kind === "sunk") [523, 415, 330, 262].forEach((f, k) => beep(f, .16, "triangle", k * .09, .09));
+  else if (kind === "lostboat") [330, 262, 196].forEach((f, k) => beep(f, .17, "sine", k * .1, .08));
+  else if (kind === "drop") beep(520, .07, "triangle");
+  else if (kind === "bad") beepBad(.16, .05);
+  else if (kind === "hint") beep(880, .09, "sine", 0, .08);
+  else if (kind === "win") beepWin(.16, .1);
+  else if (kind === "lose") [440, 370, 311].forEach((f, k) => beep(f, .18, "sine", k * .13, .1));
+}
+
+function setLevel(l) { level = l; markLevel(l, LEVELS[l].label); }
+
+/* ---- drawing a sea -----------------------------------------------------------------------
+   The same shape as the shared boardCell(), written out because this board has a letter column
+   that is 0.7 of a square wide — boardCell counts whole columns and its cols + 0.3 slack, so it
+   cannot say "ten squares and seven tenths". What matters is the rule it exists to enforce, and
+   that is kept: the width is measured with 100cqw, which is the room the CARD really has, never
+   vw. The gutter is the 2px gaps and the sea's own padding — chrome the squares never get, so it
+   comes off the top before the division. */
+const seaCell = (n, min, max) =>
+  "clamp(" + min + "px, calc((100cqw - " + (2 * n + 16) + "px) / " + (n + 0.7) + "), " + max + "px)";
+
+/* Every label and square is given its grid-area outright. Nothing in a .sea may be
+   auto-placed: the boats and markers drawn over them carry explicit positions, and CSS Grid
+   places explicit items first and then flows the auto ones around them — which used to shove
+   every square after a boat one cell along. */
+function buildSea(el, n, cell, onTap, label) {
+  el.style.setProperty("--n", n);
+  el.style.setProperty("--sq", cell);
+  el.style.gridTemplateColumns = "calc(var(--sq) * .7) repeat(" + n + ", var(--sq))";
+  el.setAttribute("role", "group");
+  el.setAttribute("aria-label", label);
+  let h = '<span class="lab" style="grid-area:1/1"></span>';
+  for (let c = 0; c < n; c++)
+    h += '<span class="lab" style="grid-area:1/' + (c + 2) + '">' + (c + 1) + "</span>";
+  for (let r = 0; r < n; r++) {
+    h += '<span class="lab" style="grid-area:' + (r + 2) + '/1">' + String.fromCharCode(65 + r) + "</span>";
+    for (let c = 0; c < n; c++)
+      h += '<button class="sq" id="' + el.id + "-" + (r * n + c) + '" data-i="' + (r * n + c)
+         + '" tabindex="-1" style="grid-area:' + (r + 2) + "/" + (c + 2) + '"></button>';
+  }
+  el.innerHTML = h;
+  el.querySelectorAll(".sq").forEach(b => { b.onclick = () => onTap(+b.dataset.i); });
+  /* A sea is one tab stop, not n×n of them: every square is reachable with the arrow keys,
+     and Tab carries on past the whole sea. */
+  const first = el.querySelector(".sq");
+  if (first) first.tabIndex = 0;
+}
+/* Which squares are live. A spent square is marked aria-disabled rather than disabled, because
+   a disabled button cannot take focus — and a player reading the sea with the arrow keys has
+   to be able to walk over the squares that have already been fired at. Nothing listens to a
+   dead square anyway: every tap goes through a handler that checks the game state first. */
+function setLive(el, n, isLive) {
+  for (let i = 0; i < n * n; i++) {
+    const b = $(el.id + "-" + i);
+    if (!b) continue;
+    const live = isLive(i);
+    b.classList.toggle("live", live);
+    b.setAttribute("aria-disabled", live ? "false" : "true");
+  }
+}
+/* move the roving tab stop along with the focus */
+function focusSquare(from, to) {
+  if (!to) return;
+  if (from) from.tabIndex = -1;
+  to.tabIndex = 0;
+  to.focus();
+}
+function shipEl(sh, cls) {
+  const d = document.createElement("div");
+  d.className = "ship" + (cls || "") + (sh.sunk ? " sunk" : "");
+  d.style.gridArea = (sh.r + 2) + " / " + (sh.c + 2) + " / span " + (sh.dir ? sh.len : 1) + " / span " + (sh.dir ? 1 : sh.len);
+  d.innerHTML = "<span>" + sh.emoji + "</span>";
+  return d;
+}
+function markEl(i, n, v, fresh) {
+  const d = document.createElement("div");
+  d.className = "mk " + (v === HIT ? "hit" : "miss") + (fresh ? " fresh" : "");
+  d.style.gridArea = (rowOf(i, n) + 2) + " / " + (colOf(i, n) + 2);
+  if (v === HIT) d.innerHTML = '<span class="burst"></span>';
+  return d;
+}
+/* redraw the boats and markers over a sea. `showShips` hides the owl's fleet until each boat
+   goes down, which is the whole game. */
+function paintSea(el, n, ships, marks, o) {
+  el.querySelectorAll(".ship, .mk").forEach(x => x.remove());
+  for (const sh of ships)
+    if (o.showShips || sh.sunk) el.appendChild(shipEl(sh, o.pickable && sh === o.heldShip ? " picked" : ""));
+  for (let i = 0; i < n * n; i++)
+    if (marks[i]) el.appendChild(markEl(i, n, marks[i], i === o.fresh));
+}
+function nameSquares(el, n, marks, own) {
+  for (let i = 0; i < n * n; i++) {
+    const b = $(el.id + "-" + i);
+    if (!b) continue;
+    const what = marks[i] === HIT ? ", a hit" : marks[i] === MISS ? ", a splash" : own ? "" : ", not fired at yet";
+    b.setAttribute("aria-label", squareName(i, n) + what);
+  }
+}
+/* the roster panel. `reveal` shows which parts of each boat have been hit — true for your own
+   fleet, which you can see anyway; for the owl's, a boat only gives itself away when it sinks,
+   which is exactly what the real game tells you. */
+function drawRoster(el, ships, reveal) {
+  el.innerHTML = ships.map(sh => {
+    const gone = sh.sunk ? sh.len : reveal ? sh.hits : 0;
+    let pips = "";
+    for (let k = 0; k < sh.len; k++) pips += '<i class="' + (k < gone ? "gone" : "") + '"></i>';
+    return '<div class="rline' + (sh.sunk ? " sunk" : "") + '"><span class="pips">' + pips + "</span>"
+         + "<span>" + sh.name + "</span></div>";
+  }).join("");
+  el.setAttribute("aria-label", ships.filter(sh => !sh.sunk).length + " of " + ships.length + " boats still afloat");
+}
+const afloat = ships => ships.filter(sh => !sh.sunk).length;
+function drawTally() {
+  $("tally-you").innerHTML = "<b>" + afloat(game.you.ships) + "</b> ships";
+  $("tally-owl").innerHTML = "<b>" + afloat(game.owl.ships) + "</b> ships";
+}
+
+/* ---- arranging your fleet --------------------------------------------------------------- */
+function shuffleFleet() {
+  const L = LEVELS[level], ships = randomLayout(FLEET, L.n, L.touch);
+  fleetPlan = ships || [];
+  tray = ships ? [] : FLEET.slice();
+  held = tray.length ? 0 : -1;
+}
+function clearFleet() {
+  fleetPlan = [];
+  tray = FLEET.slice();
+  held = 0;
+  heldDir = 0;
+}
+function drawTray() {
+  const el = $("tray");
+  if (phase !== "place" || !tray.length) { el.innerHTML = ""; return; }
+  el.innerHTML = tray.map((s, k) =>
+    '<button class="tchip" data-k="' + k + '" aria-pressed="' + (k === held) + '">' + s.emoji +
+    "<span>" + s.name + "</span>" +
+    (k === held ? '<span class="turn">' + (heldDir ? "↕" : "↔") + "</span>" : "") + "</button>").join("");
+  el.querySelectorAll(".tchip").forEach(b => {
+    b.onclick = () => {
+      const k = +b.dataset.k;
+      if (k === held) { heldDir ^= 1; sound("drop"); }        /* tapping the held boat turns it */
+      else held = k;
+      drawTray();
+    };
+  });
+}
+function paintPlacing(fresh) {
+  const L = LEVELS[level], n = L.n;
+  $("sea-you").classList.add("editing");
+  paintSea($("sea-you"), n, fleetPlan, new Array(n * n).fill(UNKNOWN),
+           { showShips: true, pickable: true, heldShip: null, fresh: fresh });
+  /* picking a boat back up: tap it and it goes back into your hand */
+  $("sea-you").querySelectorAll(".ship").forEach((el, k) => { el.onclick = () => pickUp(k); });
+  nameSquares($("sea-you"), n, new Array(n * n).fill(UNKNOWN), true);
+  setLive($("sea-you"), n, () => true);      /* while you are placing, every square takes a boat */
+  drawTray();
+}
+function pickUp(k) {
+  if (phase !== "place") return;
+  const sh = fleetPlan[k];
+  if (!sh) return;
+  fleetPlan.splice(k, 1);
+  tray.push({ len: sh.len, name: sh.name, emoji: sh.emoji });
+  held = tray.length - 1;
+  heldDir = sh.dir;
+  sound("drop");
+  flash("Put the " + sh.name + " back in the sea — tap a square.", "hint");
+  paintPlacing();
+}
+function dropAt(i) {
+  if (phase !== "place") return;
+  const L = LEVELS[level], n = L.n;
+  if (held < 0 || !tray[held]) { flash("Tap one of your boats to move it.", "hint"); return; }
+  const spec = tray[held], r = rowOf(i, n), c = colOf(i, n);
+  if (!canPlace(fleetPlan, spec.len, r, c, heldDir, n, L.touch, null)) {
+    sound("bad");
+    const why = !fits(spec.len, r, c, heldDir, n) ? "The " + spec.name + " doesn't fit there — try turning it."
+      : L.touch ? "Something is already there."
+      : "Boats can't touch each other — leave a gap.";
+    flash("🚫 " + why, "bad");
+    const chip = $("tray").querySelector('.tchip[data-k="' + held + '"]');
+    if (chip && !reduceMotion) { chip.classList.remove("bump"); void chip.offsetWidth; chip.classList.add("bump"); }
+    return;
+  }
+  fleetPlan.push(makeShip(spec, r, c, heldDir, n));
+  tray.splice(held, 1);
+  held = tray.length ? Math.min(held, tray.length - 1) : -1;
+  sound("drop");
+  flash(tray.length ? "Now place the " + tray[held].name + "." : "🚢 Fleet ready — press Ready!", tray.length ? "" : "good");
+  paintPlacing();
+}
+
+/* ---- the battle -------------------------------------------------------------------------- */
+function startBattle() {
+  if (tray.length) { sound("bad"); flash("🚫 Every boat has to be in the water first.", "bad"); return; }
+  game = newGame(level, Math.random, fleetPlan);
+  phase = "battle";
+  hintsUsed = 0;
+  busy = false;
+  $("sea-you").classList.remove("editing");
+  $("owl-side").classList.remove("hide");
+  $("tally").classList.remove("hide");
+  $("rosters").classList.remove("hide");
+  $("you-title").textContent = "🚢 Your fleet";
+  $("ready-btn").classList.add("hide");
+  $("next-btn").classList.remove("hide");
+  $("auto-btn").classList.add("invisible");
+  $("reset-btn").classList.add("invisible");
+  $("hint-link").classList.remove("invisible");
+  const n = game.n;
+  buildSea($("sea-owl"), n, seaCell(n, 20, 38), youFire, "The owl's sea");
+  buildSea($("sea-you"), n, seaCell(n, 13, 24), function () {}, "Your sea");
+  render();
+  flash("🔴 Your turn — tap a square in the owl's sea!", "");
+  setOwl("idle");
+}
+
+function render(fresh, freshYou) {
+  const n = game.n, over = isOver(game);
+  const yours = game.turn === YOU && !over && !busy;
+  paintSea($("sea-owl"), n, game.owl.ships, game.owl.marks, { showShips: over, fresh: fresh });
+  paintSea($("sea-you"), n, game.you.ships, game.you.marks, { showShips: true, fresh: freshYou });
+  nameSquares($("sea-owl"), n, game.owl.marks, false);
+  nameSquares($("sea-you"), n, game.you.marks, true);
+  setLive($("sea-owl"), n, i => yours && game.owl.marks[i] === UNKNOWN);
+  setLive($("sea-you"), n, function () { return false; });   /* your own sea is a chart to read */
+  for (let i = 0; i < n * n; i++) {
+    const b = $("sea-owl-" + i);
+    if (b) b.classList.remove("hinted");
+  }
+  drawRoster($("roster-you"), game.you.ships, true);
+  drawRoster($("roster-owl"), game.owl.ships, false);
+  drawTally();
+}
+
+function youFire(i) {
+  if (busy || !game || phase !== "battle" || isOver(game) || game.turn !== YOU) return;
+  const next = fire(game, i);
+  if (!next) { sound("bad"); flash("You've already fired at " + squareName(i, game.n) + ".", "bad"); return; }
+  game = next;
+  const last = game.last, where = squareName(last.i, game.n);
+  sound(last.sunk ? "sunk" : last.hit ? "hit" : "splash");
+  if (isOver(game)) { render(last.i); return finish(); }
+  if (game.turn === YOU) {                    /* a hit means you go again */
+    busy = false;
+    render(last.i);
+    setOwl("worried");
+    flash(last.sunk ? "🎉 " + where + " — you sank the owl's " + last.sunk.name + "! Fire again!"
+                    : "💥 " + where + " — a hit! Fire again!", "good");
+    return;
+  }
+  busy = true;
+  render(last.i);
+  setOwl("think");
+  flash("💧 " + where + " — splash, a miss. 🟡 The owl is taking aim…", "");
+  owlTimer = setTimeout(owlTurn, reduceMotion ? 250 : 550);
+}
+
+function owlTurn() {
+  owlTimer = null;
+  if (!game || phase !== "battle" || isOver(game) || game.turn !== OWL) { busy = false; return; }
+  const i = owlShot(game);
+  game = fire(game, i);
+  const last = game.last, where = squareName(last.i, game.n);
+  sound(last.sunk ? "lostboat" : last.hit ? "owlhit" : "splash");
+  if (isOver(game)) { render(null, last.i); return finish(); }
+  render(null, last.i);
+  if (game.turn === OWL) {                    /* it hit, so it fires again too */
+    setOwl("happy");
+    flash(last.sunk ? "🦉 The owl sank your " + last.sunk.name + "! It fires again…"
+                    : "🦉 The owl hit your fleet at " + where + "! It fires again…", "bad");
+    owlTimer = setTimeout(owlTurn, reduceMotion ? 250 : 700);
+    return;
+  }
+  busy = false;
+  render();
+  setOwl("idle");
+  flash("🦉 The owl fired at " + where + " — splash! 🔴 Your turn.", "");
+}
+
+function finish() {
+  busy = false;
+  const won = game.winner === YOU;
+  const stars = won ? starsFor(hintsUsed) : 0;
+  $("stars").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+  $("stars").setAttribute("aria-label", stars + " of 3 stars");
+  $("rlabel").textContent = won ? "🎉 The owl's fleet is sunk — you win!" : "🦉 The owl sank your whole fleet!";
+  $("rsub").textContent = won
+    ? (hintsUsed ? "Win with no hints for all three stars!" : "You found every boat all by yourself!")
+    : "Good game! Once you get a hit, try the squares right next to it.";
+  setOwl(won ? "win" : "happy");
+  sound(won ? "win" : "lose");
+  if (won && !reduceMotion) throwConfetti();
+  flash("", "");
+  render();
+  $("result-view").classList.remove("hide");
+  $("skip-btn").classList.add("invisible");   /* keeps its box, so the owl stays centred */
+  $("hint-link").classList.add("invisible");
+  $("next-btn").classList.remove("invisible");
+  $("next-btn").focus();
+}
+
+function hint() {
+  if (phase !== "battle" || busy || !game || isOver(game) || game.turn !== YOU) return;
+  const i = hintShot(game);
+  hintsUsed++;
+  sound("hint");
+  render();
+  const b = $("sea-owl-" + i);
+  if (b) b.classList.add("hinted");
+  flash("💡 " + (liveHits(seaView(game, YOU)).length ? "Finish that boat — try " : "Try ") + squareName(i, game.n) + ".", "hint");
+}
+
+/* ---- the round ---------------------------------------------------------------------------- */
+function startGame() {
+  clearTimeout(owlTimer); owlTimer = null;
+  stopConfetti(); closeLevelMenu();
+  game = null;
+  phase = "place";
+  busy = false;
+  hintsUsed = 0;
+  heldDir = 0;
+  shuffleFleet();
+  showScreen("game");
+  $("result-view").classList.add("hide");
+  $("next-btn").classList.add("invisible", "hide");
+  $("ready-btn").classList.remove("hide");
+  $("skip-btn").classList.remove("invisible");
+  $("auto-btn").classList.remove("invisible");
+  $("reset-btn").classList.remove("invisible");
+  $("hint-link").classList.add("invisible");
+  $("owl-side").classList.add("hide");
+  $("tally").classList.add("hide");
+  $("rosters").classList.add("hide");
+  $("you-title").textContent = "🚢 Hide your fleet";
+  const L = LEVELS[level];
+  buildSea($("sea-you"), L.n, seaCell(L.n, 20, 38), dropAt, "Your sea");
+  paintPlacing();
+  setOwl("idle");
+  flash("Your boats are in the water — move any you like, then press Ready.", "");
+}
+
+function goHome() {
+  showHome();
+  clearTimeout(owlTimer); owlTimer = null;
+  busy = false;
+  closeLevelMenu();
+}
+function pickLevel(l) { closeLevelMenu(); setLevel(l); startGame(); }
+
+/* ---- rules sheet -------------------------------------------------------------------------- */
+/* a little stretch of sea for the diagrams: "." water, "s" a boat, "h" a hit, "m" a splash,
+   "x" a square that is not allowed */
+function miniHTML(rows) {
+  const cols = rows[0].length;
+  return '<span class="bmini" style="grid-template-columns:repeat(' + cols + ',16px)">' +
+    rows.join("").split("").map(ch => '<i class="' + (ch === "." ? "" : ch) + '"></i>').join("") + "</span>";
+}
+wireRulesSheet(function () {
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>🎯 What you are trying to do</h3>'
+    + '<p>You and the owl each hide <b>five boats</b> in your own sea. You cannot see the '
+    + 'owl\'s boats and it cannot see yours. Take turns calling one square. <b>Sink the owl\'s '
+    + 'whole fleet</b> before it sinks yours — and you always fire <b>first</b>.</p></div>'
+
+    + '<div class="rule"><h3>💥 A hit means you go again</h3>'
+    + '<p>Tap a square in the owl\'s sea. If a boat is hiding there it is a <b>hit</b> — a '
+    + 'burst — and you get <b>another shot straight away</b>. Keep going for as long as you '
+    + 'keep hitting! Only a <b>splash</b> (a pale ripple) hands the turn over. The owl plays '
+    + 'by the same rule, so a run of luck can go either way.</p>'
+    + '<div class="rrow">' + miniHTML([".h.m", "...."]) + '<span class="rarrow">➡️</span>' + miniHTML(["hh.m", "...."]) + "</div>"
+    + '<span class="cap">A hit next to a hit — that boat lies <b>across</b>.</span></div>'
+
+    + '<div class="rule"><h3>🧭 The trick to finding a boat</h3>'
+    + '<p>When you get a hit, the rest of that boat is <b>right next to it</b> — above, below, '
+    + 'left or right, never on a slant. Try those four squares. Once <b>two</b> hits sit in a '
+    + 'line you know which way the boat lies, so keep going along that line. Hit every square '
+    + 'of a boat and it <b>sinks</b> — the owl has to tell you which one it was.</p>'
+    + '<div class="rrow">' + miniHTML([".h.."]) + '<span class="rarrow">➡️</span>' + miniHTML(["mhh."]) + "</div>"
+    + '<span class="cap">Blocked on the left, so the rest of the boat is to the right.</span></div>'
+
+    + '<div class="rule"><h3>🚢 Your fleet</h3>'
+    + '<p>Both sides hide the same five boats: a <b>Carrier</b> (5 squares), a '
+    + '<b>Battleship</b> (4), a <b>Cruiser</b> (3), a <b>Submarine</b> (3) and a '
+    + '<b>Destroyer</b> (2). Tap a boat to pick it up, tap it again to turn it, then tap a '
+    + 'square to drop it — or press <b>🎲 Auto</b> to have them scattered for you.</p></div>'
+
+    + '<div class="rule"><h3>🦉 The two levels</h3>'
+    + '<p>🌱 <b>Easy</b> — no two boats may touch, not even at a corner. That is worth a lot: '
+    + 'when a boat sinks, <b>every square around it must be water</b>, so the game marks it for '
+    + 'you for free. The owl is sleepy too — it fires almost anywhere and often forgets to '
+    + 'finish a boat it has found.</p>'
+    + '<div class="rrow">' + miniHTML(["xxxx", "xssx", "xxxx"]) + "</div>"
+    + '<span class="cap">On Easy, nothing can hide in the ring around a boat.</span>'
+    + '<p>🏆 <b>Expert</b> — boats <b>may</b> touch, so there is no free water and a wreck tells '
+    + 'you much less. The owl works out where the most boats could still be hiding and fires '
+    + 'there. It is meant to be hard!</p></div>'
+
+    + '<div class="rule"><h3>⭐ Stars</h3>'
+    + '<p>Sink the owl\'s fleet with no hints for <b>★★★</b>. Each 💡 Hint costs one star (a win '
+    + 'always earns at least one). A hint tells you the <b>best square left</b> — the same '
+    + 'thinking the Expert owl does.</p></div>';
+});
+
+/* ---- wiring --------------------------------------------------------------------------- */
+buildLevelMenu(LEVELS, pickLevel);
+wireLevelMenu();
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+$("start-btn").onclick = startGame;
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = startGame;
+$("next-btn").onclick = startGame;
+$("ready-btn").onclick = startBattle;
+$("hint-link").onclick = hint;
+$("auto-btn").onclick = () => { if (phase !== "place") return; shuffleFleet(); sound("drop"); flash("🎲 Shuffled!", ""); paintPlacing(); };
+$("reset-btn").onclick = () => { if (phase !== "place") return; clearFleet(); sound("drop"); flash("Tap a square to put the " + tray[0].name + " in the sea.", "hint"); paintPlacing(); };
+
+/* arrow keys walk whichever sea you are on; R turns the boat in your hand */
+const STEP = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+document.addEventListener("keydown", e => {
+  if (rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if (e.key === "Escape") { closeLevelMenu(); return; }
+  if ($("screen-game").classList.contains("hide")) return;
+  if ((e.key === "r" || e.key === "R") && phase === "place" && held >= 0) {
+    e.preventDefault(); heldDir ^= 1; sound("drop"); drawTray(); return;
+  }
+  const cur = document.activeElement, step = STEP[e.key];
+  if (!step || !cur || !cur.classList.contains("sq")) return;
+  e.preventDefault();
+  const sea = cur.parentElement, n = +sea.style.getPropertyValue("--n"), i = +cur.dataset.i;
+  const r = rowOf(i, n) + step[0], c = colOf(i, n) + step[1];
+  if (inSea(r, c, n)) focusSquare(cur, $(sea.id + "-" + (r * n + c)));
+});
+
+initBouncyTitle();
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

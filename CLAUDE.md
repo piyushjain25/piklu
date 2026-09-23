@@ -270,7 +270,12 @@ The card, its link, and the search filter appear automatically.
   depth a child cannot tell two owls apart (the engine tests measure it: against a careful
   player the old HARD and EXPERT owls both won every game). Three rungs are three real
   experiences — you almost always win, an even fight, and a wall — and those games mark
-  their `.diff-grid` with `three` so the row of cards fills properly. `guess-the-capital`
+  their `.diff-grid` with `three` so the row of cards fills properly. `battleship` goes further
+  and has only **two**, `EASY` and `EXPERT`, marking its grid `two`: it is always the same
+  10×10 sea and the same five boats (a smaller sea is simply the boring game), so the only real
+  choice is how much the game helps you — whether boats must keep apart, and which owl you are
+  up against. A middle rung there would be a label with almost nothing behind it. Its engine
+  test measures the two: a careful player wins about 98% of games at EASY and 55% at EXPERT. `guess-the-capital`
   has no difficulty levels — it's purely a
   choice of game (Indian States vs World Countries), so it has no level chip at all (see
   below). `spot-the-words` has no levels either: each theme in its `words.json` declares its
@@ -338,6 +343,10 @@ don't redefine these classes in a game's own `<style>`.
   Reset. `tic-tac-toe` has **no Hint** (it's a game against the owl, not a puzzle) and
   nothing to reset, so its row is just `📖 Rules`. `connect-four`, `checkers` and `gomoku` are also games against
   the owl with nothing to reset, but keep a Hint, so their row is `💡 Hint`, `📖 Rules`.
+  `battleship`'s row is **phase-aware** like `tally-chart`'s: `🎲 Auto`, `🔄 Reset`, `💡 Hint`,
+  `📖 Rules`, where Auto and Reset act on the fleet you are hiding and go `.invisible` once the
+  battle starts, and Hint is `.invisible` until then — every box keeps its place, so the row
+  never reflows as the round changes phase.
   (Rules-sheet games carry `📖 Rules` at the end of the row.)
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
@@ -356,6 +365,11 @@ don't redefine these classes in a game's own `<style>`.
   `Reset`/`Hint` links are **phase-aware** — each acts on the current phase. Unlike a
   single-phase MCQ game, which omits Reset altogether, `tally-chart` keeps Reset's box and
   makes it `.invisible` in the multiple-choice phase, so the row doesn't reflow between phases.
+  `battleship` runs **two phases**: you hide your fleet, then you fight. Its bottom-slot primary
+  `.btn` is `Ready ▶` while you are placing (it refuses to start while a boat is still on the
+  bench) and is replaced in place by `Play again ▶` — invisible until someone's fleet goes down
+  — for the battle, which has no submit action of its own because each tap on the owl's sea
+  *is* the shot.
 - **Primary button by level:** `balance-scales` has **no primary button at EASY/MEDIUM** —
   the live beam *is* the check, and the round completes the moment the pans are level — so
   the bottom slot holds `Next ▶` with `.invisible` (the same placeholder pattern as
@@ -398,7 +412,7 @@ don't redefine these classes in a game's own `<style>`.
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`,
-  `circuit-builder`, `connect-four`, `checkers`, `gomoku`, `crazy-eights`.
+  `circuit-builder`, `connect-four`, `checkers`, `gomoku`, `crazy-eights`, `battleship`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Responsive: mobile-first, and sized from the card
@@ -415,9 +429,9 @@ enhancement. Three things follow, and `_tests/site/conventions.test.js` enforces
 - **One page width per tier.** `:root` carries `--app-narrow:520px`, `--app:600px` and
   `--app-wide:720px`; a game picks one — `.app{--app-w:var(--app-wide);}` — and never writes a
   `max-width` of its own. **Pick the tier from what the game is, not from a number that looks
-  right**, and match the games it sits beside: all four **owl board games** (`tic-tac-toe`,
-  `connect-four`, `checkers`, `gomoku`) are `--app`, so their start screens and level pickers
-  are identical; `--app-narrow` is the compact single-board puzzles whose board caps around
+  right**, and match the games it sits beside: all five **owl board games** (`tic-tac-toe`,
+  `connect-four`, `checkers`, `gomoku`, `battleship`) are `--app`, so their start screens and
+  level pickers are identical; `--app-narrow` is the compact single-board puzzles whose board caps around
   330–440px (`lights-out`, `mouse-maze`, `mirror-draw`, `dino-dig`, `juice-jumble`,
   `mystery-word`); `--app-wide` is the text-heavy ones (`word-guess`, `matchstick-math`,
   `number-builder`, `number-detective`, `guess-the-capital`). A game whose board caps well below
@@ -722,7 +736,7 @@ calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
 balance-scales · tic-tac-toe · circuit-builder · connect-four · checkers · gomoku ·
-crazy-eights
+crazy-eights · battleship
 
 `word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word`,
 `what-am-i` and `circuit-builder` are the **data-driven** games: each loads its data from JSON in its own folder
@@ -853,6 +867,60 @@ pile + pack after every move and fails if the total is ever anything but one who
 how the first version's vanishing cards were caught. That test also proves every random game
 finishes and that the owl never spends an eight while a plain card would do — **run it after
 touching the rules or the owl.**
+
+`battleship` is the pencil-and-paper game against the owl, on a **10×10** sea: you and the owl
+each hide the same five boats — Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2 —
+in their **own** sea and take turns calling one square, and you always fire first. **A hit means
+you go again**, the rule the real game is played by: `fire()` hands the turn back to the same
+player whenever the shot found something, and only a miss passes it over. The owl plays by that
+rule too, so it can chain shots — which is why the page keeps `busy` set through the whole chain
+and schedules the next owl shot from `owlTurn()` itself.
+
+It has **two** levels, both on the full sea with the full fleet (see the level rule above).
+EASY is the helpful one: **no two boats may touch**, so every square around a wreck *must* be
+water and the engine marks it for both sides — a deduction the player is entitled to, not a
+gift, and `engine.test.js` re-proves every marked square against the fleet that is really there
+on every sinking. Its owl is sleepy: it fires almost anywhere and only follows up a hit about
+half the time. EXPERT changes the **rules** — boats **may touch**, so a wreck reveals nothing —
+against an owl that counts, every turn, how many ways the boats still afloat could be lying on
+each square and fires where that count is highest; it slips to a plain hunter 15% of the time on
+purpose, which is what keeps it winnable. **The owl never sees your boats**: everything it
+decides with goes through `seaView()`, which exposes only the marks, the wrecks and the lengths
+still afloat — the test puts a *different* fleet behind the same marks and fails if the owl
+changes its shot.
+
+Its board is **not** the shared holed one — like `checkers` it draws its own chart of water
+squares with letters down the side and numbers across the top. The enemy sea is dark with a
+**sonar sweep** behind it (a `.radar` layer under a transparent grid; site.css's global
+`prefers-reduced-motion` rule stops the animation), your own sea is blue water and half the
+size. A hit is a **burst** and a miss a pale **ripple**, so the two differ by shape and not by
+colour alone, and a sunk boat's box turns red on both seas. Under the boards sit a score line
+and a **roster** per side: your own shows per-boat damage, the owl's only strikes a boat off
+when it sinks, which is exactly what the real game tells you.
+
+⚠️ **Nothing inside a `.sea` may be auto-placed.** `buildSea()` writes a `grid-area` on every
+label and square and `paintSea()` on every boat and marker. That is not tidiness: the labels and
+squares were once auto-placed while the boats and markers over them were not, and CSS Grid
+positions explicit items **first** and then flows the auto ones into whatever cells are left — so
+the moment a boat was drawn, every square after it shuffled along. The grid grew holes, it moved
+as the game went on, and **a tap landed on the wrong row**. jsdom does no layout, so no test can
+see the rendering; `play.test.js`'s `checkPlacement()` asserts the invariant instead — every
+child of a `.sea` carries a grid position, and every square sits at the cell its index names.
+
+Its two seas are `<button class="sq">` grids, and a square already fired at is marked
+**`aria-disabled`, never `disabled`** — a disabled button cannot take focus, and the arrow keys
+have to be able to walk over spent squares to read the sea. Each sea is a single tab stop (a
+roving `tabindex`), so the two boards add two stops, not two hundred. Hint is the EXPERT owl's
+own reckoning run on the owl's sea for you; stars are ★★★ minus one per hint, at least ★ for a
+win and none for a loss. `_tests/games/battleship/engine.test.js` checks every layout and every
+shot's verdict against independent oracles, proves the free water round a wreck sound, proves a
+hit keeps the turn and a miss passes it, proves the owl blind, ranks the three owl brains by how
+many shots each needs to clear a sea, and measures that a careful player wins about 98% of games
+at EASY and 55% at EXPERT — **run it after touching the layout generator, an owl or the level
+table.** `_tests/games/battleship/play.test.js` drives the real page: it hides a fleet by hand,
+reads the drawn boats back off their own `grid-area` to prove no two touch at EASY (and that they
+*may* at EXPERT), checks a hit really does hand the turn straight back, and wins a whole game
+through the interface with a hunter of its own.
 
 `dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
 player can clear from there without ever guessing; the same solver powers its Hint.
