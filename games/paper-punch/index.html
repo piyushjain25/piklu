@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Paper Punch</title>
+<link rel="stylesheet" href="../../assets/site.css" />
+<style>
+.app{--app-w:var(--app-narrow);}
+:root{--paper-edge:#D9BE6C; --hole:#33236B; --crease:#6C4AB6;}
+
+/* the fold story: one small picture per fold, then the punched paper */
+.steps{display:grid; grid-template-columns:repeat(var(--n,2),minmax(0,150px)); justify-content:center; gap:8px; margin:14px 0 4px;}
+.step{margin:0; text-align:center; min-width:0;}
+.step .pic{position:relative; perspective:420px;}
+.step figcaption{font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px; color:var(--ink-soft); margin-top:2px;}
+svg.sheet{display:block; width:100%; height:auto;}
+svg.sheet .ghost{fill:none; stroke:#C9BEE6; stroke-width:.05; stroke-dasharray:.18 .14;}
+svg.sheet .cell{stroke:#E6D6A6; stroke-width:.035;}
+svg.sheet .crease{stroke:var(--crease); stroke-width:.09; stroke-dasharray:.24 .16; stroke-linecap:round;}
+svg.sheet .arrow{fill:none; stroke:var(--coral); stroke-width:.12; stroke-linecap:round;}
+svg.sheet .arrowhead{fill:var(--coral);}
+svg.sheet .hole{fill:var(--hole);}
+
+/* the flap that flips over the crease (motion on only — never built under reduced motion) */
+.flap{position:absolute; inset:0; background:#CFE8F8; opacity:0; pointer-events:none;
+  backface-visibility:visible; animation:ppFlip .9s ease-in-out both;}
+@keyframes ppFlip{0%{opacity:.9; transform:none} 78%{opacity:.9; transform:var(--flip)} 100%{opacity:0; transform:var(--flip)}}
+
+.ask{text-align:center; font-weight:800; color:var(--ink); margin:12px 0 8px; font-size:15px;}
+
+/* answer choices: small opened-out sheets */
+#choices{grid-template-columns:repeat(var(--cols,2),minmax(0,1fr)); gap:12px;}
+.tile{position:relative; background:#fff; border:3px solid var(--key-line); border-radius:16px; padding:8px 8px 6px;
+  cursor:pointer; font-family:'Fredoka',sans-serif; color:var(--ink); transition:transform .12s ease, opacity .2s ease;}
+.tile .tnum{position:absolute; top:5px; left:7px; font-weight:600; font-size:13px; color:var(--grape);}
+.tile .mark{position:absolute; top:3px; right:6px; font-weight:700; font-size:20px; line-height:1;}
+.tile.right{border-color:var(--leaf-dark); border-width:4px; background:#E8F8F0;}
+.marksheet.shown{border-color:var(--leaf-dark);}
+.tile.right .mark{color:var(--leaf-dark);}
+.tile.nope{border-style:dashed; opacity:.5; cursor:not-allowed;}
+.tile.nope .mark{color:var(--coral-dark);}
+.tile:disabled{cursor:default;}
+
+/* EXPERT: the stamp picker and the sheet you mark */
+.stamps{display:grid; grid-template-columns:repeat(4,44px); justify-content:center; gap:8px; margin:4px 0 10px;}
+@container card (min-width:460px){ .stamps{grid-template-columns:repeat(8,44px);} }
+.stamp{width:44px; height:44px; padding:4px; background:#fff; border:3px solid var(--key-line); border-radius:12px; cursor:pointer;}
+.stamp svg{width:100%; height:100%; display:block;}
+.stamp[aria-pressed="true"]{border-color:var(--grape); background:#F1EDFA; box-shadow:0 0 0 2px var(--grape);}
+.stamp:focus-visible,.mc:focus-visible{outline:3px solid var(--ink); outline-offset:1px;}
+/* both tracks fixed and equal (minmax(0,1fr), not auto/1fr): a row sized by its contents grew the
+   moment a flag was drawn in it, and the whole sheet shifted */
+.marksheet{display:grid; grid-template-columns:repeat(var(--n,8),minmax(0,1fr)); grid-template-rows:repeat(var(--n,8),minmax(0,1fr));
+  width:min(400px,100cqw); aspect-ratio:1; margin:0 auto;
+  background:#FFFBEA; border:3px solid var(--paper-edge); border-radius:6px;}
+.marksheet.shake{animation:wrongShake .35s ease;}
+.mc{position:relative; overflow:hidden; border:1px solid #EADDB3; background:transparent; padding:0; cursor:pointer; min-width:0; min-height:0;}
+/* the flag is laid over the cell, never inside its flow, so marking a cell can't resize it */
+.mc svg{position:absolute; left:12%; top:12%; width:76%; height:76%; display:block;}
+.mc .hole{fill:var(--hole);}
+.stamp .hole{fill:var(--hole);}
+
+/* rules-sheet diagrams */
+.rule svg.sheet{width:84px;}
+</style>
+</head>
+<body class="game">
+<div class="app">
+  <div class="card">
+    <section id="screen-home">
+      <div class="home-top"><a class="hub-link" href="../">← All games</a></div>
+      <div class="brand">
+        <svg class="owl" id="owl-home"></svg>
+        <h1 class="title" id="title"></h1>
+      </div>
+      <p class="subtitle"></p>
+      <div class="block-label">Choose a level</div>
+      <div class="diff-grid" role="group" aria-label="Level">
+        <button class="diff easy"   data-diff="EASY"   aria-pressed="true"><div class="d-name">🌱 Easy</div><div class="d-range">one fold</div></button>
+        <button class="diff medium" data-diff="MEDIUM" aria-pressed="false"><div class="d-name">⭐ Medium</div><div class="d-range">two folds</div></button>
+        <button class="diff hard"   data-diff="HARD"   aria-pressed="false"><div class="d-name">🔥 Hard</div><div class="d-range">diagonal folds</div></button>
+        <button class="diff expert" data-diff="EXPERT" aria-pressed="false"><div class="d-name">🏆 Expert</div><div class="d-range">mark it yourself</div></button>
+      </div>
+      <div class="howto">
+        <i class="gemoji"></i> <b>How to play:</b> A square sheet of paper is <b>folded</b>, and a hole is <b>punched</b>
+        through every layer. Picture the paper opening out again — every fold <b>mirrors</b> the hole across the crease.
+        Pick the sheet that shows where all the holes land! On harder levels the hole is a little flag, so watch which way it flips.
+        <div class="center" style="margin-top:10px;"><button id="rules-home" class="tlink">📖 Read the full rules</button></div>
+      </div>
+      <div class="row-btns mt"><button id="start-btn" class="btn btn-go btn-lg">Start ▶</button></div>
+    </section>
+
+    <section id="screen-game" class="hide">
+      <div class="topbar">
+        <button id="home-btn" class="tlink">🏠 Home</button>
+        <div class="tb-center">
+          <svg class="owl" id="owl-game" style="width:40px;height:40px;"></svg>
+          <div class="level-switch">
+            <button class="chip level" id="q-level" aria-haspopup="true" aria-expanded="false" aria-label="Change level">
+              <span id="q-level-label">🌱 Easy</span><span class="caret">▾</span>
+            </button>
+            <div class="level-menu" id="level-menu" role="menu"></div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <button id="skip-btn" class="tlink">⏭ Skip</button>
+        </div>
+      </div>
+
+      <div class="steps" id="steps" role="list" aria-label="How the paper was folded and punched"></div>
+
+      <div class="ask" id="ask"></div>
+      <div class="tilegrid" id="choices" role="group" aria-label="Answer choices"></div>
+      <div id="mark-view" class="hide">
+        <div class="stamps" id="stamps" role="group" aria-label="Choose which way the flag points"></div>
+        <div class="marksheet" id="marksheet" role="group" aria-label="The opened sheet — tap to mark a hole"></div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button id="reset-btn" class="tlink">🔄 Reset</button>
+        <button id="reveal-btn" class="tlink">👀 Show answer</button>
+        <button id="rules-btn" class="tlink">📖 Rules</button>
+      </div>
+      <div id="result-view" class="hide">
+        <div class="result">
+          <div class="stars" id="stars">☆☆☆</div>
+          <div class="rlabel" id="rlabel"></div>
+          <div class="rsub" id="rsub"></div>
+        </div>
+      </div>
+      <div class="serve-row">
+        <button id="check-btn" class="btn btn-go hide">Check ✓</button>
+        <button id="next-btn" class="btn btn-primary invisible">Next ▶</button>
+      </div>
+    </section>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="../../games.js"></script>
+<script src="../../assets/site.js"></script>
+<script>
+"use strict";
+/* ===== ENGINE (pure, DOM-free) ==========================================================
+   The sheet is an N×N grid of cells; cell i sits at column i % N, row i / N (rows run down).
+   The folded paper is a FOOTPRINT: for every cell of the original grid, how many layers of
+   paper cover each of its four quarter-triangles (N, E, S, W — cut by the cell's two
+   diagonals). Quarters are what let a diagonal crease cut a cell in half and a later
+   half-fold carry that half-cell somewhere else.
+
+   A fold is { t, mv, x0, y0, w, h }: t is V (vertical crease), H (horizontal), D (the box's
+   main diagonal, top-left to bottom-right) or A (the anti-diagonal); the box is the folded
+   paper's bounding box when the fold is made; mv says which side moves (0 = left / top /
+   top-right / top-left, 1 = the other). The moving side is reflected onto the staying side. */
+
+const LEVELS = {
+  EASY:   { label:"🌱 Easy",   size:6, plans:[["half"]],        punches:[1,1], shape:"round", choices:3 },
+  MEDIUM: { label:"⭐ Medium", size:6, plans:[["V","H"],["H","V"]], punches:[1,2], shape:"round", choices:4 },
+  HARD:   { label:"🔥 Hard",   size:6, plans:[["diag","half"]], punches:[1,1], shape:"flag",  choices:4 },
+  /* half the Expert puzzles carry a diagonal: first, or last once two half-folds leave a square */
+  EXPERT: { label:"🏆 Expert", size:8, plans:[["half","half","half"],["half","half","half"],["diag","half","half"],["half","half","diag"]],
+            punches:[1,1], shape:"flag", choices:0 },
+};
+
+/* the eight ways a lopsided hole can face: [a,b,c,d] maps (x,y) to (a·x + b·y, c·x + d·y) */
+const D4 = [[1,0,0,1],[0,-1,1,0],[-1,0,0,-1],[0,1,-1,0],[-1,0,0,1],[0,1,1,0],[1,0,0,-1],[0,-1,-1,0]];
+const LIN = { V:4, H:6, D:5, A:7 };                 /* the mirror each crease makes */
+function d4Index(m){ return D4.findIndex(q => q[0]===m[0] && q[1]===m[1] && q[2]===m[2] && q[3]===m[3]); }
+function d4Mul(i, j){
+  const a = D4[i], b = D4[j];
+  return d4Index([a[0]*b[0]+a[1]*b[2], a[0]*b[1]+a[1]*b[3], a[2]*b[0]+a[3]*b[2], a[2]*b[1]+a[3]*b[3]]);
+}
+function applyD4(o, v){ const m = D4[o]; return [m[0]*v[0] + m[1]*v[1], m[2]*v[0] + m[3]*v[1]]; }
+
+/* quarter k points along QDIR[k]; a mirror sends each quarter to the quarter it now points at */
+const QDIR = [[0,-1],[1,0],[0,1],[-1,0]];
+function permQ(q, o){
+  const out = [0,0,0,0];
+  for(let k = 0; k < 4; k++){
+    const v = applyD4(o, QDIR[k]);
+    out[QDIR.findIndex(d => d[0]===v[0] && d[1]===v[1])] += q[k];
+  }
+  return out;
+}
+/* a cell ON a diagonal crease is split: which quarters lie on side 0 (the rest are side 1) */
+const LINEQ = { D: 1|2, A: 1|8 };                    /* D: N+E is top-right · A: N+W is top-left */
+
+function fullSheet(N){ const fp = []; for(let i = 0; i < N*N; i++) fp.push([1,1,1,1]); return fp; }
+function hasPaper(q){ return !!q && (q[0] || q[1] || q[2] || q[3]) > 0; }
+function isFull(q){ return !!q && q[0] > 0 && q[1] > 0 && q[2] > 0 && q[3] > 0; }
+
+function bbox(fp, N){
+  let x0 = N, y0 = N, x1 = -1, y1 = -1;
+  fp.forEach((q, i) => { if(!hasPaper(q)) return; const x = i % N, y = (i / N) | 0;
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+  return { x0, y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+/* the folded paper is a whole w×w square — the only time a diagonal fold is allowed */
+function isSquare(fp, N){
+  const b = bbox(fp, N);
+  if(b.w !== b.h) return false;
+  for(let y = b.y0; y < b.y0 + b.h; y++) for(let x = b.x0; x < b.x0 + b.w; x++) if(!isFull(fp[y*N + x])) return false;
+  return true;
+}
+
+/* which side of fold f cell (x,y) is on: 0, 1, or 2 when a diagonal crease runs through it */
+function cls(f, x, y){
+  const u = x - f.x0, v = y - f.y0;
+  if(f.t === "V") return u < f.w / 2 ? 0 : 1;
+  if(f.t === "H") return v < f.h / 2 ? 0 : 1;
+  if(f.t === "D") return u === v ? 2 : (u > v ? 0 : 1);
+  const s = u + v;                                  /* A */
+  return s === f.w - 1 ? 2 : (s < f.w - 1 ? 0 : 1);
+}
+/* where cell (x,y) lands when it is reflected across fold f's crease */
+function refl(f, x, y){
+  const u = x - f.x0, v = y - f.y0;
+  if(f.t === "V") return [f.x0 + f.w - 1 - u, y];
+  if(f.t === "H") return [x, f.y0 + f.h - 1 - v];
+  if(f.t === "D") return [f.x0 + v, f.y0 + u];
+  return [f.x0 + f.w - 1 - v, f.y0 + f.w - 1 - u];
+}
+
+function foldFootprint(fp, f, N){
+  const out = new Array(N*N).fill(null);
+  const add = (i, q) => { if(!out[i]) out[i] = [0,0,0,0]; for(let k = 0; k < 4; k++) out[i][k] += q[k]; };
+  fp.forEach((q, i) => {
+    if(!hasPaper(q)) return;
+    const x = i % N, y = (i / N) | 0, c = cls(f, x, y);
+    let stay = [0,0,0,0], mov = [0,0,0,0];
+    if(c === 2){
+      const m0 = LINEQ[f.t];
+      for(let k = 0; k < 4; k++){ const side = (m0 >> k & 1) ? 0 : 1; (side === f.mv ? mov : stay)[k] = q[k]; }
+    } else if(c === f.mv) mov = q.slice(); else stay = q.slice();
+    if(hasPaper(stay)) add(i, stay);
+    if(hasPaper(mov)){ const r = refl(f, x, y); add(r[1]*N + r[0], permQ(mov, LIN[f.t])); }
+  });
+  return out;
+}
+
+/* every fold the paper allows right now: a half-fold needs an even side (so the crease runs
+   between cells) and paper on both halves; a diagonal needs the paper to be a whole square */
+function allowedFolds(fp, N){
+  const b = bbox(fp, N), out = [];
+  const both = f => { let s0 = false, s1 = false;
+    fp.forEach((q, i) => { if(!hasPaper(q)) return; const c = cls(f, i % N, (i / N) | 0);
+      if(c === 0 || c === 2) s0 = true; if(c === 1 || c === 2) s1 = true; });
+    return s0 && s1; };
+  for(const t of ["V", "H"]){
+    if((t === "V" ? b.w : b.h) % 2) continue;
+    for(const mv of [0, 1]){ const f = { t, mv, x0:b.x0, y0:b.y0, w:b.w, h:b.h }; if(both(f)) out.push(f); }
+  }
+  if(b.w >= 2 && isSquare(fp, N))
+    for(const t of ["D", "A"]) for(const mv of [0, 1]) out.push({ t, mv, x0:b.x0, y0:b.y0, w:b.w, h:b.h });
+  return out;
+}
+
+function genFolds(level, rng){
+  const L = LEVELS[level], N = L.size;
+  const plan = L.plans[(rng() * L.plans.length) | 0];
+  let fp = fullSheet(N);
+  const folds = [], fps = [fp];
+  for(const kind of plan){
+    const opts = allowedFolds(fp, N).filter(f =>
+      kind === "half" ? (f.t === "V" || f.t === "H") : kind === "diag" ? (f.t === "D" || f.t === "A") : f.t === kind);
+    if(!opts.length) return null;
+    const f = opts[(rng() * opts.length) | 0];
+    folds.push(f); fp = foldFootprint(fp, f, N); fps.push(fp);
+  }
+  return { folds, fps };
+}
+
+/* Punch folded cell `cell` and open the paper back out, one fold at a time. stages[j] is the
+   list of holes { i, o } once j folds have been undone (stages[0] is the punch itself, the
+   last is the fully opened sheet); o is how the hole faces, as an index into D4. Returns
+   null when the hole would not sit cleanly inside every layer — on a diagonal crease, or
+   over a half-cell of paper whose edge runs through it. */
+function trace(N, folds, fps, cell){
+  const n = folds.length;
+  if(!isFull(fps[n][cell])) return null;
+  let cur = [{ i: cell, o: 0 }];
+  const stages = [cur];
+  for(let k = n - 1; k >= 0; k--){
+    const f = folds[k], fb = fps[k], nx = [];
+    for(const p of cur){
+      const x = p.i % N, y = (p.i / N) | 0, c = cls(f, x, y);
+      if(c === 2) return null;
+      if(c !== f.mv && hasPaper(fb[p.i])){ if(!isFull(fb[p.i])) return null; nx.push({ i: p.i, o: p.o }); }
+      const r = refl(f, x, y), ri = r[1]*N + r[0];
+      if(cls(f, r[0], r[1]) === f.mv && hasPaper(fb[ri])){ if(!isFull(fb[ri])) return null; nx.push({ i: ri, o: d4Mul(LIN[f.t], p.o) }); }
+    }
+    cur = nx; stages.push(cur);
+  }
+  return stages;
+}
+
+/* The one layer on TOP of the stack at a folded cell. A flap folded over lands upside down,
+   so the top of the stack after a fold is the BOTTOM of the flap's stack before it. */
+function topLayer(N, folds, fps, cell){
+  function side(i, k, o, wantTop){
+    if(k === 0) return { i, o };
+    const f = folds[k - 1], fb = fps[k - 1], x = i % N, y = (i / N) | 0;
+    const r = refl(f, x, y), ri = r[1]*N + r[0], L = LIN[f.t];
+    const flap = cls(f, r[0], r[1]) === f.mv && hasPaper(fb[ri]);
+    const base = cls(f, x, y) !== f.mv && hasPaper(fb[i]);
+    if(wantTop) return flap ? side(ri, k - 1, d4Mul(L, o), false) : side(i, k - 1, o, true);
+    return base ? side(i, k - 1, o, false) : side(ri, k - 1, d4Mul(L, o), true);
+  }
+  return side(cell, folds.length, 0, true);
+}
+
+/* holes as a canonical, comparable list; a round hole has no "which way" */
+function normalize(holes, shape){
+  const m = new Map();
+  for(const h of holes) m.set(h.i, shape === "round" ? 0 : h.o);
+  return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([i, o]) => ({ i, o }));
+}
+function key(holes){ return holes.map(h => h.i + ":" + h.o).join(","); }
+
+/* Wrong answers come from real mistakes, never from random holes. */
+function mirrorAll(holes, f, t, N){           /* a naive unfold: every hole plus its mirror */
+  const g = Object.assign({}, f, { t }), out = holes.slice();
+  for(const h of holes){
+    const r = refl(g, h.i % N, (h.i / N) | 0);
+    if(r[0] < 0 || r[1] < 0 || r[0] >= N || r[1] >= N) return null;
+    out.push({ i: r[1]*N + r[0], o: d4Mul(LIN[t], h.o) });
+  }
+  return out;
+}
+const SWAP = { V:"H", H:"V", D:"A", A:"D" };
+function distractors(p, rng){
+  const n = p.folds.length, N = p.N, cands = [];
+  cands.push({ kind:"forgetLast", holes: p.stages[n - 1] });
+  cands.push({ kind:"topOnly", holes: p.punches.map(c => topLayer(N, p.folds, p.fps, c)) });
+  for(let k = 0; k < n; k++){                    /* one crease mirrored across the wrong line */
+    let h = p.stages[n - 1 - k];
+    h = mirrorAll(h, p.folds[k], SWAP[p.folds[k].t], N);
+    for(let j = k - 1; h && j >= 0; j--) h = mirrorAll(h, p.folds[j], p.folds[j].t, N);
+    if(h) cands.push({ kind:"wrongLine", holes: h });
+  }
+  for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const s = [];
+    for(const h of p.answer){ const x = h.i % N + dx, y = ((h.i / N) | 0) + dy;
+      if(x < 0 || y < 0 || x >= N || y >= N){ s.length = 0; break; } s.push({ i: y*N + x, o: h.o }); }
+    if(s.length) cands.push({ kind:"shifted", holes: s });
+  }
+  if(p.shape === "flag") cands.push({ kind:"noFlip", holes: p.answer.map(h => ({ i: h.i, o: 0 })) });
+
+  /* distinct from the answer and from each other; one of each kind of mistake first */
+  const seen = new Set([key(p.answer)]), pool = [];
+  for(const c of shuffle(cands, rng)){
+    const h = normalize(c.holes, p.shape), k = key(h);
+    if(!h.length || seen.has(k)) continue;
+    seen.add(k); pool.push({ kind: c.kind, holes: h });
+  }
+  const out = [], kinds = new Set();
+  const order = pool.filter(c => c.kind !== "shifted").concat(pool.filter(c => c.kind === "shifted"));
+  for(const c of order) if(!kinds.has(c.kind)){ kinds.add(c.kind); out.push(c); }
+  for(const c of order) if(out.indexOf(c) < 0) out.push(c);
+  return out;
+}
+
+function shuffle(a, rng){
+  a = a.slice();
+  for(let i = a.length - 1; i > 0; i--){ const j = (rng() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function tryPuzzle(level, rng){
+  const L = LEVELS[level], N = L.size;
+  const g = genFolds(level, rng);
+  if(!g) return null;
+  const n = g.folds.length, ok = [];
+  for(let i = 0; i < N*N; i++) if(trace(N, g.folds, g.fps, i)) ok.push(i);
+  const want = L.punches[0] + ((rng() * (L.punches[1] - L.punches[0] + 1)) | 0);
+  if(ok.length < want) return null;
+  const punches = shuffle(ok, rng).slice(0, want).sort((a, b) => a - b);
+  const traces = punches.map(c => trace(N, g.folds, g.fps, c));
+  const stages = [];
+  for(let j = 0; j <= n; j++) stages.push(normalize([].concat(...traces.map(t => t[j])), L.shape));
+  const p = { level, N, shape: L.shape, folds: g.folds, fps: g.fps, punches, stages, answer: stages[n] };
+  p.sig = level + "|" + g.folds.map(f => f.t + f.mv).join("") + "|" + punches.join(",");
+  if(L.choices){
+    const ds = distractors(p, rng);
+    if(ds.length < L.choices - 1) return null;   /* not enough honest mistakes: a new puzzle, never padding */
+    p.options = shuffle([p.answer].concat(ds.slice(0, L.choices - 1).map(d => d.holes)), rng);
+    p.correct = p.options.indexOf(p.answer);
+  }
+  return p;
+}
+
+/* a fresh puzzle; never the one just shown (Skip/Next) */
+function newPuzzle(level, rng, prevSig){
+  rng = rng || Math.random;
+  for(let tries = 0; tries < 400; tries++){
+    const p = tryPuzzle(level, rng);
+    if(p && p.sig !== prevSig) return p;
+  }
+  throw new Error("paper-punch: could not build a " + level + " puzzle");
+}
+
+function checkMarks(p, marks){ return key(normalize(marks, p.shape)) === key(p.answer); }
+/* a win is ★★★ minus one per wrong try (a wrong choice, or a wrong Check), never below ★ */
+function starsFor(misses){ return Math.max(1, 3 - misses); }
+
+if(typeof module !== "undefined") module.exports = { LEVELS, D4, LIN, applyD4, d4Mul, fullSheet, bbox, isSquare,
+  cls, refl, foldFootprint, allowedFolds, genFolds, trace, topLayer, normalize, key, distractors, newPuzzle,
+  checkMarks, starsFor };
+
+/* ===== DOM =============================================================================== */
+if(typeof document !== "undefined"){
+
+let level = "EASY", puzzle = null, misses = 0, solved = false;
+let marks = new Map(), stamp = 0, cursor = 0;
+
+const COLS = "ABCDEFGH";
+const cellName = (i, N) => COLS[i % N] + (((i / N) | 0) + 1);
+const DIRWORD = v => v[0] > 0 ? "right" : v[0] < 0 ? "left" : v[1] > 0 ? "down" : "up";
+const ENDWORD = { right:"right", left:"left", down:"bottom", up:"top" };
+function orientName(o){
+  return "flag pointing " + DIRWORD(applyD4(o, [1,0])) + ", flying at the " + ENDWORD[DIRWORD(applyD4(o, [0,-1]))];
+}
+function holesText(holes, N, shape){
+  if(!holes.length) return "no holes";
+  return holes.map(h => cellName(h.i, N) + (shape === "flag" ? " (" + orientName(h.o) + ")" : "")).join(", ");
+}
+
+/* ---- drawing a sheet ---- */
+const PAD = .35;
+const SHADES = ["#FFFBEA", "#FBEDBF", "#F4DC92", "#EBC96C", "#E0B54B", "#D4A236"];
+const MOVE_SHADES = ["#DDEFFB", "#C4E3F7", "#A9D5F2", "#8FC6EC"];
+const shade = (n, mv) => mv ? MOVE_SHADES[Math.min(n, 4) - 1] : SHADES[Math.min(n, 6) - 1];
+const r2 = v => Math.round(v * 1000) / 1000;
+const pts = a => a.map(p => r2(p[0]) + "," + r2(p[1])).join(" ");
+
+function holeSVG(h, N, shape){
+  const cx = h.i % N + .5, cy = ((h.i / N) | 0) + .5;
+  if(shape === "round") return '<circle class="hole" data-i="' + h.i + '" data-o="0" cx="' + cx + '" cy="' + cy + '" r=".27"/>';
+  return flagSVG(h.o, cx, cy, ' data-i="' + h.i + '" data-o="' + h.o + '"');
+}
+/* the lopsided hole: a pole with a pennant at one end — no mirror line, so all eight ways differ */
+function flagSVG(o, cx, cy, attrs){
+  const m = D4[o];
+  return '<g class="hole"' + (attrs || "") + ' transform="translate(' + cx + ' ' + cy + ') matrix(' + m[0] + ' ' + m[2] + ' ' + m[1] + ' ' + m[3] + ' 0 0)">'
+    + '<path d="M-.27 -.37h.11v.74h-.11zM-.16 -.37L.36 -.16L-.16 .05z"/></g>';
+}
+
+/* the moving side of a fold's box, as a polygon (for the tint, the arrow and the flap) */
+function movePoly(f){
+  const { x0, y0, w, h } = f, X = x0 + w, Y = y0 + h;
+  if(f.t === "V"){ const m = x0 + w/2; return f.mv ? [[m,y0],[X,y0],[X,Y],[m,Y]] : [[x0,y0],[m,y0],[m,Y],[x0,Y]]; }
+  if(f.t === "H"){ const m = y0 + h/2; return f.mv ? [[x0,m],[X,m],[X,Y],[x0,Y]] : [[x0,y0],[X,y0],[X,m],[x0,m]]; }
+  if(f.t === "D") return f.mv ? [[x0,y0],[X,Y],[x0,Y]] : [[x0,y0],[X,y0],[X,Y]];
+  return f.mv ? [[X,y0],[X,Y],[x0,Y]] : [[x0,y0],[X,y0],[x0,Y]];
+}
+function reflPoint(f, p){
+  if(f.t === "V") return [2*f.x0 + f.w - p[0], p[1]];
+  if(f.t === "H") return [p[0], 2*f.y0 + f.h - p[1]];
+  if(f.t === "D") return [f.x0 + (p[1] - f.y0), f.y0 + (p[0] - f.x0)];
+  return [f.x0 + f.w - (p[1] - f.y0), f.y0 + f.w - (p[0] - f.x0)];
+}
+function creaseLine(f){
+  const { x0, y0, w, h } = f;
+  if(f.t === "V") return [[x0 + w/2, y0], [x0 + w/2, y0 + h]];
+  if(f.t === "H") return [[x0, y0 + h/2], [x0 + w, y0 + h/2]];
+  if(f.t === "D") return [[x0, y0], [x0 + w, y0 + w]];
+  return [[x0 + w, y0], [x0, y0 + w]];
+}
+
+function sheetSVG(N, o){
+  o = o || {};
+  const fp = o.fp || fullSheet(N), f = o.fold;
+  let s = '<svg class="sheet" viewBox="' + (-PAD) + ' ' + (-PAD) + ' ' + (N + 2*PAD) + ' ' + (N + 2*PAD) + '" aria-hidden="true">';
+  s += '<rect class="ghost" x="0" y="0" width="' + N + '" height="' + N + '"/>';
+  fp.forEach((q, i) => {
+    if(!hasPaper(q)) return;
+    const x = i % N, y = (i / N) | 0, c = f ? cls(f, x, y) : -1;
+    const mvq = k => !!f && (c === 2 ? (((LINEQ[f.t] >> k & 1) ? 0 : 1) === f.mv) : c === f.mv);
+    const same = q.every(v => v === q[0]) && [0,1,2,3].every(k => mvq(k) === mvq(0));
+    if(same){ s += '<rect class="cell" x="' + x + '" y="' + y + '" width="1" height="1" fill="' + shade(q[0], mvq(0)) + '"/>'; return; }
+    const cx = x + .5, cy = y + .5, C = [[x,y],[x+1,y],[x+1,y+1],[x,y+1]];
+    for(let k = 0; k < 4; k++) if(q[k] > 0)
+      s += '<polygon points="' + pts([C[k], C[(k+1) % 4], [cx, cy]]) + '" fill="' + shade(q[k], mvq(k)) + '"/>';
+  });
+  if(f){
+    const L = creaseLine(f);
+    s += '<line class="crease" x1="' + L[0][0] + '" y1="' + L[0][1] + '" x2="' + L[1][0] + '" y2="' + L[1][1] + '"/>';
+    const P = movePoly(f), S = [0,1].map(k => P.reduce((a, p) => a + p[k], 0) / P.length), E = reflPoint(f, S);
+    const d = [E[0] - S[0], E[1] - S[1]], len = Math.hypot(d[0], d[1]);
+    const C = [(S[0] + E[0]) / 2 - d[1] * .35, (S[1] + E[1]) / 2 + d[0] * .35];
+    const t = [E[0] - C[0], E[1] - C[1]], tl = Math.hypot(t[0], t[1]), u = [t[0] / tl, t[1] / tl], nrm = [-u[1], u[0]];
+    const a = Math.min(.45, len * .25), E2 = [E[0] - u[0] * a * .6, E[1] - u[1] * a * .6];
+    s += '<path class="arrow" d="M' + pts([S]) + ' Q' + pts([C]) + ' ' + pts([E2]) + '"/>';
+    s += '<polygon class="arrowhead" points="' + pts([E, [E[0] - u[0]*a + nrm[0]*a*.6, E[1] - u[1]*a + nrm[1]*a*.6],
+                                                         [E[0] - u[0]*a - nrm[0]*a*.6, E[1] - u[1]*a - nrm[1]*a*.6]]) + '"/>';
+  }
+  if(o.holes) for(const h of o.holes) s += holeSVG(h, N, o.shape);
+  return s + '</svg>';
+}
+
+function foldWords(f){
+  if(f.t === "V") return f.mv ? "the right half folds over onto the left" : "the left half folds over onto the right";
+  if(f.t === "H") return f.mv ? "the bottom half folds up onto the top" : "the top half folds down onto the bottom";
+  if(f.t === "D") return f.mv ? "the bottom-left corner folds up across the diagonal" : "the top-right corner folds down across the diagonal";
+  return f.mv ? "the bottom-right corner folds up across the diagonal" : "the top-left corner folds down across the diagonal";
+}
+
+/* the 3D flip: a flap cut to the moving side turns over the crease (motion on only) */
+function flapHTML(f, N, k){
+  const pc = v => r2((v + PAD) / (N + 2*PAD) * 100) + "%";
+  const poly = movePoly(f).map(p => pc(p[0]) + " " + pc(p[1])).join(",");
+  const L = creaseLine(f), o = [(L[0][0] + L[1][0]) / 2, (L[0][1] + L[1][1]) / 2];
+  const flip = f.t === "V" ? "rotateY(180deg)" : f.t === "H" ? "rotateX(180deg)"
+             : f.t === "D" ? "rotate3d(1,1,0,180deg)" : "rotate3d(1,-1,0,180deg)";
+  return '<div class="flap" aria-hidden="true" style="clip-path:polygon(' + poly + ');transform-origin:' + pc(o[0]) + ' ' + pc(o[1])
+    + ';--flip:' + flip + ';animation-delay:' + (k * .9 + .2) + 's"></div>';
+}
+
+function stepFigure(inner, caption, label){
+  return '<figure class="step" role="listitem" aria-label="' + label + '"><div class="pic">' + inner + '</div><figcaption aria-hidden="true">' + caption + '</figcaption></figure>';
+}
+
+function renderSteps(){
+  const p = puzzle, N = p.N, n = p.folds.length;
+  let s = "";
+  p.folds.forEach((f, k) => {
+    s += stepFigure(sheetSVG(N, { fp: p.fps[k], fold: f }) + (reduceMotion ? "" : flapHTML(f, N, k)),
+      (n > 1 ? (k + 1) + " · " : "") + "Fold", "Fold " + (k + 1) + ": " + foldWords(f));
+  });
+  s += stepFigure(sheetSVG(N, { fp: p.fps[n], holes: p.punches.map(i => ({ i, o: 0 })), shape: p.shape }),
+    "Punch!", "Punch: " + (p.shape === "flag" ? "a flag-shaped hole" : "a round hole") + " goes through every layer at "
+      + p.punches.map(i => cellName(i, N)).join(" and ") + (p.shape === "flag" ? ", " + orientName(0) : ""));
+  $("steps").style.setProperty("--n", n + 1);
+  $("steps").innerHTML = s;
+  /* what the pictures show, in words a machine can read back (the play-through rebuilds the
+     puzzle from these, then checks the drawn answers against it) */
+  $("steps").dataset.size = N;
+  $("steps").dataset.folds = JSON.stringify(p.folds);
+  $("steps").dataset.punches = p.punches.join(",");
+}
+
+function renderChoices(){
+  const p = puzzle, N = p.N;
+  $("choices").style.setProperty("--cols", p.options.length === 3 ? 3 : 2);
+  $("choices").innerHTML = p.options.map((h, k) =>
+    '<button class="tile" data-k="' + k + '" aria-label="Choice ' + (k + 1) + ': holes at ' + holesText(h, N, p.shape) + '">'
+    + '<span class="tnum" aria-hidden="true">' + (k + 1) + '</span><span class="mark" aria-hidden="true"></span>'
+    + sheetSVG(N, { holes: h, shape: p.shape }) + '</button>').join("");
+  $("choices").querySelectorAll(".tile").forEach(b => b.onclick = () => pick(+b.dataset.k));
+}
+
+function pick(k){
+  const b = $("choices").querySelector('.tile[data-k="' + k + '"]');
+  if(solved || !b || b.disabled) return;
+  if(k === puzzle.correct){
+    b.classList.add("right"); b.querySelector(".mark").textContent = "✓";
+    b.setAttribute("aria-label", b.getAttribute("aria-label") + " — right!");
+    win();
+  } else {
+    b.classList.add("nope"); b.disabled = true; b.querySelector(".mark").textContent = "✗";
+    b.setAttribute("aria-label", b.getAttribute("aria-label") + " — not this one");
+    b.classList.remove("wrong-flash"); void b.offsetWidth; if(!reduceMotion) b.classList.add("wrong-flash");
+    misses++;
+    flash("✗ Not that one — mirror each hole across the crease.", "bad"); setOwl("worried"); sound("bad");
+  }
+}
+
+/* ---- EXPERT: stamps and the sheet you mark ---- */
+function renderStamps(){
+  let s = "";
+  for(let o = 0; o < 8; o++)
+    s += '<button class="stamp" data-o="' + o + '" aria-pressed="' + (o === stamp) + '" aria-label="Stamp: ' + orientName(o) + '">'
+      + '<svg viewBox="0 0 1 1" aria-hidden="true">' + flagSVG(o, .5, .5) + '</svg></button>';
+  $("stamps").innerHTML = s;
+  $("stamps").querySelectorAll(".stamp").forEach(b => b.onclick = () => {
+    stamp = +b.dataset.o;
+    $("stamps").querySelectorAll(".stamp").forEach(x => x.setAttribute("aria-pressed", String(+x.dataset.o === stamp)));
+  });
+}
+function markLabel(i){
+  const N = puzzle.N;
+  return cellName(i, N) + ", " + (marks.has(i) ? "hole, " + orientName(marks.get(i)) : "empty");
+}
+function paintMark(i){
+  const b = $("marksheet").querySelector('.mc[data-i="' + i + '"]');
+  b.innerHTML = marks.has(i) ? '<svg viewBox="0 0 1 1" aria-hidden="true">' + flagSVG(marks.get(i), .5, .5, ' data-i="' + i + '" data-o="' + marks.get(i) + '"') + '</svg>' : "";
+  b.setAttribute("aria-label", markLabel(i));
+}
+function renderMarksheet(){
+  const N = puzzle.N;
+  cursor = 0;
+  $("marksheet").style.setProperty("--n", N);
+  let s = "";
+  for(let i = 0; i < N*N; i++) s += '<button class="mc" data-i="' + i + '" tabindex="' + (i === 0 ? 0 : -1) + '"></button>';
+  $("marksheet").innerHTML = s;
+  for(let i = 0; i < N*N; i++) paintMark(i);
+  $("marksheet").querySelectorAll(".mc").forEach(b => b.onclick = () => tapCell(+b.dataset.i));
+}
+function tapCell(i){
+  if(solved) return;
+  if(marks.get(i) === stamp) marks.delete(i); else marks.set(i, stamp);
+  paintMark(i); moveCursor(i, false); sound("tap"); flash("", "");
+}
+function moveCursor(i, focus){
+  const cells = $("marksheet").querySelectorAll(".mc");
+  cells[cursor].tabIndex = -1; cursor = i; cells[i].tabIndex = 0;
+  if(focus) cells[i].focus();
+}
+$("marksheet").addEventListener("keydown", e => {
+  if(!puzzle) return;
+  const N = puzzle.N, x = cursor % N, y = (cursor / N) | 0;
+  const go = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] }[e.key];
+  if(!go) return;
+  e.preventDefault();
+  const nx = Math.min(N - 1, Math.max(0, x + go[0])), ny = Math.min(N - 1, Math.max(0, y + go[1]));
+  moveCursor(ny*N + nx, true);
+});
+
+function check(){
+  if(solved || level !== "EXPERT") return;
+  const got = [...marks.entries()].map(([i, o]) => ({ i, o }));
+  if(checkMarks(puzzle, got)){ win(); return; }
+  const want = puzzle.answer.length, have = got.length;
+  const right = got.filter(g => puzzle.answer.some(a => a.i === g.i && a.o === g.o)).length;
+  const why = have !== want ? "The paper has " + want + " layers under the punch — so how many holes?"
+             : right === want ? "" : "Some holes are in the wrong place or facing the wrong way.";
+  misses++;
+  flash("✗ Not quite. " + why, "bad"); setOwl("worried"); sound("bad");
+  const m = $("marksheet"); m.classList.remove("shake"); void m.offsetWidth; if(!reduceMotion) m.classList.add("shake");
+}
+
+/* ---- the round ---- */
+function sound(kind){
+  if(reduceMotion) return;
+  if(kind === "win") beepWin();
+  else if(kind === "bad") beepBad();
+  else if(kind === "tap") beep(660, .06, "triangle");
+}
+
+function newRound(fromHome){
+  if(fromHome) showScreen("game");
+  puzzle = newPuzzle(level, Math.random, puzzle && puzzle.level === level ? puzzle.sig : null);
+  misses = 0; solved = false; marks = new Map(); stamp = 0;
+  const expert = level === "EXPERT";
+  renderSteps();
+  $("ask").textContent = expert ? "Mark every hole on the opened sheet — pick a stamp to choose which way each flag faces."
+    : "Which sheet shows the holes when the paper is opened out?";
+  $("choices").classList.toggle("hide", expert);
+  $("mark-view").classList.toggle("hide", !expert);
+  if(expert){ renderStamps(); renderMarksheet(); $("choices").innerHTML = ""; } else renderChoices();
+  $("reset-btn").classList.toggle("invisible", !expert); $("reset-btn").classList.remove("off");
+  $("reveal-btn").classList.remove("off");
+  $("marksheet").classList.remove("shown", "shake");
+  $("skip-btn").classList.remove("invisible");
+  $("result-view").classList.add("hide");
+  $("check-btn").classList.toggle("hide", !expert);
+  const nb = $("next-btn");
+  nb.classList.toggle("hide", expert); nb.classList.toggle("invisible", !expert);
+  flash("", ""); setOwl("think");
+}
+
+/* the round is over: won (stars), or the answer shown (no stars — the round is not a win) */
+function endRound(won){
+  solved = true;
+  const s = won ? starsFor(misses) : 0;
+  $("stars").textContent = "★".repeat(s) + "☆".repeat(3 - s);
+  $("rlabel").textContent = won ? ["", "You got it!", "Great folding!", "Perfect unfold!"][s] : "👀 Here's the answer";
+  $("rsub").textContent = !won ? "Look how each hole mirrors across the creases — then try the next one!"
+    : misses ? "Solved after " + misses + " wrong tr" + (misses > 1 ? "ies" : "y") + "." : "Right first time!";
+  $("result-view").classList.remove("hide");
+  $("choices").querySelectorAll(".tile").forEach(b => b.disabled = true);
+  $("check-btn").classList.add("hide");
+  $("skip-btn").classList.add("invisible");          /* keeps its box, so the owl stays centred */
+  $("reveal-btn").classList.add("off"); $("reset-btn").classList.add("off");
+  const nb = $("next-btn"); nb.classList.remove("hide", "invisible"); nb.focus();
+  flash("", "");
+  if(won){ setOwl("win"); sound("win"); if(!reduceMotion) throwConfetti(); }
+  else setOwl("idle");
+}
+function win(){ endRound(true); }
+
+/* Show answer: tick the right sheet among the choices (or stamp the answer onto the Expert
+   sheet) — the answer appears where the child was already looking, and the round ends unrated */
+function reveal(){
+  if(solved) return;
+  if(level === "EXPERT"){
+    marks = new Map(puzzle.answer.map(h => [h.i, h.o]));
+    for(let i = 0; i < puzzle.N * puzzle.N; i++) paintMark(i);
+    $("marksheet").classList.add("shown");
+  } else {
+    const b = $("choices").querySelector('.tile[data-k="' + puzzle.correct + '"]');
+    b.classList.add("right"); b.querySelector(".mark").textContent = "✓";
+    b.setAttribute("aria-label", b.getAttribute("aria-label") + " — this is the answer");
+  }
+  endRound(false);
+}
+
+function reset(){
+  if(solved || level !== "EXPERT") return;
+  marks = new Map(); renderMarksheet(); flash("", ""); setOwl("think");
+}
+
+function setLevel(l){ level = l; markLevel(l, LEVELS[l].label); }
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+buildLevelMenu(LEVELS, pickLevel);
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(false); }
+wireLevelMenu();
+
+function goHome(){ showHome(); }
+$("start-btn").onclick = () => newRound(true);
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => newRound(false);
+$("next-btn").onclick = () => newRound(false);
+$("check-btn").onclick = check;
+$("reveal-btn").onclick = reveal;
+$("reset-btn").onclick = reset;
+
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){ closeLevelMenu(); return; }
+  if($("screen-game").classList.contains("hide") || !puzzle || solved || level === "EXPERT") return;
+  const k = "1234".indexOf(e.key);
+  if(k >= 0 && k < puzzle.options.length){ e.preventDefault(); pick(k); }
+});
+
+/* ---- the rules sheet ---- */
+wireRulesSheet(function(){
+  const N = 4, v = { t:"V", mv:0, x0:0, y0:0, w:4, h:4 }, fp1 = foldFootprint(fullSheet(N), v, N);
+  const punch = [{ i: 6, o: 0 }], open = trace(N, [v], [fullSheet(N), fp1], 6)[1];
+  const d = { t:"D", mv:0, x0:0, y0:0, w:4, h:4 }, fpd = foldFootprint(fullSheet(N), d, N);
+  const dOpen = trace(N, [d], [fullSheet(N), fpd], 8)[1];
+  const arrow = '<span class="rarrow">➡️</span>';
+  $("rules-body").innerHTML =
+    '<div class="rule"><h3>📄 Fold</h3>'
+    + '<p>The pictures at the top show how the square sheet is folded, one step at a time. The <b>dashed line</b> is the '
+    + 'crease, and the <b>arrow</b> shows which part flips over it. The blue part is the part that moves; it lands on '
+    + 'top of the part that stays still. Darker paper means more layers are stacked there.</p>'
+    + '<div class="rrow">' + sheetSVG(N, { fold: v }) + arrow + sheetSVG(N, { fp: fp1 }) + '</div>'
+    + '<span class="cap">The left half folds over onto the right half.</span></div>'
+    + '<div class="rule"><h3>🕳️ Punch</h3>'
+    + '<p>Then a hole is punched through the folded paper. The punch goes through <b>every layer</b> at once — so one '
+    + 'punch through two layers makes two holes, and through four layers makes four.</p>'
+    + '<div class="rrow">' + sheetSVG(N, { fp: fp1, holes: punch, shape: "round" }) + '</div></div>'
+    + '<div class="rule"><h3>📖 Unfold</h3>'
+    + '<p>Now picture opening the paper out. Undo the folds in reverse: the <b>last</b> fold opens first. Each time a '
+    + 'fold opens, every hole gets a <b>mirror twin</b> on the other side of that crease — the same distance from the '
+    + 'crease, just on the other side.</p>'
+    + '<div class="rrow">' + sheetSVG(N, { fp: fp1, holes: punch, shape: "round" }) + arrow + sheetSVG(N, { holes: open, shape: "round" }) + '</div>'
+    + '<span class="cap">One layer each side of the crease: two holes, mirror images of each other.</span></div>'
+    + '<div class="rule"><h3>🚩 Mirror flips</h3>'
+    + '<p>On Hard and Expert the hole is a little <b>flag</b>, and a flag has a "which way". When the paper opens, the flag '
+    + 'on the flap is <b>mirrored</b>: across a side-to-side crease it points the other way, and across a diagonal crease it '
+    + 'ends up lying on its side. Get the place <b>and</b> the direction right.</p>'
+    + '<div class="rrow">' + sheetSVG(N, { fp: fp1, holes: punch, shape: "flag" }) + arrow + sheetSVG(N, { holes: open, shape: "flag" }) + '</div>'
+    + '<span class="cap">Across an up-and-down crease, the flag faces the other way.</span>'
+    + '<div class="rrow">' + sheetSVG(N, { fold: d }) + arrow + sheetSVG(N, { fp: fpd, holes: [{ i: 8, o: 0 }], shape: "flag" }) + arrow
+    + sheetSVG(N, { holes: dOpen, shape: "flag" }) + '</div>'
+    + '<span class="cap">Across a diagonal crease, the twin flag lies on its side.</span></div>'
+    + '<div class="rule"><h3>🏆 Expert: mark it yourself</h3>'
+    + '<p>On Expert there are no choices. Pick a <b>stamp</b> to choose which way the flag faces, then tap the squares of the '
+    + 'opened sheet where the holes will be. Tap a hole again with the same stamp to rub it out, and press <b>Check ✓</b> when '
+    + 'you are done. A wrong check is fine — keep going!</p></div>'
+    + '<div class="rule"><h3>⭐ Stars, and 👀 Show answer</h3>'
+    + '<p>Get it right first time for ★★★. Each wrong try costs a star, but a win always earns at least ★. '
+    + 'Really stuck? <b>Show answer</b> ticks the right sheet (or stamps the holes onto the Expert sheet) so you can see '
+    + 'how it works — that round earns no stars, and the next puzzle is a fresh start.</p></div>';
+});
+
+initBouncyTitle();
+setLevel("EASY");
+}
+</script>
+</body>
+</html>

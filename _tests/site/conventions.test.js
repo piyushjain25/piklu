@@ -201,6 +201,11 @@ for (const g of loadCatalog()) {
   }
 }
 
+/* a link the current level or phase doesn't use takes no room in the actions row, so the rest
+   stay centred together — one rule in site.css for every game (CLAUDE.md "Standard layout") */
+ok(/\.actions\s*>\s*\.invisible\s*\{[^}]*display:\s*none/.test(siteCSS),
+   "site.css must collapse .invisible links in the .actions row (display:none), so the visible ones centre");
+
 /* the fonts live in exactly one place: site.css @imports them, no page links them itself */
 ok(/@import url\("https:\/\/fonts\.googleapis\.com\/css2\?[^"]*family=Fredoka[^"]*family=Nunito[^"]*"\);/.test(siteCSS),
    "site.css must @import the Fredoka + Nunito stylesheet — that is how every page gets the fonts");

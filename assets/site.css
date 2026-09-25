@@ -264,6 +264,9 @@ svg.monster.mini{width:100%; height:auto; display:block;}
 .actions{display:flex; gap:10px; justify-content:center; align-items:center; margin:12px 0 18px; flex-wrap:wrap;}
 .serve-row{display:flex; justify-content:center; margin-top:6px;}
 .invisible{visibility:hidden !important;}  /* hidden but keeps its space, so the top bar doesn't reflow */
+/* ...except in the actions row: a link a level or phase doesn't use takes NO space there, so the
+   links that are left sit centred together instead of beside a gap (every game, one rule) */
+.actions > .invisible{display:none !important;}
 
 /* level chip switcher (dropdown) */
 .level-switch{position:relative; display:inline-block;}

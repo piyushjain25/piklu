@@ -525,7 +525,7 @@ function showPhase(){
   $("chart-btn").classList.toggle("hide", phase !== 2);
   $("next-btn").classList.toggle("hide", phase !== 3);
   $("next-btn").classList.toggle("invisible", phase === 3 && !done);   /* holds the slot during the question */
-  /* the question has nothing to reset — Reset keeps its box so Hint doesn't jump */
+  /* the question has nothing to reset — .invisible collapses Reset in the actions row, so Hint sits centred */
   $("reset-btn").classList.toggle("invisible", phase === 3);
   $("hint-link").classList.toggle("off", done);
   paintScene();

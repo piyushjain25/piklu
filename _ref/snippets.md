@@ -437,3 +437,96 @@ board:       piece you bird gb-stage gb-rig gb-board gb-layer gb-slot gb-back gb
 board line:  gb-line wl-back wl-front
 board state: last win place drop gone
 ```
+
+## 12. Wiring the controls (JS)
+
+The glue every game writes between its engine and the shared helpers: `setLevel` (the `.diff`
+cards only pick a level; Start begins play), the level menu (`buildLevelMenu` + a `pickLevel` that
+starts a fresh puzzle while staying in the game), Home, Start, Skip, Next and the actions row.
+`goHome()` opens with `showHome()` and then does only the game's own cleanup (timers,
+`stopSpeech()`, …). Taken from `paper-punch`, whose round function is `newRound(fromHome)`:
+
+Source: `games/paper-punch/index.html` lines 705-727
+```js
+function setLevel(l){ level = l; markLevel(l, LEVELS[l].label); }
+document.querySelectorAll(".diff").forEach(b => b.onclick = () => setLevel(b.dataset.diff));
+buildLevelMenu(LEVELS, pickLevel);
+function pickLevel(l){ closeLevelMenu(); if(l === level) return; setLevel(l); newRound(false); }
+wireLevelMenu();
+
+function goHome(){ showHome(); }
+$("start-btn").onclick = () => newRound(true);
+$("home-btn").onclick = goHome;
+$("skip-btn").onclick = () => newRound(false);
+$("next-btn").onclick = () => newRound(false);
+$("check-btn").onclick = check;
+$("reveal-btn").onclick = reveal;
+$("reset-btn").onclick = reset;
+
+document.addEventListener("keydown", e => {
+  if(rulesSheetOpen()) return;              // the sheet owns the keyboard while it is up
+  if(e.key === "Escape"){ closeLevelMenu(); return; }
+  if($("screen-game").classList.contains("hide") || !puzzle || solved || level === "EXPERT") return;
+  const k = "1234".indexOf(e.key);
+  if(k >= 0 && k < puzzle.options.length){ e.preventDefault(); pick(k); }
+});
+
+```
+
+Starting a round: pick a puzzle that differs from the one on screen (Skip/Next never repeat it),
+then put every control back in its play state. The bottom slot shown here is the EXPERT pattern
+(`Check ✓` live, `Next ▶` hidden) next to the no-submit pattern (`Next ▶` held `.invisible`),
+and a Reset that goes `.invisible` at the levels where it does nothing — in the actions row that
+takes no room, so the links left over sit centred together:
+
+Source: `games/paper-punch/index.html` lines 642-662
+```js
+function newRound(fromHome){
+  if(fromHome) showScreen("game");
+  puzzle = newPuzzle(level, Math.random, puzzle && puzzle.level === level ? puzzle.sig : null);
+  misses = 0; solved = false; marks = new Map(); stamp = 0;
+  const expert = level === "EXPERT";
+  renderSteps();
+  $("ask").textContent = expert ? "Mark every hole on the opened sheet — pick a stamp to choose which way each flag faces."
+    : "Which sheet shows the holes when the paper is opened out?";
+  $("choices").classList.toggle("hide", expert);
+  $("mark-view").classList.toggle("hide", !expert);
+  if(expert){ renderStamps(); renderMarksheet(); $("choices").innerHTML = ""; } else renderChoices();
+  $("reset-btn").classList.toggle("invisible", !expert); $("reset-btn").classList.remove("off");
+  $("reveal-btn").classList.remove("off");
+  $("marksheet").classList.remove("shown", "shake");
+  $("skip-btn").classList.remove("invisible");
+  $("result-view").classList.add("hide");
+  $("check-btn").classList.toggle("hide", !expert);
+  const nb = $("next-btn");
+  nb.classList.toggle("hide", expert); nb.classList.toggle("invisible", !expert);
+  flash("", ""); setOwl("think");
+}
+```
+
+The end of a round: fill `#stars` (here ★★★ minus one per wrong try, never below ★ on a win, and
+☆☆☆ when the answer was shown), show `#result-view`, swap `Next ▶` in where the primary button
+was, hide Skip with `.invisible`, and celebrate only a real win:
+
+Source: `games/paper-punch/index.html` lines 664-682
+```js
+/* the round is over: won (stars), or the answer shown (no stars — the round is not a win) */
+function endRound(won){
+  solved = true;
+  const s = won ? starsFor(misses) : 0;
+  $("stars").textContent = "★".repeat(s) + "☆".repeat(3 - s);
+  $("rlabel").textContent = won ? ["", "You got it!", "Great folding!", "Perfect unfold!"][s] : "👀 Here's the answer";
+  $("rsub").textContent = !won ? "Look how each hole mirrors across the creases — then try the next one!"
+    : misses ? "Solved after " + misses + " wrong tr" + (misses > 1 ? "ies" : "y") + "." : "Right first time!";
+  $("result-view").classList.remove("hide");
+  $("choices").querySelectorAll(".tile").forEach(b => b.disabled = true);
+  $("check-btn").classList.add("hide");
+  $("skip-btn").classList.add("invisible");          /* keeps its box, so the owl stays centred */
+  $("reveal-btn").classList.add("off"); $("reset-btn").classList.add("off");
+  const nb = $("next-btn"); nb.classList.remove("hide", "invisible"); nb.focus();
+  flash("", "");
+  if(won){ setOwl("win"); sound("win"); if(!reduceMotion) throwConfetti(); }
+  else setOwl("idle");
+}
+function win(){ endRound(true); }
+```

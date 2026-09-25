@@ -233,7 +233,7 @@ async function playSmart(g) {
        "the bottom slot swaps Ready for the (still invisible) Play again");
     ok(g.$("next-btn").classList.contains("invisible"), "Play again stays invisible until the game ends");
     ok(g.$("auto-btn").classList.contains("invisible") && g.$("reset-btn").classList.contains("invisible"),
-       "Auto and Reset keep their boxes but go invisible once the battle starts — the row must not reflow");
+       "Auto and Reset go .invisible once the battle starts (site.css collapses them, so the rest centre)");
     ok(!g.$("hint-link").classList.contains("invisible"), "Hint is live in the battle");
     ok(g.ships("owl").length === 0, "the owl's boats are hidden");
     ok(g.ships("you").length === 5, "your own boats stay visible");

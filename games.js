@@ -178,4 +178,8 @@ window.GAMES = [
   { slug: "battleship",          title: "Battleship",          emoji: "🚢", accent: "sun",    ageGroup: "6+",
     tagline: "Hide your fleet, call the squares, and sink the owl's boats!", skills: ["Strategy", "Logic"], badge: "New",
     subtitle: "Hide your fleet and sink the owl's before it sinks yours!" },
+
+  { slug: "paper-punch",         title: "Paper Punch",         emoji: "📄", accent: "grape",  ageGroup: "9+",
+    tagline: "Fold it, punch it, and picture where the holes land.", skills: ["Logic", "Spatial reasoning"], badge: "New",
+    subtitle: "Fold the paper, punch a hole, and guess where the holes pop up when you open it!" },
 ];

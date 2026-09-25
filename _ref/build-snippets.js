@@ -15,6 +15,7 @@ const ROOT = path.resolve(__dirname, "..");
 const P = "games/pizza-party/index.html", L = "games/lights-out/index.html", J = "games/juice-jumble/index.html";
 const W = "games/spot-the-words/index.html", SJ = "assets/site.js";
 const G = "games/gomoku/index.html", C = "games/connect-four/index.html";
+const PP = "games/paper-punch/index.html";
 
 function block(file, anchor, from, count, lang){
   const lines = fs.readFileSync(path.join(ROOT, file), "utf8").split("\n");
@@ -260,6 +261,33 @@ board:       piece you bird gb-stage gb-rig gb-board gb-layer gb-slot gb-back gb
 board line:  gb-line wl-back wl-front
 board state: last win place drop gone
 \`\`\`
-`,];
+
+## 12. Wiring the controls (JS)
+
+The glue every game writes between its engine and the shared helpers: \`setLevel\` (the \`.diff\`
+cards only pick a level; Start begins play), the level menu (\`buildLevelMenu\` + a \`pickLevel\` that
+starts a fresh puzzle while staying in the game), Home, Start, Skip, Next and the actions row.
+\`goHome()\` opens with \`showHome()\` and then does only the game's own cleanup (timers,
+\`stopSpeech()\`, …). Taken from \`paper-punch\`, whose round function is \`newRound(fromHome)\`:
+
+`,
+  block(PP, "function setLevel(l){", 0, 23, "js"),
+  `
+Starting a round: pick a puzzle that differs from the one on screen (Skip/Next never repeat it),
+then put every control back in its play state. The bottom slot shown here is the EXPERT pattern
+(\`Check ✓\` live, \`Next ▶\` hidden) next to the no-submit pattern (\`Next ▶\` held \`.invisible\`),
+and a Reset that goes \`.invisible\` at the levels where it does nothing — in the actions row that
+takes no room, so the links left over sit centred together:
+
+`,
+  block(PP, "function newRound(fromHome){", 0, 21, "js"),
+  `
+The end of a round: fill \`#stars\` (here ★★★ minus one per wrong try, never below ★ on a win, and
+☆☆☆ when the answer was shown), show \`#result-view\`, swap \`Next ▶\` in where the primary button
+was, hide Skip with \`.invisible\`, and celebrate only a real win:
+
+`,
+  block(PP, "function endRound(won){", -1, 19, "js"),
+];
 fs.writeFileSync(path.join(__dirname, "snippets.md"), out.join(""));
 console.log("wrote _ref/snippets.md (" + out.join("").split("\n").length + " lines)");

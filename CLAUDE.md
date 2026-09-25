@@ -87,14 +87,14 @@ online toy store later. Read the rules below before changing anything.
    |---|---|---|
    | `level_select` | `markLevel()`, only on a real change | Is EXPERT ever touched? Were 3 levels right? |
    | `game_start` | `showScreen()`, only when leaving the start screen | Does the `.howto` get a child into the game? |
-   | `round_end` | a `MutationObserver` on `#result-view` (in all 37 games) | The difficulty curve: `stars` (0 = lost) + `result_label` |
+   | `round_end` | a `MutationObserver` on `#result-view` (in all 38 games) | The difficulty curve: `stars` (0 = lost) + `result_label` |
    | `hint_used` / `puzzle_skipped` | delegated clicks on `#hint-link` / `#skip-btn` | Which puzzles are too hard or unclear |
    | `rules_opened` | `openRulesSheet()`, with `from: start\|game` | Opened from *inside* a game = its `.howto` is failing |
    | `left_game` | `showHome()` | Where children give up |
    | `data_load_failed` | `loadGameData()` returning null | A broken JSON deploy, which is otherwise silent |
    | `hub_search` / `age_filter` | the hub's `#search` / `.age-chip` | What people look for that does not exist yet |
 
-   Only 15 games rate a round, so `round_end` sends `stars` only when `#stars` exists rather
+   Only 16 games rate a round, so `round_end` sends `stars` only when `#stars` exists rather
    than a misleading zero. The **hub search term is the only free text the site sends**: it
    goes a full second after typing stops, lowercased, stripped to `[a-z0-9 ]`, capped at 40
    characters and never twice in a row — the test enforces the stripping and the cap.
@@ -125,7 +125,7 @@ online toy store later. Read the rules below before changing anything.
                         games.js and site.js
 /games/<slug>/*.json        (optional) data a game loads via relative fetch(), e.g. words.json
 /_tests/                the offline test suite — Node + jsdom, NEVER deployed (see "Tests")
-/_ref/snippets.md       copy-paste markup for every shared pattern — NEVER deployed (see below)
+/_ref/snippets.md       copy-paste markup + control wiring for every shared pattern — NEVER deployed (see below)
 /_ref/build-snippets.js builds snippets.md from the real files (node _ref/build-snippets.js)
 /_config.yml            GitHub Pages build config; its only job is keeping non-site files
                         (`_tests/`, CLAUDE.md, README.md) off the public web
@@ -135,7 +135,8 @@ online toy store later. Read the rules below before changing anything.
 ### `_ref/snippets.md` — read this instead of a reference game
 
 `_ref/snippets.md` holds the literal markup for every shared pattern — page skeleton, top
-bar, `.diff` cards, actions row, bottom slot, rules sheet, data loading — pulled verbatim
+bar, `.diff` cards, actions row, bottom slot, rules sheet, data loading — plus the JS that wires
+the level cards, level menu, Start/Home/Skip/Next, a round's reset and the win — pulled verbatim
 from the games that define them. **Read it instead of opening a reference game.** It is a
 generated convenience, not a source of truth: `_tests/site/snippets.test.js` fails if it
 drifts from the real files, and when they disagree the real file is right. It also lists every
@@ -345,9 +346,20 @@ don't redefine these classes in a game's own `<style>`.
   the owl with nothing to reset, but keep a Hint, so their row is `💡 Hint`, `📖 Rules`.
   `battleship`'s row is **phase-aware** like `tally-chart`'s: `🎲 Auto`, `🔄 Reset`, `💡 Hint`,
   `📖 Rules`, where Auto and Reset act on the fleet you are hiding and go `.invisible` once the
-  battle starts, and Hint is `.invisible` until then — every box keeps its place, so the row
-  never reflows as the round changes phase.
+  battle starts, and Hint is `.invisible` until then.
+  `paper-punch` has **no Hint** — any hint there gave the answer away — and offers
+  `👀 Show answer` instead: it ticks the right sheet **among the choices** (at EXPERT, stamps the
+  answer onto the marking sheet) rather than showing it in a new component, and the round ends
+  unrated (☆☆☆). Its row is `🔄 Reset` (EXPERT only), `👀 Show answer`, `📖 Rules`.
   (Rules-sheet games carry `📖 Rules` at the end of the row.)
+- **A hidden action takes no room in the actions row.** When a level or phase doesn't use one of
+  the `.actions` links (Reset at paper-punch's EASY–HARD, tally-chart's question phase,
+  battleship's Auto/Reset in battle), give it `.invisible` as usual — `site.css`'s
+  `.actions > .invisible{display:none}` collapses it there, so the links that are left sit
+  **centred together** instead of beside an empty gap. That rule is shared, so every game gets it;
+  never keep an empty box in the actions row, and never work around the rule in a game.
+  (Contrast the top bar and the bottom slot below, where `.invisible` keeps its box on purpose.)
+  `_tests/site/conventions.test.js` checks the rule is still in `site.css`.
 - **The primary action is the ONLY real `.btn`** (Serve / Check / Pay / Run / …) and is
   the **last component at the bottom**, in its own bottom slot. A game with **no submit
   action** (the move itself is the check — e.g. `lights-out`, `spot-the-words`, `juice-jumble`,
@@ -363,8 +375,8 @@ don't redefine these classes in a game's own `<style>`.
   changes label per phase (`Done counting ✓` → `Check chart ✓`); the last phase is multiple
   choice, so the slot holds `Next ▶` with `.invisible` until the right option is tapped. Its
   `Reset`/`Hint` links are **phase-aware** — each acts on the current phase. Unlike a
-  single-phase MCQ game, which omits Reset altogether, `tally-chart` keeps Reset's box and
-  makes it `.invisible` in the multiple-choice phase, so the row doesn't reflow between phases.
+  single-phase MCQ game, which omits Reset altogether, `tally-chart` makes Reset `.invisible`
+  in the multiple-choice phase, which collapses it so Hint sits centred (see the actions-row rule above).
   `battleship` runs **two phases**: you hide your fleet, then you fight. Its bottom-slot primary
   `.btn` is `Ready ▶` while you are placing (it refuses to start while a boat is still on the
   bench) and is replaced in place by `Play again ▶` — invisible until someone's fleet goes down
@@ -386,7 +398,8 @@ don't redefine these classes in a game's own `<style>`.
   already is. `Next` loads a fresh, different puzzle and restores the play state.
 - **Nothing in the top bar may shift when the puzzle completes.** Hide Skip on a win with
   `visibility:hidden` (an `.invisible` helper that keeps its box), never `display:none`,
-  so the owl mascot and level chip don't re-center.
+  so the owl mascot and level chip don't re-center. (Only in the actions row does `.invisible`
+  collapse — see above.)
 - **No bottom footer** — Home/Skip live in the top bar; Reset/Hint under the game; the
   primary button (→ Next) at the bottom.
 - **Level chip is a switcher:** tapping it opens a small dropdown built from the game's
@@ -412,7 +425,7 @@ don't redefine these classes in a game's own `<style>`.
   and optional `.rrow` diagrams with a `.cap` caption). Games using it: `tic-tac-toe`,
   `mystery-word`, `matchstick-math`, `lights-out`, `spot-the-words`,
   `juice-jumble`, `dino-dig`, `mirror-draw`, `tally-chart`, `balance-scales`,
-  `circuit-builder`, `connect-four`, `checkers`, `gomoku`, `crazy-eights`, `battleship`.
+  `circuit-builder`, `connect-four`, `checkers`, `gomoku`, `crazy-eights`, `battleship`, `paper-punch`.
   `_tests/site/rules-sheet.test.js` holds that list — add a new game to it.
 
 ## Responsive: mobile-first, and sized from the card
@@ -736,7 +749,7 @@ calendar-quest · sentence-doctor · spell-a-bee · shape-math · what-am-i ·
 mouse-maze · sneak-peek · mystery-word ·
 lights-out · spot-the-words · juice-jumble · dino-dig · mirror-draw · tally-chart ·
 balance-scales · tic-tac-toe · circuit-builder · connect-four · checkers · gomoku ·
-crazy-eights · battleship
+crazy-eights · battleship · paper-punch
 
 `word-guess`, `guess-the-capital`, `spell-a-bee`, `spot-the-words`, `mystery-word`,
 `what-am-i` and `circuit-builder` are the **data-driven** games: each loads its data from JSON in its own folder
@@ -921,6 +934,25 @@ table.** `_tests/games/battleship/play.test.js` drives the real page: it hides a
 reads the drawn boats back off their own `grid-area` to prove no two touch at EASY (and that they
 *may* at EXPERT), checks a hit really does hand the turn straight back, and wins a whole game
 through the interface with a hunter of its own.
+
+`paper-punch` is the Olympiad "fold, punch, unfold" puzzle. It is procedural — no data file, so it
+works under `file://`. A square sheet (6×6, or 8×8 at EXPERT) is folded and punched, and the engine
+opens it back up by walking the folds in reverse. The folded paper is tracked per **quarter-triangle**
+of each cell, so a diagonal crease can cut a cell in half and a later half-fold can carry that
+half-cell somewhere else. A diagonal fold is only allowed while the paper is a whole square, which is
+why HARD always folds the diagonal **first**. A hole may never land on a diagonal crease or on a
+half-cell. EASY/MEDIUM punch a round hole; HARD/EXPERT punch a **flag**, chosen because it has no
+mirror line, so all eight orientations look different and a missed mirror-flip always shows. Wrong
+choices come only from real mistakes (forgetting the last unfold, the top layer only, a crease
+mirrored across the wrong line, a shifted copy, an unflipped flag); a puzzle without enough of them
+is regenerated, never padded. EXPERT has no choices: the child picks one of eight flag **stamps**
+and taps the opened sheet, then presses Check. It has **no Hint** (showing the paper opening out
+gave the answer away); `👀 Show answer` ticks the right choice in place (or stamps the answer onto
+the EXPERT sheet) and ends the round with no stars. A win is ★★★ minus one per wrong try (a wrong
+choice or a wrong Check), at least ★. `_tests/games/paper-punch/engine.test.js` checks
+every puzzle against an independent **physical stack of paper layers** (polygons + affine
+transforms, cut and flipped at each crease) — places, orientations, no hole straddling a crease or
+an edge, exactly one right choice — **run it after touching the fold engine or the distractors.**
 
 `dino-dig` builds each board **after the first dig** and only accepts one a perfect logical
 player can clear from there without ever guessing; the same solver powers its Hint.
